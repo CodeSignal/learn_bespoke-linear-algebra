@@ -1,0 +1,201 @@
+<!-- Help Content Template for Bespoke Applications -->
+<!--
+  This template provides a consistent structure for help content across all
+  embedded applications. Customize the content while maintaining the structure.
+-->
+
+<!-- Table of Contents Navigation -->
+<nav class="toc">
+  <strong>Contents</strong>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#getting-started">Getting Started</a></li>
+    <li><a href="#features">Key Features</a></li>
+    <li><a href="#workflow">Workflow</a></li>
+    <li><a href="#shortcuts">Shortcuts</a></li>
+    <li><a href="#faq">Troubleshooting / FAQ</a></li>
+  </ul>
+</nav>
+
+<!-- Overview Section -->
+<section id="overview">
+  <h2>Overview</h2>
+  <p>Interactive Linear Algebra is a visual learning tool that helps you understand vector operations through hands-on experimentation. Draw vectors on a Cartesian plane and perform operations like addition, subtraction, scalar multiplication, and dot products with animated visualizations.</p>
+  <p>This tool is designed for students learning linear algebra concepts and anyone who wants to develop an intuitive understanding of vector mathematics.</p>
+</section>
+
+<!-- Getting Started Section -->
+<section id="getting-started">
+  <h2>Getting Started</h2>
+  <p>To begin exploring vectors:</p>
+  <ol>
+    <li><strong>Create your first vector:</strong> Click and drag anywhere on the grid. The starting point will be the origin (0, 0) and the endpoint will be where you release the mouse.</li>
+    <li><strong>Create a second vector:</strong> Click and drag again to create a second vector (v₂) with a different color.</li>
+    <li><strong>Explore operations:</strong> Use the buttons in the left sidebar to perform mathematical operations on your vectors.</li>
+    <li><strong>View results:</strong> Watch the animated result appear on the grid and see the mathematical formulas in the Results section.</li>
+  </ol>
+  <p><strong>Note:</strong> Vectors snap to a 0.5-unit grid for easier alignment and clearer demonstrations.</p>
+</section>
+
+<!-- Key Features Section -->
+<section id="features">
+  <h2>Key Features</h2>
+
+  <h3>Vector Addition</h3>
+  <p>Add two vectors together to see the resulting vector. The operation v₁ + v₂ is visualized with smooth animation showing how the vectors combine. The result follows the "tip-to-tail" method commonly taught in physics and mathematics.</p>
+
+  <h3>Vector Subtraction</h3>
+  <p>Subtract one vector from another (v₁ - v₂). This operation helps visualize the difference between vectors and is useful for understanding relative positions and directions.</p>
+
+  <h3>Scalar Multiplication</h3>
+  <p>Multiply a vector by a scalar (number) to change its magnitude while preserving or reversing its direction. Enter any decimal value and see how it scales your vector. Negative scalars flip the vector's direction.</p>
+
+  <h3>Dot Product</h3>
+  <p>Calculate the dot product (v₁ · v₂) between two vectors. This fundamental operation returns a scalar value and is essential for understanding projection, work, and angles between vectors. The formula and step-by-step calculation are displayed.</p>
+
+  <h3>Vector Projection</h3>
+  <p>Project vector v₁ onto vector v₂ to find the component of v₁ that lies along v₂. This operation is crucial for decomposing vectors into components and understanding how much of one vector "goes in the direction" of another. The result shows proj_v₂(v₁) as a vector along v₂.</p>
+
+  <h3>Angle Between Vectors</h3>
+  <p>Calculate the angle between two vectors using the dot product formula. This operation shows the geometric relationship between vectors, displaying the result in both degrees and radians. Understanding this angle helps interpret the dot product geometrically.</p>
+
+  <h3>Unit Vector / Normalization</h3>
+  <p>Convert any vector into a unit vector (length = 1.0) that points in the same direction. Normalization is fundamental in linear algebra for representing pure direction without magnitude. The result shows û₁ or û₂ with coordinates that maintain direction while achieving unit length.</p>
+
+  <h3>Perpendicular Vector</h3>
+  <p>Generate a vector perpendicular (90° rotation) to an existing vector. This operation demonstrates the geometric relationship between vectors and is useful for understanding orthogonality, normal vectors, and rotations in 2D space.</p>
+
+  <h3>Real-time Calculations</h3>
+  <p>As you create and modify vectors, the sidebar instantly displays their coordinates, magnitudes (lengths), and angles. All operations show both the mathematical formula and the numerical result.</p>
+
+  <h3>Animated Operations</h3>
+  <p>All vector operations are animated smoothly, helping you visualize the transformation and understand the geometric interpretation of algebraic operations.</p>
+</section>
+
+<!-- Workflow Section -->
+<section id="workflow">
+  <h2>Workflow</h2>
+  <p>Here's a typical learning session with the Interactive Linear Algebra tool:</p>
+  <ol>
+    <li><strong>Create vectors:</strong> Draw two vectors on the grid by clicking and dragging. Experiment with different directions and magnitudes.</li>
+    <li><strong>Observe properties:</strong> Check the sidebar to see each vector's coordinates, magnitude, and angle. Notice how these values relate to the visual representation.</li>
+    <li><strong>Perform operations:</strong> Click operation buttons to see vector addition, subtraction, or scaling in action. Watch the animated result.</li>
+    <li><strong>Study the formulas:</strong> Read the mathematical formulas and calculations shown in the Results section to connect visual and algebraic representations.</li>
+    <li><strong>Clear and repeat:</strong> Use the Clear buttons to reset and try new vector configurations. Experiment with edge cases like parallel vectors, perpendicular vectors, or unit vectors.</li>
+  </ol>
+
+  <h3>Tips & Best Practices</h3>
+  <ul>
+    <li><strong>Start simple:</strong> Begin with unit vectors along the axes (like [1,0] and [0,1]) to understand basic operations before moving to complex vectors.</li>
+    <li><strong>Test perpendicular vectors:</strong> Create perpendicular vectors and check their dot product - it should be zero! Then use the "Angle Between" operation to verify it's 90°.</li>
+    <li><strong>Explore projection:</strong> Try projecting a vector onto the x-axis vector [1,0] to see how projection extracts components. Compare with the vector's x-coordinate!</li>
+    <li><strong>Verify unit vectors:</strong> After normalizing a vector, check its magnitude in the results - it should always be exactly 1.0, regardless of the original vector's length.</li>
+    <li><strong>Explore perpendicular relationships:</strong> Create a vector, then generate its perpendicular. Use the dot product to verify they're orthogonal (result should be 0).</li>
+    <li><strong>Explore scalar multiplication:</strong> Try negative scalars to see direction reversal, and fractional scalars (like 0.5) to see magnitude reduction.</li>
+    <li><strong>Compare magnitudes:</strong> After vector addition, compare the result's magnitude to the original vectors. When do they add up? When don't they?</li>
+    <li><strong>Use the grid:</strong> The grid lines help you create vectors with nice integer or half-integer coordinates, making mental math easier.</li>
+  </ul>
+</section>
+
+<!-- Shortcuts Section -->
+<section id="shortcuts">
+  <h2>Shortcuts & Controls</h2>
+  <ul>
+    <li><strong>ESC</strong> - Close help modal</li>
+    <li><strong>Click and drag on grid</strong> - Create a new vector (if less than 2 exist)</li>
+    <li><strong>Clear v₁/v₂ buttons</strong> - Remove individual vectors</li>
+    <li><strong>Clear All button</strong> - Remove all vectors and results</li>
+    <li><strong>Operation buttons</strong> - Perform vector operations (enabled when required vectors exist)</li>
+    <li><strong>Scalar input field</strong> - Change the scalar multiplier value (accepts decimals)</li>
+  </ul>
+  <p><strong>Color Legend:</strong></p>
+  <ul>
+    <li>🔴 <strong>Red (v₁)</strong> - First vector</li>
+    <li>🔵 <strong>Blue (v₂)</strong> - Second vector</li>
+    <li>🟢 <strong>Green</strong> - Result vector from operations</li>
+  </ul>
+</section>
+
+<!-- FAQ Section -->
+<section id="faq">
+  <h2>Troubleshooting / FAQ</h2>
+
+  <details>
+    <summary>Why can I only create two vectors?</summary>
+    <p>This tool is designed to focus on binary operations (operations between two vectors) which are fundamental to learning linear algebra. Limiting to two vectors keeps the interface simple and helps you focus on understanding each operation deeply.</p>
+  </details>
+
+  <details>
+    <summary>What do the coordinates in brackets mean?</summary>
+    <p>The notation [x, y] represents a vector's components. The first number is the x-component (horizontal), and the second is the y-component (vertical). For example, [3, 2] means 3 units right and 2 units up from the origin.</p>
+  </details>
+
+  <details>
+    <summary>Why is my vector snapping to certain positions?</summary>
+    <p>Vectors snap to a 0.5-unit grid to make it easier to create vectors with clean coordinates. This helps when learning because you can more easily perform mental calculations and see patterns in the results.</p>
+  </details>
+
+  <details>
+    <summary>What does the angle measurement represent?</summary>
+    <p>The angle is measured in degrees from the positive x-axis (pointing right), going counter-clockwise. For example, a vector pointing straight up has an angle of 90°, and one pointing left has an angle of 180° or -180°.</p>
+  </details>
+
+  <details>
+    <summary>How does scalar multiplication work with negative numbers?</summary>
+    <p>Multiplying a vector by a negative scalar reverses its direction while changing its magnitude. For example, multiplying by -1 creates a vector pointing in the exact opposite direction with the same length. Multiplying by -2 reverses direction and doubles the length.</p>
+  </details>
+
+  <details>
+    <summary>What does it mean when the dot product is zero?</summary>
+    <p>A dot product of zero indicates that the two vectors are perpendicular (orthogonal) to each other. This is a fundamental property in linear algebra and has many applications in physics, computer graphics, and engineering.</p>
+  </details>
+
+  <details>
+    <summary>Can I undo an operation?</summary>
+    <p>There's no formal undo button, but you can simply perform another operation or use the Clear buttons to remove vectors and start over. The interactive nature of the tool makes it quick to recreate scenarios.</p>
+  </details>
+
+  <details>
+    <summary>Is my work automatically saved?</summary>
+    <p>No, this is a learning tool designed for experimentation. Your vectors and operations are not saved when you close or refresh the page. This encourages active exploration without worrying about persistence.</p>
+  </details>
+
+  <details>
+    <summary>What is vector projection and why is it useful?</summary>
+    <p>Vector projection finds the "shadow" or component of one vector along another vector's direction. It's like asking "how much of vector v₁ goes in the direction of v₂?" This is fundamental in physics (calculating work), computer graphics (lighting calculations), and signal processing.</p>
+  </details>
+
+  <details>
+    <summary>What's the difference between a vector's angle and the angle between two vectors?</summary>
+    <p>A vector's angle (shown in the sidebar) is measured from the positive x-axis. The "angle between vectors" operation calculates the angle separating two vectors, regardless of their individual angles. For example, vectors at 30° and 150° have an angle of 120° between them.</p>
+  </details>
+
+  <details>
+    <summary>Why would I normalize a vector?</summary>
+    <p>Normalizing creates a unit vector that preserves direction but has length 1.0. This is useful when you only care about direction (like in 3D graphics for surface normals), when you want to scale something by a consistent amount in a certain direction, or when comparing directions without magnitude influencing the comparison.</p>
+  </details>
+
+  <details>
+    <summary>How is the perpendicular vector calculated?</summary>
+    <p>The perpendicular vector is found by swapping the x and y components and negating one: if v = [x, y], then v⊥ = [-y, x]. This gives a 90° counterclockwise rotation. You can verify perpendicularity by checking that the dot product of v and v⊥ equals zero.</p>
+  </details>
+</section>
+
+<!--
+  Additional sections you can add as needed:
+
+  <section id="advanced">
+    <h2>Advanced Features</h2>
+    <p>Advanced usage information...</p>
+  </section>
+
+  <section id="troubleshooting">
+    <h2>Troubleshooting</h2>
+    <p>Common issues and solutions...</p>
+  </section>
+
+  <section id="api">
+    <h2>API Reference</h2>
+    <p>Technical API documentation...</p>
+  </section>
+-->

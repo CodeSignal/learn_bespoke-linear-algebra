@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Interactive Linear Algebra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./bespoke.css" />
+  <link rel="stylesheet" href="./linear-algebra.css" />
+</head>
+<body class="bespoke">
+  <!-- Navigation Header -->
+  <header class="header">
+    <h1>Interactive Linear Algebra</h1>
+    <!-- APP_SPECIFIC_HEADER_CONTENT -->
+    <div class="spacer"></div>
+    <div id="status" class="status">Ready</div>
+    <button id="btn-help" class="as-button ghost">Help</button>
+  </header>
+
+  <!-- Main Application Content -->
+  <main class="main-container">
+    <!-- Left Sidebar: Control Panel -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <h2>Vectors</h2>
+
+        <!-- Vector 1 -->
+        <div class="vector-control" id="vector1-control">
+          <h3>Vector 1 <span class="vector-label v1-color">v₁</span></h3>
+          <div class="vector-info">
+            <div class="info-row">
+              <span class="label">Coordinates:</span>
+              <span id="v1-coords" class="value">Not created</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Magnitude:</span>
+              <span id="v1-magnitude" class="value">—</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Angle:</span>
+              <span id="v1-angle" class="value">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vector 2 -->
+        <div class="vector-control" id="vector2-control">
+          <h3>Vector 2 <span class="vector-label v2-color">v₂</span></h3>
+          <div class="vector-info">
+            <div class="info-row">
+              <span class="label">Coordinates:</span>
+              <span id="v2-coords" class="value">Not created</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Magnitude:</span>
+              <span id="v2-magnitude" class="value">—</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Angle:</span>
+              <span id="v2-angle" class="value">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Operations Section -->
+      <div class="sidebar-section">
+        <h2>Operations</h2>
+
+        <div class="operation-group">
+          <button id="op-add" class="btn-primary" disabled>Add v₁ + v₂</button>
+          <button id="op-subtract" class="btn-primary" disabled>Subtract v₁ - v₂</button>
+        </div>
+
+        <div class="operation-group">
+          <label for="scalar-input">Scalar Multiplication:</label>
+          <div class="scalar-control">
+            <input type="number" id="scalar-input" value="2" step="0.1" />
+            <button id="op-scale-v1" class="btn-primary" disabled>Scale v₁</button>
+            <button id="op-scale-v2" class="btn-primary" disabled>Scale v₂</button>
+          </div>
+        </div>
+
+        <div class="operation-group">
+          <button id="op-dot" class="btn-primary" disabled>Dot Product v₁ · v₂</button>
+        </div>
+
+        <div class="operation-group">
+          <button id="op-project" class="btn-primary" disabled>Project v₁ onto v₂</button>
+          <button id="op-angle" class="btn-primary" disabled>Angle Between v₁ & v₂</button>
+        </div>
+
+        <div class="operation-group">
+          <button id="op-normalize-v1" class="btn-primary" disabled>Normalize v₁</button>
+          <button id="op-normalize-v2" class="btn-primary" disabled>Normalize v₂</button>
+        </div>
+
+        <div class="operation-group">
+          <button id="op-perp-v1" class="btn-primary" disabled>Perpendicular to v₁</button>
+          <button id="op-perp-v2" class="btn-primary" disabled>Perpendicular to v₂</button>
+        </div>
+
+        <button id="clear-all" class="btn-danger">Clear All</button>
+      </div>
+
+      <!-- Results Section -->
+      <div class="sidebar-section">
+        <h2>Results</h2>
+        <div id="results-display" class="results-display">
+          <p class="hint">Perform an operation to see results</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Canvas: Cartesian Plane -->
+    <div class="canvas-container">
+      <canvas id="grid-canvas"></canvas>
+      <div class="instructions">
+        Click and drag to create vectors (up to 2)
+      </div>
+    </div>
+  </main>
+
+  <!-- Help Modal (automatically managed by help-modal.js) -->
+  <!-- The modal structure is created dynamically by the JavaScript -->
+
+  <!-- Core Scripts -->
+  <script src="./help-modal.js"></script>
+  <script src="./app.js"></script>
+  <script src="./linear-algebra.js"></script>
+
+  <script>
+    // Your app-specific initialization code goes here
+  </script>
+</body>
+</html>
