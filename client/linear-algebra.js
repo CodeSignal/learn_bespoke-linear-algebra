@@ -91,11 +91,12 @@ async function loadConfig() {
 // ============================================================================
 
 class Vector {
-  constructor(x, y, color, label) {
+  constructor(x, y, color, label, lineWidth = null) {
     this.x = x;
     this.y = y;
     this.color = color;
     this.label = label;
+    this.lineWidth = lineWidth;  // Optional custom line width
   }
 
   magnitude() {
@@ -202,7 +203,7 @@ class Vector {
   }
 
   clone() {
-    return new Vector(this.x, this.y, this.color, this.label);
+    return new Vector(this.x, this.y, this.color, this.label, this.lineWidth);
   }
 }
 
@@ -241,6 +242,9 @@ class LinearAlgebraApp {
 
     // Parallelogram animation state
     this.parallelogramState = null; // { startTime, v1Progress, v2Progress, edgeOpacity }
+
+    // Angle arc visualization state
+    this.angleArcState = null; // { vector1, vector2, angleRadians, angleDegrees }
 
     // Color cache for theme-responsive rendering
     this.colors = {};
@@ -394,6 +398,16 @@ class LinearAlgebraApp {
     if (this.vector1) this.drawVector(this.vector1, false, 1, this.hoveredVector === 'vector1');
     if (this.vector2) this.drawVector(this.vector2, false, 1, this.hoveredVector === 'vector2');
 
+    // Draw angle arc if angle visualization is active
+    if (this.angleArcState) {
+      this.drawAngleArc(
+        this.angleArcState.vector1,
+        this.angleArcState.vector2,
+        this.angleArcState.angleRadians,
+        this.angleArcState.angleDegrees
+      );
+    }
+
     // Draw negated vector for subtraction (dashed style, similar to parallelogram edges)
     if (this.parallelogramState && this.parallelogramState.negatedVector2) {
       this.drawVector(
@@ -521,7 +535,47 @@ class LinearAlgebraApp {
     this.ctx.fillText('y', this.centerX + 20, 20);
   }
 
-  drawVector(vector, isDashed = false, opacity = 1, isHovered = false) {
+  /**
+   * Calculate smart label position based on vector angle to avoid collisions
+   * @param {Vector} vector - The vector to calculate label position for
+   * @param {number} baseOffset - Base offset distance in pixels (default: 20)
+   * @returns {{x: number, y: number}} - Screen coordinates for label position
+   */
+  calculateSmartLabelPosition(vector, baseOffset = 20) {
+    const end = this.mathToScreen(vector.x, vector.y);
+    const magnitude = vector.magnitude();
+
+    // For very short vectors (normalized vectors have magnitude ~1), increase offset
+    const offsetMultiplier = magnitude < 1.5 ? 1.8 : 1.0;
+    const offset = baseOffset * offsetMultiplier;
+
+    // Calculate vector angle
+    const angle = Math.atan2(vector.y, vector.x);
+
+    // Position label perpendicular to vector (90 degrees offset)
+    // We add π/2 to rotate the offset perpendicular to the vector
+    const labelAngle = angle + Math.PI / 2;
+
+    // Calculate label position
+    // For vectors pointing right (angle near 0), label goes above
+    // For vectors pointing up (angle near π/2), label goes left
+    // For vectors pointing left (angle near π), label goes below
+    // For vectors pointing down (angle near -π/2), label goes right
+    let labelX = end.x + offset * Math.cos(labelAngle);
+    let labelY = end.y - offset * Math.sin(labelAngle);
+
+    // Adjust to keep labels above/right for better readability
+    // If label would be below or left of endpoint, flip it to other side
+    if (labelY > end.y + 5) {
+      // Label is too far below, flip to above
+      labelX = end.x - offset * Math.cos(labelAngle);
+      labelY = end.y + offset * Math.sin(labelAngle);
+    }
+
+    return { x: labelX, y: labelY };
+  }
+
+  drawVector(vector, isDashed = false, opacity = 1, isHovered = false, lineWidthOverride = null) {
     const start = this.mathToScreen(0, 0);
     const end = this.mathToScreen(vector.x, vector.y);
 
@@ -532,7 +586,10 @@ class LinearAlgebraApp {
     const drawColor = isHovered ? this.colors.hover : vector.color;
     this.ctx.strokeStyle = drawColor;
     this.ctx.fillStyle = drawColor;
-    this.ctx.lineWidth = isHovered ? CONFIG.vectorLineWidth + 1 : CONFIG.vectorLineWidth;
+
+    // Use vector's custom lineWidth if available, otherwise use override or default
+    const lineWidth = vector.lineWidth || lineWidthOverride || (isHovered ? CONFIG.vectorLineWidth + 1 : CONFIG.vectorLineWidth);
+    this.ctx.lineWidth = lineWidth;
 
     if (isDashed) {
       this.ctx.setLineDash([5, 5]);
@@ -578,14 +635,11 @@ class LinearAlgebraApp {
       this.ctx.globalAlpha = opacity; // Reset alpha
     }
 
-    // Draw label
+    // Draw label using smart positioning
     if (vector.label) {
       this.ctx.font = 'bold 16px serif';
       this.ctx.fillStyle = drawColor;
-      const labelPos = {
-        x: end.x + 15,
-        y: end.y - 15
-      };
+      const labelPos = this.calculateSmartLabelPosition(vector);
       this.ctx.fillText(vector.label, labelPos.x, labelPos.y);
     }
 
@@ -648,6 +702,79 @@ class LinearAlgebraApp {
     }
 
     // No label for parallelogram edges (keeps canvas clean)
+
+    this.ctx.restore();
+  }
+
+  /**
+   * Draw an angle arc between two vectors at the origin
+   * @param {Vector} vector1 - First vector
+   * @param {Vector} vector2 - Second vector
+   * @param {number} angleRadians - Angle in radians
+   * @param {number} angleDegrees - Angle in degrees for label
+   */
+  drawAngleArc(vector1, vector2, angleRadians, angleDegrees) {
+    const origin = this.mathToScreen(0, 0);
+
+    // Calculate arc radius (60 pixels or 20% of smaller vector, whichever is smaller)
+    const mag1 = vector1.magnitude() * CONFIG.gridSize;
+    const mag2 = vector2.magnitude() * CONFIG.gridSize;
+    const maxRadius = 60;
+    const minRadius = 30;
+    const arcRadius = Math.min(maxRadius, Math.max(minRadius, Math.min(mag1, mag2) * 0.4));
+
+    // Get angles for both vectors (in screen coordinates, y is inverted)
+    const angle1 = Math.atan2(-vector1.y, vector1.x);  // Negative y because screen y is inverted
+    const angle2 = Math.atan2(-vector2.y, vector2.x);
+
+    // Determine start and end angles (ensure we draw the smaller arc)
+    let startAngle = angle1;
+    let endAngle = angle2;
+
+    // Normalize angles to 0-2π range
+    if (startAngle < 0) startAngle += Math.PI * 2;
+    if (endAngle < 0) endAngle += Math.PI * 2;
+
+    // Swap if needed to draw counterclockwise from smaller to larger
+    if (startAngle > endAngle) {
+      [startAngle, endAngle] = [endAngle, startAngle];
+    }
+
+    // If the arc would be > 180°, draw the other way
+    if (endAngle - startAngle > Math.PI) {
+      [startAngle, endAngle] = [endAngle, startAngle];
+    }
+
+    this.ctx.save();
+
+    // Draw filled arc sector
+    this.ctx.beginPath();
+    this.ctx.moveTo(origin.x, origin.y);
+    this.ctx.arc(origin.x, origin.y, arcRadius, startAngle, endAngle);
+    this.ctx.closePath();
+
+    // Fill with semi-transparent purple/amber color
+    this.ctx.fillStyle = 'rgba(168, 85, 247, 0.2)';  // Purple with 20% opacity
+    this.ctx.fill();
+
+    // Draw arc outline for better visibility
+    this.ctx.beginPath();
+    this.ctx.arc(origin.x, origin.y, arcRadius, startAngle, endAngle);
+    this.ctx.strokeStyle = 'rgba(168, 85, 247, 0.6)';  // Purple with 60% opacity
+    this.ctx.lineWidth = 2;
+    this.ctx.stroke();
+
+    // Draw angle label at midpoint of arc
+    const midAngle = (startAngle + endAngle) / 2;
+    const labelRadius = arcRadius * 0.6;  // Place label at 60% of arc radius
+    const labelX = origin.x + labelRadius * Math.cos(midAngle);
+    const labelY = origin.y + labelRadius * Math.sin(midAngle);
+
+    this.ctx.font = 'bold 14px serif';
+    this.ctx.fillStyle = 'rgb(147, 51, 234)';  // Darker purple for text
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    this.ctx.fillText(`${angleDegrees.toFixed(1)}°`, labelX, labelY);
 
     this.ctx.restore();
   }
@@ -717,9 +844,10 @@ class LinearAlgebraApp {
         this.vector2.y = snappedY;
       }
 
-      // Clear result vector and parallelogram when editing
+      // Clear result vector, parallelogram, and angle arc when editing
       this.resultVector = null;
       this.parallelogramState = null;
+      this.angleArcState = null;
       this.render();
       return;
     }
@@ -822,6 +950,7 @@ class LinearAlgebraApp {
     this.vector2 = null;
     this.resultVector = null;
     this.parallelogramState = null;
+    this.angleArcState = null;
     this.render();
     // Log canvas clear
     logAction('Canvas cleared');
@@ -873,8 +1002,9 @@ class LinearAlgebraApp {
     const scalar = parseFloat(document.getElementById('scalar-input').value);
     if (isNaN(scalar)) return;
 
-    // Clear parallelogram from previous add/subtract operations
+    // Clear parallelogram and angle arc from previous operations
     this.parallelogramState = null;
+    this.angleArcState = null;
 
     let vector, result;
 
@@ -882,12 +1012,12 @@ class LinearAlgebraApp {
       vector = this.vector1;
       result = vector.scale(scalar);
       result.label = `${scalar}v₁`;
-      result.color = CONFIG.colors.vector1;
+      result.color = CONFIG.colors.result;  // Use green for scaled vectors
     } else if (vectorNum === 2 && this.vector2) {
       vector = this.vector2;
       result = vector.scale(scalar);
       result.label = `${scalar}v₂`;
-      result.color = CONFIG.colors.vector2;
+      result.color = CONFIG.colors.result;  // Use green for scaled vectors
     } else {
       return;
     }
@@ -905,8 +1035,9 @@ class LinearAlgebraApp {
   performDot() {
     if (!this.vector1 || !this.vector2) return;
 
-    // Clear parallelogram from previous add/subtract operations
+    // Clear parallelogram and angle arc from previous operations
     this.parallelogramState = null;
+    this.angleArcState = null;
 
     const dotProduct = this.vector1.dot(this.vector2);
 
@@ -925,8 +1056,9 @@ class LinearAlgebraApp {
   performProject() {
     if (!this.vector1 || !this.vector2) return;
 
-    // Clear parallelogram from previous add/subtract operations
+    // Clear parallelogram and angle arc from previous operations
     this.parallelogramState = null;
+    this.angleArcState = null;
 
     const result = this.vector1.projectOnto(this.vector2);
     result.label = 'proj_v₂(v₁)';
@@ -958,6 +1090,14 @@ class LinearAlgebraApp {
     // Log operation
     logAction(`Angle between: v1 (${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}) and v2 (${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}). Result: ${angleDeg.toFixed(2)}°`);
 
+    // Set angle arc state for visualization
+    this.angleArcState = {
+      vector1: this.vector1,
+      vector2: this.vector2,
+      angleRadians: angleRad,
+      angleDegrees: angleDeg
+    };
+
     const dotProduct = this.vector1.dot(this.vector2);
     const mag1 = this.vector1.magnitude();
     const mag2 = this.vector2.magnitude();
@@ -972,8 +1112,9 @@ class LinearAlgebraApp {
   }
 
   performNormalize(vectorNum) {
-    // Clear parallelogram from previous add/subtract operations
+    // Clear parallelogram and angle arc from previous operations
     this.parallelogramState = null;
+    this.angleArcState = null;
 
     let vector, result;
 
@@ -981,12 +1122,14 @@ class LinearAlgebraApp {
       vector = this.vector1;
       result = vector.normalize();
       result.label = 'û₁';
-      result.color = CONFIG.colors.vector1;
+      result.color = CONFIG.colors.result;  // Use green for normalized vectors
+      result.lineWidth = 4;  // Thicker line for better visibility
     } else if (vectorNum === 2 && this.vector2) {
       vector = this.vector2;
       result = vector.normalize();
       result.label = 'û₂';
-      result.color = CONFIG.colors.vector2;
+      result.color = CONFIG.colors.result;  // Use green for normalized vectors
+      result.lineWidth = 4;  // Thicker line for better visibility
     } else {
       return;
     }
@@ -1004,8 +1147,9 @@ class LinearAlgebraApp {
   }
 
   performPerpendicular(vectorNum) {
-    // Clear parallelogram from previous add/subtract operations
+    // Clear parallelogram and angle arc from previous operations
     this.parallelogramState = null;
+    this.angleArcState = null;
 
     let vector, result;
 
@@ -1055,7 +1199,8 @@ class LinearAlgebraApp {
         this.animationFrom.x + (this.animationTo.x - this.animationFrom.x) * eased,
         this.animationFrom.y + (this.animationTo.y - this.animationFrom.y) * eased,
         this.animationTo.color,
-        this.animationTo.label
+        this.animationTo.label,
+        this.animationTo.lineWidth
       );
 
       this.render();
