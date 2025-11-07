@@ -25,7 +25,66 @@ const CONFIG = {
     hoverHighlight: '#f59e0b',  // darker amber for hover ring
   },
   animationDuration: 800, // milliseconds
+  parallelogram: {
+    // Light tinted colors matching source vectors
+    v1CopyColor: '#f8b4b4',     // Light red (40% lighter than v1)
+    v2CopyColor: '#93c5fd',     // Light blue (40% lighter than v2)
+    // Line styling
+    lineWidth: 2,               // Thinner than main vectors (3px)
+    dashPattern: [8, 4],        // Longer dash than result vector [5,5]
+    opacity: 0.5,               // Semi-transparent helper lines
+    // Animation timing
+    edgeFadeInDuration: 200,    // ms - edges fade in first
+    translateDuration: 400,     // ms - each translated vector draws
+    staggerDelay: 200,          // ms - delay between translated vectors
+  },
+  // Application configuration (can be overridden by config.json)
+  maxVectors: 2,
+  operationGroups: {
+    addition: true,
+    scalarMultiplication: true,
+    dotProduct: true,
+    projectionAngle: true,
+    normalization: true,
+    perpendicular: true,
+  },
 };
+
+// ============================================================================
+// CONFIGURATION LOADING
+// ============================================================================
+
+/**
+ * Load configuration from config.json
+ * Merges loaded config into CONFIG object with defaults as fallback
+ */
+async function loadConfig() {
+  try {
+    const response = await fetch('./config.json');
+    if (!response.ok) {
+      console.warn('config.json not found, using default configuration');
+      return;
+    }
+
+    const userConfig = await response.json();
+
+    // Merge user configuration into CONFIG
+    if (userConfig.maxVectors !== undefined) {
+      CONFIG.maxVectors = userConfig.maxVectors;
+    }
+
+    if (userConfig.operationGroups) {
+      CONFIG.operationGroups = {
+        ...CONFIG.operationGroups,
+        ...userConfig.operationGroups
+      };
+    }
+
+    console.log('Configuration loaded successfully');
+  } catch (error) {
+    console.warn('Failed to load config.json, using default configuration:', error);
+  }
+}
 
 // ============================================================================
 // VECTOR CLASS
@@ -180,8 +239,16 @@ class LinearAlgebraApp {
     this.animationFrom = null;
     this.animationTo = null;
 
+    // Parallelogram animation state
+    this.parallelogramState = null; // { startTime, v1Progress, v2Progress, edgeOpacity }
+
+    // Color cache for theme-responsive rendering
+    this.colors = {};
+
     // Initialize
     this.setupCanvas();
+    this.loadColorsFromCSS();    // Load colors before first render
+    this.setupThemeListener();   // Watch for theme changes
     this.setupEventListeners();
     this.render();
   }
@@ -234,6 +301,42 @@ class LinearAlgebraApp {
     document.getElementById('op-normalize-v2').addEventListener('click', () => this.performNormalize(2));
     document.getElementById('op-perp-v1').addEventListener('click', () => this.performPerpendicular(1));
     document.getElementById('op-perp-v2').addEventListener('click', () => this.performPerpendicular(2));
+  }
+
+  loadColorsFromCSS() {
+    // Map canvas colors to CSS variables
+    const themeColors = {
+      grid: '--bespoke-canvas-grid',
+      axis: '--bespoke-canvas-axis',
+      text: '--bespoke-canvas-text',
+      hover: '--bespoke-canvas-hover',
+      hoverHighlight: '--bespoke-canvas-hover-highlight',
+    };
+
+    // Load theme-responsive colors from CSS
+    for (const [key, cssVar] of Object.entries(themeColors)) {
+      this.colors[key] = this.getColorFromCSS(cssVar);
+    }
+
+    // Copy semantic colors from CONFIG (theme-independent)
+    this.colors.vector1 = CONFIG.colors.vector1;
+    this.colors.vector2 = CONFIG.colors.vector2;
+    this.colors.result = CONFIG.colors.result;
+  }
+
+  setupThemeListener() {
+    // Listen for system theme changes
+    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+    darkModeQuery.addEventListener('change', () => {
+      this.loadColorsFromCSS();  // Reload colors
+      this.render();             // Re-render canvas
+    });
+  }
+
+  getColorFromCSS(variableName) {
+    const bespokeElement = document.querySelector('.bespoke') || document.documentElement;
+    return getComputedStyle(bespokeElement).getPropertyValue(variableName).trim();
   }
 
   // ============================================================================
@@ -290,6 +393,46 @@ class LinearAlgebraApp {
     // Draw vectors with hover state
     if (this.vector1) this.drawVector(this.vector1, false, 1, this.hoveredVector === 'vector1');
     if (this.vector2) this.drawVector(this.vector2, false, 1, this.hoveredVector === 'vector2');
+
+    // Draw negated vector for subtraction (dashed style, similar to parallelogram edges)
+    if (this.parallelogramState && this.parallelogramState.negatedVector2) {
+      this.drawVector(
+        this.parallelogramState.negatedVector2,
+        true,  // dashed
+        0.5,   // 50% opacity like parallelogram edges
+        false  // no hover
+      );
+    }
+
+    // Draw parallelogram edges (if animating)
+    if (this.parallelogramState && this.parallelogramState.useVector1 && this.parallelogramState.useVector2) {
+      // Apply edge opacity for fade-in effect
+      const savedOpacity = CONFIG.parallelogram.opacity;
+      CONFIG.parallelogram.opacity = savedOpacity * this.parallelogramState.edgeOpacity;
+
+      const v1 = this.parallelogramState.useVector1;
+      const v2 = this.parallelogramState.useVector2;
+
+      // Draw v2 translated to v1's tip (with progress for animation)
+      this.drawTranslatedVector(
+        v2,
+        { x: v1.x, y: v1.y },
+        this.parallelogramState.v2Progress,
+        CONFIG.parallelogram.v2CopyColor
+      );
+
+      // Draw v1 translated to v2's tip (with progress for animation)
+      this.drawTranslatedVector(
+        v1,
+        { x: v2.x, y: v2.y },
+        this.parallelogramState.v1Progress,
+        CONFIG.parallelogram.v1CopyColor
+      );
+
+      // Restore original opacity
+      CONFIG.parallelogram.opacity = savedOpacity;
+    }
+
     if (this.resultVector) this.drawVector(this.resultVector, true, 1, false);
 
     // Draw vector being created
@@ -301,7 +444,7 @@ class LinearAlgebraApp {
   }
 
   drawGrid() {
-    this.ctx.strokeStyle = CONFIG.colors.grid;
+    this.ctx.strokeStyle = this.colors.grid;
     this.ctx.lineWidth = CONFIG.gridLineWidth;
 
     // Vertical lines
@@ -322,9 +465,9 @@ class LinearAlgebraApp {
   }
 
   drawAxes() {
-    this.ctx.strokeStyle = CONFIG.colors.axis;
+    this.ctx.strokeStyle = this.colors.axis;
     this.ctx.lineWidth = CONFIG.axisLineWidth;
-    this.ctx.fillStyle = CONFIG.colors.text;
+    this.ctx.fillStyle = this.colors.text;
     this.ctx.font = '12px Arial';
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
@@ -386,7 +529,7 @@ class LinearAlgebraApp {
     this.ctx.globalAlpha = opacity;
 
     // Use hover color if hovered, otherwise use vector color
-    const drawColor = isHovered ? CONFIG.colors.hover : vector.color;
+    const drawColor = isHovered ? this.colors.hover : vector.color;
     this.ctx.strokeStyle = drawColor;
     this.ctx.fillStyle = drawColor;
     this.ctx.lineWidth = isHovered ? CONFIG.vectorLineWidth + 1 : CONFIG.vectorLineWidth;
@@ -421,7 +564,7 @@ class LinearAlgebraApp {
     // Draw hover highlight circle around endpoint
     if (isHovered) {
       this.ctx.globalAlpha = 0.3 * opacity;
-      this.ctx.strokeStyle = CONFIG.colors.hoverHighlight;
+      this.ctx.strokeStyle = this.colors.hoverHighlight;
       this.ctx.lineWidth = 2;
       this.ctx.beginPath();
       this.ctx.arc(end.x, end.y, CONFIG.hitRadius, 0, Math.PI * 2);
@@ -429,7 +572,7 @@ class LinearAlgebraApp {
 
       // Fill circle for better visibility
       this.ctx.globalAlpha = 0.1 * opacity;
-      this.ctx.fillStyle = CONFIG.colors.hoverHighlight;
+      this.ctx.fillStyle = this.colors.hoverHighlight;
       this.ctx.fill();
 
       this.ctx.globalAlpha = opacity; // Reset alpha
@@ -445,6 +588,66 @@ class LinearAlgebraApp {
       };
       this.ctx.fillText(vector.label, labelPos.x, labelPos.y);
     }
+
+    this.ctx.restore();
+  }
+
+  /**
+   * Draw a vector translated from a non-origin starting point
+   * Used for visualizing parallelogram law in vector addition/subtraction
+   *
+   * @param {Vector} vector - The vector to draw
+   * @param {Object} startPoint - Starting point in math coordinates {x, y}
+   * @param {number} progress - Animation progress 0-1 (1 = fully drawn)
+   * @param {string} color - Color override for the vector
+   */
+  drawTranslatedVector(vector, startPoint, progress = 1, color = null) {
+    // Convert start point from math to screen coordinates
+    const start = this.mathToScreen(startPoint.x, startPoint.y);
+
+    // Calculate endpoint: startPoint + (vector * progress)
+    const endMathX = startPoint.x + (vector.x * progress);
+    const endMathY = startPoint.y + (vector.y * progress);
+    const end = this.mathToScreen(endMathX, endMathY);
+
+    // If progress is near zero, don't draw anything
+    if (progress < 0.01) return;
+
+    this.ctx.save();
+    this.ctx.globalAlpha = CONFIG.parallelogram.opacity;
+
+    const drawColor = color || vector.color;
+    this.ctx.strokeStyle = drawColor;
+    this.ctx.fillStyle = drawColor;
+    this.ctx.lineWidth = CONFIG.parallelogram.lineWidth;
+    this.ctx.setLineDash(CONFIG.parallelogram.dashPattern);
+
+    // Draw line from translated start to translated end
+    this.ctx.beginPath();
+    this.ctx.moveTo(start.x, start.y);
+    this.ctx.lineTo(end.x, end.y);
+    this.ctx.stroke();
+
+    // Draw arrowhead at end (only if progress is significant)
+    if (progress > 0.3) {
+      const angle = Math.atan2(end.y - start.y, end.x - start.x);
+      const headlen = CONFIG.arrowHeadSize;
+
+      this.ctx.beginPath();
+      this.ctx.moveTo(end.x, end.y);
+      this.ctx.lineTo(
+        end.x - headlen * Math.cos(angle - Math.PI / 6),
+        end.y - headlen * Math.sin(angle - Math.PI / 6)
+      );
+      this.ctx.lineTo(
+        end.x - headlen * Math.cos(angle + Math.PI / 6),
+        end.y - headlen * Math.sin(angle + Math.PI / 6)
+      );
+      this.ctx.closePath();
+      this.ctx.fill();
+    }
+
+    // No label for parallelogram edges (keeps canvas clean)
 
     this.ctx.restore();
   }
@@ -514,8 +717,9 @@ class LinearAlgebraApp {
         this.vector2.y = snappedY;
       }
 
-      // Clear result vector when editing
+      // Clear result vector and parallelogram when editing
       this.resultVector = null;
+      this.parallelogramState = null;
       this.render();
       return;
     }
@@ -569,7 +773,8 @@ class LinearAlgebraApp {
     if (this.drawingVector && (this.drawingVector.x !== 0 || this.drawingVector.y !== 0)) {
       if (!this.vector1) {
         this.vector1 = this.drawingVector;
-      } else if (!this.vector2) {
+      } else if (!this.vector2 && CONFIG.maxVectors >= 2) {
+        // Only allow second vector if maxVectors is 2 or more
         this.vector2 = this.drawingVector;
       }
       this.resultVector = null; // Clear any previous result
@@ -597,6 +802,7 @@ class LinearAlgebraApp {
     this.vector1 = null;
     this.vector2 = null;
     this.resultVector = null;
+    this.parallelogramState = null;
     this.render();
   }
 
@@ -606,7 +812,8 @@ class LinearAlgebraApp {
     const result = this.vector1.add(this.vector2);
     result.label = 'v₁ + v₂';
 
-    this.animateToResult(result, () => {
+    // Animate parallelogram construction with v1 and v2, no negated vector
+    this.animateParallelogram(result, this.vector1, this.vector2, null, () => {
       const formula = `v₁ + v₂ = [${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}] + [${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}]`;
       const resultText = `= [${result.x.toFixed(1)}, ${result.y.toFixed(1)}]`;
       this.displayResult(formula, resultText);
@@ -619,7 +826,16 @@ class LinearAlgebraApp {
     const result = this.vector1.subtract(this.vector2);
     result.label = 'v₁ - v₂';
 
-    this.animateToResult(result, () => {
+    // Create negated v2 for parallelogram visualization (v1 - v2 = v1 + (-v2))
+    const negV2 = new Vector(
+      -this.vector2.x,
+      -this.vector2.y,
+      this.vector2.color,
+      '-v₂'
+    );
+
+    // Animate parallelogram with v1 and -v2, show both v2 (solid) and -v2 (dashed)
+    this.animateParallelogram(result, this.vector1, negV2, negV2, () => {
       const formula = `v₁ - v₂ = [${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}] - [${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}]`;
       const resultText = `= [${result.x.toFixed(1)}, ${result.y.toFixed(1)}]`;
       this.displayResult(formula, resultText);
@@ -629,6 +845,9 @@ class LinearAlgebraApp {
   performScale(vectorNum) {
     const scalar = parseFloat(document.getElementById('scalar-input').value);
     if (isNaN(scalar)) return;
+
+    // Clear parallelogram from previous add/subtract operations
+    this.parallelogramState = null;
 
     let vector, result;
 
@@ -656,6 +875,9 @@ class LinearAlgebraApp {
   performDot() {
     if (!this.vector1 || !this.vector2) return;
 
+    // Clear parallelogram from previous add/subtract operations
+    this.parallelogramState = null;
+
     const dotProduct = this.vector1.dot(this.vector2);
     const formula = `v₁ · v₂ = [${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}] · [${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}]`;
     const calculation = `= (${this.vector1.x.toFixed(1)} × ${this.vector2.x.toFixed(1)}) + (${this.vector1.y.toFixed(1)} × ${this.vector2.y.toFixed(1)})`;
@@ -668,6 +890,9 @@ class LinearAlgebraApp {
 
   performProject() {
     if (!this.vector1 || !this.vector2) return;
+
+    // Clear parallelogram from previous add/subtract operations
+    this.parallelogramState = null;
 
     const result = this.vector1.projectOnto(this.vector2);
     result.label = 'proj_v₂(v₁)';
@@ -687,6 +912,9 @@ class LinearAlgebraApp {
   performAngleBetween() {
     if (!this.vector1 || !this.vector2) return;
 
+    // Clear parallelogram from previous add/subtract operations
+    this.parallelogramState = null;
+
     const angleRad = this.vector1.angleBetween(this.vector2);
     const angleDeg = this.vector1.angleBetweenDegrees(this.vector2);
 
@@ -704,6 +932,9 @@ class LinearAlgebraApp {
   }
 
   performNormalize(vectorNum) {
+    // Clear parallelogram from previous add/subtract operations
+    this.parallelogramState = null;
+
     let vector, result;
 
     if (vectorNum === 1 && this.vector1) {
@@ -730,6 +961,9 @@ class LinearAlgebraApp {
   }
 
   performPerpendicular(vectorNum) {
+    // Clear parallelogram from previous add/subtract operations
+    this.parallelogramState = null;
+
     let vector, result;
 
     if (vectorNum === 1 && this.vector1) {
@@ -793,9 +1027,85 @@ class LinearAlgebraApp {
     requestAnimationFrame(animate);
   }
 
+  /**
+   * Animate parallelogram construction with staggered phases
+   * Phase 1 (0-200ms): Fade in edges
+   * Phase 2 (0-400ms): Draw translated v2 from v1's tip
+   * Phase 3 (200-600ms): Draw translated v1 from v2's tip (overlaps phase 2)
+   * Then triggers result vector animation
+   *
+   * @param {Vector} resultVector - The final result vector to animate after parallelogram
+   * @param {Vector} vector1 - First vector (usually v₁)
+   * @param {Vector} vector2 - Second vector (v₂ for addition, -v₂ for subtraction)
+   * @param {Vector} negatedVector2 - For subtraction: -v₂ to draw dashed; null for addition
+   * @param {Function} onComplete - Callback when all animations complete
+   */
+  animateParallelogram(resultVector, vector1, vector2, negatedVector2, onComplete) {
+    this.parallelogramState = {
+      startTime: performance.now(),
+      v1Progress: 0,
+      v2Progress: 0,
+      edgeOpacity: 0,
+      useVector1: vector1,
+      useVector2: vector2,
+      negatedVector2: negatedVector2
+    };
+
+    const totalDuration = CONFIG.parallelogram.staggerDelay + CONFIG.parallelogram.translateDuration;
+
+    const animate = (currentTime) => {
+      const elapsed = currentTime - this.parallelogramState.startTime;
+
+      // Phase 1: Fade in edges (0-200ms)
+      if (elapsed < CONFIG.parallelogram.edgeFadeInDuration) {
+        this.parallelogramState.edgeOpacity = elapsed / CONFIG.parallelogram.edgeFadeInDuration;
+      } else {
+        this.parallelogramState.edgeOpacity = 1;
+      }
+
+      // Phase 2: Draw translated v2 from v1's tip (0-400ms)
+      const v2Progress = Math.min(elapsed / CONFIG.parallelogram.translateDuration, 1);
+      // Cubic easing (ease-out)
+      this.parallelogramState.v2Progress = 1 - Math.pow(1 - v2Progress, 3);
+
+      // Phase 3: Draw translated v1 from v2's tip (200-600ms, overlaps phase 2)
+      const v1StartTime = CONFIG.parallelogram.staggerDelay;
+      const v1Elapsed = Math.max(0, elapsed - v1StartTime);
+      const v1Progress = Math.min(v1Elapsed / CONFIG.parallelogram.translateDuration, 1);
+      // Cubic easing (ease-out)
+      this.parallelogramState.v1Progress = 1 - Math.pow(1 - v1Progress, 3);
+
+      this.render();
+
+      if (elapsed < totalDuration) {
+        requestAnimationFrame(animate);
+      } else {
+        // Parallelogram animation complete, now animate result vector
+        this.parallelogramState.v1Progress = 1;
+        this.parallelogramState.v2Progress = 1;
+        this.parallelogramState.edgeOpacity = 1;
+        this.render();
+
+        // Trigger result vector animation
+        this.animateToResult(resultVector, onComplete);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }
+
   // ============================================================================
   // UI UPDATES
   // ============================================================================
+
+  /**
+   * Check if an operation group should be visible based on configuration
+   * @param {string} groupName - Name of the operation group
+   * @returns {boolean} - True if the group should be shown
+   */
+  shouldShowOperationGroup(groupName) {
+    return CONFIG.operationGroups[groupName] !== false;
+  }
 
   updateUI() {
     // Update Vector 1
@@ -841,6 +1151,16 @@ class LinearAlgebraApp {
     document.getElementById('op-normalize-v2').disabled = !this.vector2;
     document.getElementById('op-perp-v1').disabled = !this.vector1;
     document.getElementById('op-perp-v2').disabled = !this.vector2;
+
+    // Show/hide operation groups based on configuration
+    document.querySelectorAll('[data-operation-group]').forEach(element => {
+      const groupName = element.getAttribute('data-operation-group');
+      if (this.shouldShowOperationGroup(groupName)) {
+        element.style.display = '';
+      } else {
+        element.style.display = 'none';
+      }
+    });
   }
 
   displayResult(...lines) {
@@ -857,11 +1177,15 @@ class LinearAlgebraApp {
 
 let app;
 
-// Wait for DOM to be ready
+// Wait for DOM to be ready, then load config and initialize app
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
+    await loadConfig();
     app = new LinearAlgebraApp();
   });
 } else {
-  app = new LinearAlgebraApp();
+  (async () => {
+    await loadConfig();
+    app = new LinearAlgebraApp();
+  })();
 }

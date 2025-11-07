@@ -70,13 +70,12 @@
       <div class="sidebar-section">
         <h2>Operations</h2>
 
-        <div class="operation-group">
+        <div class="operation-group" data-operation-group="addition">
           <button id="op-add" class="btn-primary" disabled>Add v₁ + v₂</button>
           <button id="op-subtract" class="btn-primary" disabled>Subtract v₁ - v₂</button>
         </div>
 
-        <div class="operation-group">
-          <label for="scalar-input">Scalar Multiplication:</label>
+        <div class="operation-group" data-operation-group="scalarMultiplication">
           <div class="scalar-control">
             <input type="number" id="scalar-input" value="2" step="0.1" />
             <button id="op-scale-v1" class="btn-primary" disabled>Scale v₁</button>
@@ -84,21 +83,21 @@
           </div>
         </div>
 
-        <div class="operation-group">
+        <div class="operation-group" data-operation-group="dotProduct">
           <button id="op-dot" class="btn-primary" disabled>Dot Product v₁ · v₂</button>
         </div>
 
-        <div class="operation-group">
+        <div class="operation-group" data-operation-group="projectionAngle">
           <button id="op-project" class="btn-primary" disabled>Project v₁ onto v₂</button>
           <button id="op-angle" class="btn-primary" disabled>Angle Between v₁ & v₂</button>
         </div>
 
-        <div class="operation-group">
+        <div class="operation-group" data-operation-group="normalization">
           <button id="op-normalize-v1" class="btn-primary" disabled>Normalize v₁</button>
           <button id="op-normalize-v2" class="btn-primary" disabled>Normalize v₂</button>
         </div>
 
-        <div class="operation-group">
+        <div class="operation-group" data-operation-group="perpendicular">
           <button id="op-perp-v1" class="btn-primary" disabled>Perpendicular to v₁</button>
           <button id="op-perp-v2" class="btn-primary" disabled>Perpendicular to v₂</button>
         </div>
@@ -118,9 +117,6 @@
     <!-- Canvas: Cartesian Plane -->
     <div class="canvas-container">
       <canvas id="grid-canvas"></canvas>
-      <div class="instructions">
-        Click and drag to create vectors (up to 2)
-      </div>
     </div>
   </main>
 

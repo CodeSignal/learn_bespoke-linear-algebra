@@ -23,6 +23,13 @@
   --bespoke-canvas: #f8fafc;                  /* canvas/diagram background */
   --bespoke-toggle-bg: #e2e8f0;               /* toggle background */
 
+  /* Canvas-specific colors for grid, axes, and labels */
+  --bespoke-canvas-grid: #d1d5db;             /* grid lines */
+  --bespoke-canvas-axis: #9ca3af;             /* axis lines */
+  --bespoke-canvas-text: #6b7280;             /* axis labels and text */
+  --bespoke-canvas-hover: #fbbf24;            /* hover state */
+  --bespoke-canvas-hover-highlight: #f59e0b;  /* hover highlight ring */
+
   /* Light mode button colors */
   --bespoke-button-bg: var(--bespoke-control-bg);
   --bespoke-button-border: var(--bespoke-control-border);
@@ -132,6 +139,13 @@
     --bespoke-control-focus: #377dff;         /* same focus color */
     --bespoke-canvas: #303d56;                /* dark canvas background - matches bg */
     --bespoke-toggle-bg: rgb(57 69 99);       /* dark toggle background */
+
+    /* Canvas-specific colors for dark mode */
+    --bespoke-canvas-grid: #3d4a63;             /* subtle grid lines on dark canvas */
+    --bespoke-canvas-axis: #5a6b8c;             /* visible axis lines on dark canvas */
+    --bespoke-canvas-text: #9fb0c9;             /* readable text on dark canvas */
+    --bespoke-canvas-hover: #fcd34d;            /* brighter hover for visibility */
+    --bespoke-canvas-hover-highlight: #fbbf24;  /* lighter hover highlight */
 
     /* Dark mode button colors - updated to match new background */
     --bespoke-button-bg: #303d56;                /* matches new dark background */

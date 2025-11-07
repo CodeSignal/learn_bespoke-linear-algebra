@@ -1,0 +1,11 @@
+{
+  "maxVectors": 2,
+  "operationGroups": {
+    "addition": true,
+    "scalarMultiplication": true,
+    "dotProduct": true,
+    "projectionAngle": true,
+    "normalization": true,
+    "perpendicular": true
+  }
+}
