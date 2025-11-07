@@ -101,6 +101,45 @@ function handlePostRequest(req, res) {
         res.end(JSON.stringify({ error: 'Invalid JSON' }));
       }
     });
+  } else if (parsedUrl.pathname === '/log') {
+    let body = '';
+
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+
+    req.on('end', () => {
+      try {
+        const data = JSON.parse(body);
+        const message = data.message;
+
+        if (!message) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Message is required' }));
+          return;
+        }
+
+        // Append message to log file
+        const logPath = path.join(__dirname, 'logs', 'user_actions.log');
+        const logEntry = message + '\n';
+
+        fs.appendFile(logPath, logEntry, (err) => {
+          if (err) {
+            console.error('Error writing to log file:', err);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Failed to write log' }));
+            return;
+          }
+
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: true }));
+        });
+
+      } catch (error) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+      }
+    });
   } else {
     res.writeHead(404, { 'Content-Type': 'text/plain' });
     res.end('Not found');

@@ -749,6 +749,17 @@ class LinearAlgebraApp {
   handleMouseUp(e) {
     // Handle editing mode
     if (this.isEditing) {
+      // Log vector editing
+      if (this.editTarget === 'vector1' && this.vector1) {
+        const mag = this.vector1.magnitude().toFixed(2);
+        const angle = this.vector1.angleDegrees().toFixed(2);
+        logAction(`Vector edited: v1 to (${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}), magnitude: ${mag}, angle: ${angle}°`);
+      } else if (this.editTarget === 'vector2' && this.vector2) {
+        const mag = this.vector2.magnitude().toFixed(2);
+        const angle = this.vector2.angleDegrees().toFixed(2);
+        logAction(`Vector edited: v2 to (${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}), magnitude: ${mag}, angle: ${angle}°`);
+      }
+
       this.isEditing = false;
       this.editTarget = null;
       this.canvas.classList.remove('dragging');
@@ -773,9 +784,17 @@ class LinearAlgebraApp {
     if (this.drawingVector && (this.drawingVector.x !== 0 || this.drawingVector.y !== 0)) {
       if (!this.vector1) {
         this.vector1 = this.drawingVector;
+        // Log vector creation
+        const mag = this.vector1.magnitude().toFixed(2);
+        const angle = this.vector1.angleDegrees().toFixed(2);
+        logAction(`Vector created: v1 at (${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}), magnitude: ${mag}, angle: ${angle}°`);
       } else if (!this.vector2 && CONFIG.maxVectors >= 2) {
         // Only allow second vector if maxVectors is 2 or more
         this.vector2 = this.drawingVector;
+        // Log vector creation
+        const mag = this.vector2.magnitude().toFixed(2);
+        const angle = this.vector2.angleDegrees().toFixed(2);
+        logAction(`Vector created: v2 at (${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}), magnitude: ${mag}, angle: ${angle}°`);
       }
       this.resultVector = null; // Clear any previous result
     }
@@ -804,6 +823,8 @@ class LinearAlgebraApp {
     this.resultVector = null;
     this.parallelogramState = null;
     this.render();
+    // Log canvas clear
+    logAction('Canvas cleared');
   }
 
   performAdd() {
@@ -811,6 +832,9 @@ class LinearAlgebraApp {
 
     const result = this.vector1.add(this.vector2);
     result.label = 'v₁ + v₂';
+
+    // Log operation
+    logAction(`Add operation: v1 (${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}) + v2 (${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}). Result: (${result.x.toFixed(1)}, ${result.y.toFixed(1)})`);
 
     // Animate parallelogram construction with v1 and v2, no negated vector
     this.animateParallelogram(result, this.vector1, this.vector2, null, () => {
@@ -825,6 +849,9 @@ class LinearAlgebraApp {
 
     const result = this.vector1.subtract(this.vector2);
     result.label = 'v₁ - v₂';
+
+    // Log operation
+    logAction(`Subtract operation: v1 (${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}) - v2 (${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}). Result: (${result.x.toFixed(1)}, ${result.y.toFixed(1)})`);
 
     // Create negated v2 for parallelogram visualization (v1 - v2 = v1 + (-v2))
     const negV2 = new Vector(
@@ -865,6 +892,9 @@ class LinearAlgebraApp {
       return;
     }
 
+    // Log operation
+    logAction(`Scale operation: v${vectorNum} (${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}) * ${scalar}. Result: (${result.x.toFixed(1)}, ${result.y.toFixed(1)})`);
+
     this.animateToResult(result, () => {
       const formula = `${scalar}v${vectorNum} = ${scalar} × [${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}]`;
       const resultText = `= [${result.x.toFixed(1)}, ${result.y.toFixed(1)}]`;
@@ -879,6 +909,10 @@ class LinearAlgebraApp {
     this.parallelogramState = null;
 
     const dotProduct = this.vector1.dot(this.vector2);
+
+    // Log operation
+    logAction(`Dot product: v1 (${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}) · v2 (${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}). Result: ${dotProduct.toFixed(2)}`);
+
     const formula = `v₁ · v₂ = [${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}] · [${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}]`;
     const calculation = `= (${this.vector1.x.toFixed(1)} × ${this.vector2.x.toFixed(1)}) + (${this.vector1.y.toFixed(1)} × ${this.vector2.y.toFixed(1)})`;
     const resultText = `= ${dotProduct.toFixed(2)}`;
@@ -896,6 +930,9 @@ class LinearAlgebraApp {
 
     const result = this.vector1.projectOnto(this.vector2);
     result.label = 'proj_v₂(v₁)';
+
+    // Log operation
+    logAction(`Project operation: v1 (${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}) onto v2 (${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}). Result: (${result.x.toFixed(2)}, ${result.y.toFixed(2)})`);
 
     this.animateToResult(result, () => {
       const dotProduct = this.vector1.dot(this.vector2);
@@ -917,6 +954,9 @@ class LinearAlgebraApp {
 
     const angleRad = this.vector1.angleBetween(this.vector2);
     const angleDeg = this.vector1.angleBetweenDegrees(this.vector2);
+
+    // Log operation
+    logAction(`Angle between: v1 (${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}) and v2 (${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}). Result: ${angleDeg.toFixed(2)}°`);
 
     const dotProduct = this.vector1.dot(this.vector2);
     const mag1 = this.vector1.magnitude();
@@ -951,6 +991,9 @@ class LinearAlgebraApp {
       return;
     }
 
+    // Log operation
+    logAction(`Normalize operation: v${vectorNum} (${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}). Result: (${result.x.toFixed(3)}, ${result.y.toFixed(3)})`);
+
     this.animateToResult(result, () => {
       const mag = vector.magnitude();
       const formula = `û${vectorNum} = v${vectorNum}/||v${vectorNum}||`;
@@ -979,6 +1022,9 @@ class LinearAlgebraApp {
     } else {
       return;
     }
+
+    // Log operation
+    logAction(`Perpendicular operation: v${vectorNum} (${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}). Result: (${result.x.toFixed(1)}, ${result.y.toFixed(1)})`);
 
     this.animateToResult(result, () => {
       const formula = `v${vectorNum}⊥ = [-y, x] (90° rotation)`;
