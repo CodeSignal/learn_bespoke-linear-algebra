@@ -285,8 +285,8 @@ class LinearAlgebraApp {
     this.canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
     this.canvas.addEventListener('mouseleave', (e) => this.handleMouseLeave(e));
 
-    // Sidebar buttons
-    document.getElementById('clear-all').addEventListener('click', () => this.clearAll());
+    // Canvas reset button
+    document.getElementById('canvas-reset').addEventListener('click', () => this.clearAll());
 
     document.getElementById('op-add').addEventListener('click', () => this.performAdd());
     document.getElementById('op-subtract').addEventListener('click', () => this.performSubtract());
@@ -691,7 +691,7 @@ class LinearAlgebraApp {
     if (!this.vector1) {
       this.isDrawing = true;
       this.drawingVector = new Vector(0, 0, CONFIG.colors.vector1, 'v₁');
-    } else if (!this.vector2) {
+    } else if (!this.vector2 && CONFIG.maxVectors >= 2) {
       this.isDrawing = true;
       this.drawingVector = new Vector(0, 0, CONFIG.colors.vector2, 'v₂');
     }
@@ -1104,7 +1104,18 @@ class LinearAlgebraApp {
    * @returns {boolean} - True if the group should be shown
    */
   shouldShowOperationGroup(groupName) {
-    return CONFIG.operationGroups[groupName] !== false;
+    // First check if the operation group is enabled in configuration
+    if (CONFIG.operationGroups[groupName] === false) {
+      return false;
+    }
+
+    // Hide operations that require 2 vectors when maxVectors < 2
+    const twoVectorOperations = ['addition', 'dotProduct', 'projectionAngle'];
+    if (twoVectorOperations.includes(groupName) && CONFIG.maxVectors < 2) {
+      return false;
+    }
+
+    return true;
   }
 
   updateUI() {
@@ -1161,6 +1172,16 @@ class LinearAlgebraApp {
         element.style.display = 'none';
       }
     });
+
+    // Show/hide vector panels based on maxVectors configuration
+    const vector2Control = document.getElementById('vector2-control');
+    if (vector2Control) {
+      if (CONFIG.maxVectors >= 2) {
+        vector2Control.style.display = '';
+      } else {
+        vector2Control.style.display = 'none';
+      }
+    }
   }
 
   displayResult(...lines) {

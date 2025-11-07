@@ -40,13 +40,25 @@ body.bespoke {
   gap: var(--bespoke-space-md);
 }
 
+/* Section Header with Inline Button */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--bespoke-accent);
+  padding-bottom: var(--bespoke-space-sm);
+}
+
 .sidebar-section h2 {
   font-size: var(--bespoke-font-size-lg);
   font-weight: 600;
   margin: 0;
   color: var(--bespoke-fg);
-  border-bottom: 2px solid var(--bespoke-accent);
-  padding-bottom: var(--bespoke-space-sm);
+}
+
+.section-header h2 {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 /* Vector Controls */
