@@ -1,8 +1,8 @@
-# Interactive Linear Algebra
+# CodeSignal Linear Algebra Simulator
 
 An interactive educational tool for learning vector operations through visual experimentation. Draw vectors on a 2D Cartesian plane and perform operations like addition, subtraction, scalar multiplication, and dot products with smooth animated visualizations.
 
-![Interactive Linear Algebra](https://img.shields.io/badge/educational-tool-blue) ![Built with Vanilla JS](https://img.shields.io/badge/built%20with-vanilla%20js-yellow)
+![CodeSignal Linear Algebra Simulator](https://img.shields.io/badge/CodeSignal-Linear%20Algebra%20Simulator-blue) ![Built with Vanilla JS](https://img.shields.io/badge/built%20with-vanilla%20js-yellow)
 
 ## Features
 

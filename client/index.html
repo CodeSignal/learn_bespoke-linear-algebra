@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Interactive Linear Algebra</title>
+  <title>CodeSignal Linear Algebra Simulator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +13,7 @@
 <body class="bespoke">
   <!-- Navigation Header -->
   <header class="header">
-    <h1>Interactive Linear Algebra</h1>
+    <h1>CodeSignal Linear Algebra Simulator</h1>
     <!-- APP_SPECIFIC_HEADER_CONTENT -->
     <div class="spacer"></div>
     <div id="status" class="status">Ready</div>
@@ -27,6 +27,10 @@
       <div class="sidebar-section">
         <div class="section-header">
           <h2>Vectors</h2>
+          <select id="coord-mode" class="coord-select">
+            <option value="cartesian">Cartesian</option>
+            <option value="polar">Polar</option>
+          </select>
           <button id="canvas-reset" class="btn-secondary btn-small">Clear </button>
         </div>
         <!-- Vector 1 -->
@@ -40,10 +44,6 @@
             <div class="info-row">
               <span class="label">Magnitude:</span>
               <span id="v1-magnitude" class="value">—</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Angle:</span>
-              <span id="v1-angle" class="value">—</span>
             </div>
           </div>
           <!-- Reflection Control -->
@@ -68,10 +68,6 @@
             <div class="info-row">
               <span class="label">Magnitude:</span>
               <span id="v2-magnitude" class="value">—</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Angle:</span>
-              <span id="v2-angle" class="value">—</span>
             </div>
           </div>
           <!-- Reflection Control -->
@@ -113,11 +109,17 @@
         </div>
 
         <div class="operation-group" data-operation-group="normalization">
+          <div class="operation-label">
+            <span>Normalization</span>
+          </div>
           <button id="op-normalize-v1" class="btn-primary" disabled>Normalize v₁</button>
           <button id="op-normalize-v2" class="btn-primary" disabled>Normalize v₂</button>
         </div>
 
         <div class="operation-group" data-operation-group="perpendicular">
+          <div class="operation-label">
+            <span>Perpendicular</span>
+          </div> 
           <button id="op-perp-v1" class="btn-primary" disabled>Perpendicular to v₁</button>
           <button id="op-perp-v2" class="btn-primary" disabled>Perpendicular to v₂</button>
         </div>

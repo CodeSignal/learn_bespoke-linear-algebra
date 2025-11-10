@@ -113,6 +113,34 @@ class Vector {
     return this.angle() * (180 / Math.PI);
   }
 
+  /**
+   * Convert to polar representation
+   * @returns {object} - {r: magnitude, theta: angle in degrees (0-360°)}
+   */
+  toPolar() {
+    const r = this.magnitude();
+    let theta = this.angleDegrees();
+
+    // Normalize to 0-360° range
+    while (theta < 0) theta += 360;
+    while (theta >= 360) theta -= 360;
+
+    return { r, theta };
+  }
+
+  /**
+   * Format coordinates based on display mode
+   * @param {string} mode - 'cartesian' or 'polar'
+   * @returns {string} - Formatted coordinate string
+   */
+  formatCoordinates(mode = 'cartesian') {
+    if (mode === 'polar') {
+      const polar = this.toPolar();
+      return `r=${polar.r.toFixed(2)}, θ=${polar.theta.toFixed(1)}°`;
+    }
+    return `[${this.x.toFixed(1)}, ${this.y.toFixed(1)}]`;
+  }
+
   add(other) {
     return new Vector(
       this.x + other.x,
@@ -253,6 +281,9 @@ class LinearAlgebraApp {
     this.vector2 = null;
     this.resultVector = null;
 
+    // Coordinate display mode
+    this.coordinateMode = 'cartesian'; // 'cartesian' or 'polar'
+
     // Interaction state
     this.isDrawing = false;
     this.isEditing = false;
@@ -323,6 +354,12 @@ class LinearAlgebraApp {
 
     // Canvas reset button
     document.getElementById('canvas-reset').addEventListener('click', () => this.clearAll());
+
+    // Coordinate mode toggle
+    document.getElementById('coord-mode').addEventListener('change', (e) => {
+      this.coordinateMode = e.target.value;
+      this.updateUI();
+    });
 
     document.getElementById('op-add').addEventListener('click', () => this.performAdd());
     document.getElementById('op-subtract').addEventListener('click', () => this.performSubtract());
@@ -1442,29 +1479,23 @@ class LinearAlgebraApp {
     // Update Vector 1
     if (this.vector1) {
       document.getElementById('v1-coords').textContent =
-        `[${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}]`;
+        this.vector1.formatCoordinates(this.coordinateMode);
       document.getElementById('v1-magnitude').textContent =
         this.vector1.magnitude().toFixed(2);
-      document.getElementById('v1-angle').textContent =
-        `${this.vector1.angleDegrees().toFixed(1)}°`;
     } else {
       document.getElementById('v1-coords').textContent = 'Not created';
       document.getElementById('v1-magnitude').textContent = '—';
-      document.getElementById('v1-angle').textContent = '—';
     }
 
     // Update Vector 2
     if (this.vector2) {
       document.getElementById('v2-coords').textContent =
-        `[${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}]`;
+        this.vector2.formatCoordinates(this.coordinateMode);
       document.getElementById('v2-magnitude').textContent =
         this.vector2.magnitude().toFixed(2);
-      document.getElementById('v2-angle').textContent =
-        `${this.vector2.angleDegrees().toFixed(1)}°`;
     } else {
       document.getElementById('v2-coords').textContent = 'Not created';
       document.getElementById('v2-magnitude').textContent = '—';
-      document.getElementById('v2-angle').textContent = '—';
     }
 
     // Enable/disable operation buttons
@@ -1530,10 +1561,129 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', async () => {
     await loadConfig();
     app = new LinearAlgebraApp();
+    initializeHelpModal();
   });
 } else {
   (async () => {
     await loadConfig();
     app = new LinearAlgebraApp();
+    initializeHelpModal();
   })();
+}
+
+// ============================================================================
+// HELP MODAL CONTENT
+// ============================================================================
+
+function initializeHelpModal() {
+  const helpContent = `
+    <section>
+      <h2>Interactive Linear Algebra</h2>
+      <p>
+        This application lets you visualize vector operations in 2D space.
+        Draw vectors on the canvas and perform mathematical operations to see
+        the results visually and numerically.
+      </p>
+    </section>
+
+    <section>
+      <h2>Coordinate Systems</h2>
+      <p>
+        Vectors can be represented in two different coordinate systems. Use the
+        dropdown in the Vectors section to switch between them:
+      </p>
+
+      <h3>Cartesian Coordinates (x, y)</h3>
+      <ul>
+        <li><strong>x</strong>: Horizontal displacement from the origin</li>
+        <li><strong>y</strong>: Vertical displacement from the origin</li>
+        <li>Example: <code>[3.0, 4.0]</code></li>
+        <li>Best for: Component-based operations like addition and subtraction</li>
+      </ul>
+
+      <h3>Polar Coordinates (r, θ)</h3>
+      <ul>
+        <li><strong>r</strong>: Distance from the origin (magnitude)</li>
+        <li><strong>θ</strong>: Angle from the positive x-axis (0-360°)</li>
+        <li>Example: <code>r=5.0, θ=53.1°</code></li>
+        <li>Best for: Understanding direction and magnitude relationships</li>
+      </ul>
+
+      <div class="tip">
+        <strong>💡 Tip:</strong> Both representations describe the same vector!
+        Switch between modes to understand how they relate.
+      </div>
+    </section>
+
+    <section>
+      <h2>Creating Vectors</h2>
+      <ul>
+        <li><strong>Click and drag</strong> on the canvas to create a vector</li>
+        <li>The first vector you create is <span style="color: #e53e3e;">v₁ (red)</span></li>
+        <li>The second vector you create is <span style="color: #3182ce;">v₂ (blue)</span></li>
+        <li>Vectors automatically snap to a 0.5 unit grid for precision</li>
+        <li>Click the <strong>Clear</strong> button to start over</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Editing Vectors</h2>
+      <ul>
+        <li>Click near the <strong>arrowhead</strong> of a vector to select it</li>
+        <li>The selected vector will highlight with a glowing circle</li>
+        <li>Drag to reposition the vector endpoint</li>
+        <li>The vector information updates in real-time</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Vector Operations</h2>
+      <p>All operations create a <span style="color: #38a169;">result vector (green)</span>:</p>
+
+      <h3>Addition & Subtraction</h3>
+      <ul>
+        <li><strong>Add:</strong> Combines two vectors using the parallelogram rule</li>
+        <li><strong>Subtract:</strong> v₁ - v₂ = v₁ + (-v₂), with animated parallelogram visualization</li>
+      </ul>
+
+      <h3>Scalar Multiplication</h3>
+      <ul>
+        <li>Enter a number and click <strong>Scale v₁</strong> or <strong>Scale v₂</strong></li>
+        <li>Positive scalars: stretch or shrink the vector</li>
+        <li>Negative scalars: reverse direction</li>
+      </ul>
+
+      <h3>Dot Product</h3>
+      <ul>
+        <li>Computes: v₁ · v₂ = x₁x₂ + y₁y₂</li>
+        <li>Result is a scalar (number), not a vector</li>
+        <li>Measures how much two vectors "agree" in direction</li>
+      </ul>
+
+      <h3>Other Operations</h3>
+      <ul>
+        <li><strong>Project:</strong> Projects v₁ onto v₂</li>
+        <li><strong>Angle Between:</strong> Calculates and displays the angle between vectors</li>
+        <li><strong>Normalize:</strong> Creates a unit vector (length 1) in the same direction</li>
+        <li><strong>Perpendicular:</strong> Rotates the vector 90° counterclockwise</li>
+        <li><strong>Reflect:</strong> Mirrors the vector across an axis or diagonal</li>
+        <li><strong>Linear Combination:</strong> Computes av₁ + bv₂ with custom scalars</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Tips</h2>
+      <ul>
+        <li>Try switching to polar mode to better understand angles and magnitudes</li>
+        <li>Watch the animated parallelogram when adding or subtracting vectors</li>
+        <li>The canvas shows grid lines for precise placement</li>
+        <li>All calculations are displayed in the Results panel</li>
+      </ul>
+    </section>
+  `;
+
+  HelpModal.init({
+    triggerSelector: '#btn-help',
+    content: helpContent
+  });
 }
