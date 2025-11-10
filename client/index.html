@@ -46,6 +46,15 @@
               <span id="v1-angle" class="value">—</span>
             </div>
           </div>
+          <!-- Reflection Control -->
+          <div class="reflection-control" data-operation-group="reflection">
+            <select id="reflect-type-v1" class="reflect-select">
+              <option value="x-axis">X-axis</option>
+              <option value="y-axis">Y-axis</option>
+              <option value="diagonal">Diagonal (y=x)</option>
+            </select>
+            <button id="op-reflect-v1" class="btn-primary btn-reflect" disabled>Reflect</button>
+          </div>
         </div>
 
         <!-- Vector 2 -->
@@ -64,6 +73,15 @@
               <span class="label">Angle:</span>
               <span id="v2-angle" class="value">—</span>
             </div>
+          </div>
+          <!-- Reflection Control -->
+          <div class="reflection-control" data-operation-group="reflection">
+            <select id="reflect-type-v2" class="reflect-select">
+              <option value="x-axis">X-axis</option>
+              <option value="y-axis">Y-axis</option>
+              <option value="diagonal">Diagonal (y=x)</option>
+            </select>
+            <button id="op-reflect-v2" class="btn-primary btn-reflect" disabled>Reflect</button>
           </div>
         </div>
       </div>
@@ -102,6 +120,27 @@
         <div class="operation-group" data-operation-group="perpendicular">
           <button id="op-perp-v1" class="btn-primary" disabled>Perpendicular to v₁</button>
           <button id="op-perp-v2" class="btn-primary" disabled>Perpendicular to v₂</button>
+        </div>
+
+        <div class="operation-group" data-operation-group="linearCombination">
+          <div class="operation-label">
+            <span>Linear Combination</span>
+          </div>
+          <div class="linear-combo-control">
+            <div class="combo-inputs">
+              <div class="combo-input-group">
+                <label for="lc-scalar-a" class="combo-label">a</label>
+                <input type="number" id="lc-scalar-a" value="1" step="0.1" />
+              </div>
+              <span class="combo-operator">v₁ +</span>
+              <div class="combo-input-group">
+                <label for="lc-scalar-b" class="combo-label">b</label>
+                <input type="number" id="lc-scalar-b" value="1" step="0.1" />
+              </div>
+              <span class="combo-operator">v₂</span>
+            </div>
+            <button id="op-linear-combo" class="btn-primary" disabled>Calculate av₁ + bv₂</button>
+          </div>
         </div>
       </div>
 

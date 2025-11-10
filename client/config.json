@@ -6,6 +6,8 @@
     "dotProduct": true,
     "projectionAngle": true,
     "normalization": true,
-    "perpendicular": true
+    "perpendicular": true,
+    "reflection": true,
+    "linearCombination": true
   }
 }

@@ -47,6 +47,8 @@ const CONFIG = {
     projectionAngle: true,
     normalization: true,
     perpendicular: true,
+    reflection: true,
+    linearCombination: true,
   },
 };
 
@@ -202,6 +204,36 @@ class Vector {
     );
   }
 
+  // Reflect vector across X-axis (horizontal flip)
+  reflectX() {
+    return new Vector(
+      this.x,
+      -this.y,
+      CONFIG.colors.result,
+      'refl_x'
+    );
+  }
+
+  // Reflect vector across Y-axis (vertical flip)
+  reflectY() {
+    return new Vector(
+      -this.x,
+      this.y,
+      CONFIG.colors.result,
+      'refl_y'
+    );
+  }
+
+  // Reflect vector across diagonal line y=x (swap coordinates)
+  reflectDiagonal() {
+    return new Vector(
+      this.y,
+      this.x,
+      CONFIG.colors.result,
+      'refl_diag'
+    );
+  }
+
   clone() {
     return new Vector(this.x, this.y, this.color, this.label, this.lineWidth);
   }
@@ -305,6 +337,13 @@ class LinearAlgebraApp {
     document.getElementById('op-normalize-v2').addEventListener('click', () => this.performNormalize(2));
     document.getElementById('op-perp-v1').addEventListener('click', () => this.performPerpendicular(1));
     document.getElementById('op-perp-v2').addEventListener('click', () => this.performPerpendicular(2));
+
+    // Reflection operation buttons
+    document.getElementById('op-reflect-v1').addEventListener('click', () => this.performReflect(1));
+    document.getElementById('op-reflect-v2').addEventListener('click', () => this.performReflect(2));
+
+    // Linear combination button
+    document.getElementById('op-linear-combo').addEventListener('click', () => this.performLinearCombination());
   }
 
   loadColorsFromCSS() {
@@ -1178,6 +1217,96 @@ class LinearAlgebraApp {
     });
   }
 
+  performReflect(vectorNum) {
+    // Clear parallelogram and angle arc from previous operations
+    this.parallelogramState = null;
+    this.angleArcState = null;
+
+    let vector, result, reflectionType, axis, formula;
+
+    // Get the reflection type from dropdown
+    const selectId = `reflect-type-v${vectorNum}`;
+    reflectionType = document.getElementById(selectId).value;
+
+    if (vectorNum === 1 && this.vector1) {
+      vector = this.vector1;
+    } else if (vectorNum === 2 && this.vector2) {
+      vector = this.vector2;
+    } else {
+      return;
+    }
+
+    // Perform the appropriate reflection
+    switch(reflectionType) {
+      case 'x-axis':
+        result = vector.reflectX();
+        result.label = `v${vectorNum}_reflₓ`;
+        axis = 'X-axis';
+        formula = `Reflect v${vectorNum} across X-axis: (x, y) → (x, -y)`;
+        break;
+      case 'y-axis':
+        result = vector.reflectY();
+        result.label = `v${vectorNum}_refly`;
+        axis = 'Y-axis';
+        formula = `Reflect v${vectorNum} across Y-axis: (x, y) → (-x, y)`;
+        break;
+      case 'diagonal':
+        result = vector.reflectDiagonal();
+        result.label = `v${vectorNum}_reflᵈ`;
+        axis = 'diagonal (y=x)';
+        formula = `Reflect v${vectorNum} across y=x: (x, y) → (y, x)`;
+        break;
+      default:
+        return;
+    }
+
+    // Log operation
+    logAction(`Reflect ${axis}: v${vectorNum} (${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}). Result: (${result.x.toFixed(1)}, ${result.y.toFixed(1)})`);
+
+    this.animateToResult(result, () => {
+      const calculation = `[${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}] → [${result.x.toFixed(1)}, ${result.y.toFixed(1)}]`;
+      this.displayResult(formula, calculation);
+    });
+  }
+
+  performLinearCombination() {
+    if (!this.vector1 || !this.vector2) return;
+
+    // Get scalar values from inputs
+    const scalarA = parseFloat(document.getElementById('lc-scalar-a').value);
+    const scalarB = parseFloat(document.getElementById('lc-scalar-b').value);
+
+    if (isNaN(scalarA) || isNaN(scalarB)) return;
+
+    // Clear parallelogram and angle arc from previous operations
+    this.parallelogramState = null;
+    this.angleArcState = null;
+
+    // Calculate scaled vectors
+    const scaledV1 = this.vector1.scale(scalarA);
+    const scaledV2 = this.vector2.scale(scalarB);
+
+    // Calculate result: av₁ + bv₂
+    const result = new Vector(
+      scaledV1.x + scaledV2.x,
+      scaledV1.y + scaledV2.y,
+      CONFIG.colors.result,
+      `${scalarA}v₁ + ${scalarB}v₂`
+    );
+
+    // Log operation
+    logAction(`Linear combination: ${scalarA}v1 + ${scalarB}v2. Result: (${result.x.toFixed(2)}, ${result.y.toFixed(2)})`);
+
+    // Animate with parallelogram showing scaled vectors
+    // Use scaled vectors for parallelogram visualization
+    this.animateParallelogram(result, scaledV1, scaledV2, null, () => {
+      const formula = `${scalarA}v₁ + ${scalarB}v₂`;
+      const calculation = `= ${scalarA}[${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}] + ${scalarB}[${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}]`;
+      const resultText = `= [${result.x.toFixed(2)}, ${result.y.toFixed(2)}]`;
+      this.displayResult(formula, calculation, resultText);
+    });
+  }
+
   // ============================================================================
   // ANIMATION
   // ============================================================================
@@ -1353,6 +1482,13 @@ class LinearAlgebraApp {
     document.getElementById('op-normalize-v2').disabled = !this.vector2;
     document.getElementById('op-perp-v1').disabled = !this.vector1;
     document.getElementById('op-perp-v2').disabled = !this.vector2;
+
+    // Enable/disable reflection buttons
+    document.getElementById('op-reflect-v1').disabled = !this.vector1;
+    document.getElementById('op-reflect-v2').disabled = !this.vector2;
+
+    // Enable/disable linear combination button
+    document.getElementById('op-linear-combo').disabled = !bothExist;
 
     // Show/hide operation groups based on configuration
     document.querySelectorAll('[data-operation-group]').forEach(element => {
