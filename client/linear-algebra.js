@@ -370,10 +370,19 @@ class LinearAlgebraApp {
     // New operation buttons
     document.getElementById('op-project').addEventListener('click', () => this.performProject());
     document.getElementById('op-angle').addEventListener('click', () => this.performAngleBetween());
-    document.getElementById('op-normalize-v1').addEventListener('click', () => this.performNormalize(1));
-    document.getElementById('op-normalize-v2').addEventListener('click', () => this.performNormalize(2));
-    document.getElementById('op-perp-v1').addEventListener('click', () => this.performPerpendicular(1));
-    document.getElementById('op-perp-v2').addEventListener('click', () => this.performPerpendicular(2));
+
+    // Normalize and perpendicular with dropdown selection
+    document.getElementById('op-normalize').addEventListener('click', () => {
+      const select = document.getElementById('normalize-vector-select');
+      const vectorNum = select.value === 'v1' ? 1 : 2;
+      this.performNormalize(vectorNum);
+    });
+
+    document.getElementById('op-perpendicular').addEventListener('click', () => {
+      const select = document.getElementById('perpendicular-vector-select');
+      const vectorNum = select.value === 'v1' ? 1 : 2;
+      this.performPerpendicular(vectorNum);
+    });
 
     // Reflection operation buttons
     document.getElementById('op-reflect-v1').addEventListener('click', () => this.performReflect(1));
@@ -381,6 +390,10 @@ class LinearAlgebraApp {
 
     // Linear combination button
     document.getElementById('op-linear-combo').addEventListener('click', () => this.performLinearCombination());
+
+    // Linear combination input listeners to update button text
+    document.getElementById('lc-scalar-a').addEventListener('input', () => this.updateLinearComboButton());
+    document.getElementById('lc-scalar-b').addEventListener('input', () => this.updateLinearComboButton());
   }
 
   loadColorsFromCSS() {
@@ -1306,6 +1319,18 @@ class LinearAlgebraApp {
     });
   }
 
+  updateLinearComboButton() {
+    const scalarA = parseFloat(document.getElementById('lc-scalar-a').value) || 0;
+    const scalarB = parseFloat(document.getElementById('lc-scalar-b').value) || 0;
+    const button = document.getElementById('op-linear-combo');
+
+    // Format the button text with proper signs
+    const aText = scalarA === 1 ? '' : scalarA === -1 ? '-' : scalarA;
+    const bText = scalarB >= 0 ? ` + ${scalarB === 1 ? '' : scalarB}` : ` - ${Math.abs(scalarB) === 1 ? '' : Math.abs(scalarB)}`;
+
+    button.textContent = `${aText}v₁${bText}v₂`;
+  }
+
   performLinearCombination() {
     if (!this.vector1 || !this.vector2) return;
 
@@ -1509,10 +1534,37 @@ class LinearAlgebraApp {
     // Enable/disable new operation buttons
     document.getElementById('op-project').disabled = !bothExist;
     document.getElementById('op-angle').disabled = !bothExist;
-    document.getElementById('op-normalize-v1').disabled = !this.vector1;
-    document.getElementById('op-normalize-v2').disabled = !this.vector2;
-    document.getElementById('op-perp-v1').disabled = !this.vector1;
-    document.getElementById('op-perp-v2').disabled = !this.vector2;
+
+    // Normalize and perpendicular dropdown management
+    const v1Exists = this.vector1;
+    const v2Exists = this.vector2;
+    const anyVectorExists = v1Exists || v2Exists;
+
+    // Enable/disable normalize button and manage dropdown
+    document.getElementById('op-normalize').disabled = !anyVectorExists;
+    const normalizeSelect = document.getElementById('normalize-vector-select');
+    normalizeSelect.querySelector('option[value="v1"]').disabled = !v1Exists;
+    normalizeSelect.querySelector('option[value="v2"]').disabled = !v2Exists;
+
+    // Auto-select available vector
+    if (v1Exists && !v2Exists) {
+      normalizeSelect.value = 'v1';
+    } else if (!v1Exists && v2Exists) {
+      normalizeSelect.value = 'v2';
+    }
+
+    // Enable/disable perpendicular button and manage dropdown
+    document.getElementById('op-perpendicular').disabled = !anyVectorExists;
+    const perpSelect = document.getElementById('perpendicular-vector-select');
+    perpSelect.querySelector('option[value="v1"]').disabled = !v1Exists;
+    perpSelect.querySelector('option[value="v2"]').disabled = !v2Exists;
+
+    // Auto-select available vector
+    if (v1Exists && !v2Exists) {
+      perpSelect.value = 'v1';
+    } else if (!v1Exists && v2Exists) {
+      perpSelect.value = 'v2';
+    }
 
     // Enable/disable reflection buttons
     document.getElementById('op-reflect-v1').disabled = !this.vector1;
@@ -1520,6 +1572,9 @@ class LinearAlgebraApp {
 
     // Enable/disable linear combination button
     document.getElementById('op-linear-combo').disabled = !bothExist;
+
+    // Update linear combination button text
+    this.updateLinearComboButton();
 
     // Show/hide operation groups based on configuration
     document.querySelectorAll('[data-operation-group]').forEach(element => {
