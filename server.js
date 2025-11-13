@@ -15,7 +15,7 @@ try {
   console.log('Install with: npm install ws');
 }
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3000;
 
 // Track connected WebSocket clients
 const wsClients = new Set();
