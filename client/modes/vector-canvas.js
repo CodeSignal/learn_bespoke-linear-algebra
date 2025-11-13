@@ -5,11 +5,11 @@
  */
 
 class VectorCanvas {
-  constructor(canvas, coordSystem, config, colors) {
+  constructor(canvas, coordSystem, styleConstants, colors) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.coordSystem = coordSystem;
-    this.config = config;
+    this.styleConstants = styleConstants; // Styling constants
     this.colors = colors;
   }
 
@@ -66,7 +66,7 @@ class VectorCanvas {
       const dx = mouseScreenX - endpoint.x;
       const dy = mouseScreenY - endpoint.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      return distance <= this.config.hitRadius;
+      return distance <= this.styleConstants.hitRadius;
     };
 
     // Check vector1 first, then vector2
@@ -110,7 +110,7 @@ class VectorCanvas {
     if (state.vector1) {
       this.coordSystem.drawVector(
         state.vector1,
-        this.config,
+        this.styleConstants,
         this.colors,
         false,
         1,
@@ -120,7 +120,7 @@ class VectorCanvas {
     if (state.vector2) {
       this.coordSystem.drawVector(
         state.vector2,
-        this.config,
+        this.styleConstants,
         this.colors,
         false,
         1,
@@ -142,7 +142,7 @@ class VectorCanvas {
     if (state.parallelogramState && state.parallelogramState.negatedVector2) {
       this.coordSystem.drawVector(
         state.parallelogramState.negatedVector2,
-        this.config,
+        this.styleConstants,
         this.colors,
         true,  // dashed
         0.5,   // 50% opacity like parallelogram edges
@@ -156,14 +156,14 @@ class VectorCanvas {
       const scaledV2 = state.parallelogramState.scaledV2;
 
       // Calculate opacity with fade-in effect during animation
-      const baseOpacity = this.config.parallelogram.opacity;
+      const baseOpacity = this.styleConstants.parallelogram.opacity;
       const currentOpacity = baseOpacity * state.parallelogramState.edgeOpacity;
 
       if (scaledV1) {
         // Draw scaled v1 (av₁) from origin as dashed vector
         this.coordSystem.drawVector(
           scaledV1,
-          this.config,
+          this.styleConstants,
           this.colors,
           true,  // dashed
           currentOpacity,  // Use computed opacity with fade-in
@@ -175,7 +175,7 @@ class VectorCanvas {
         // Draw scaled v2 (bv₂) from origin as dashed vector
         this.coordSystem.drawVector(
           scaledV2,
-          this.config,
+          this.styleConstants,
           this.colors,
           true,  // dashed
           currentOpacity,  // Use computed opacity with fade-in
@@ -186,40 +186,37 @@ class VectorCanvas {
 
     // Draw parallelogram edges (if animating)
     if (state.parallelogramState && state.parallelogramState.useVector1 && state.parallelogramState.useVector2) {
-      // Apply edge opacity for fade-in effect
-      const savedOpacity = this.config.parallelogram.opacity;
-      this.config.parallelogram.opacity = savedOpacity * state.parallelogramState.edgeOpacity;
-
       const v1 = state.parallelogramState.useVector1;
       const v2 = state.parallelogramState.useVector2;
+
+      // Calculate opacity with fade-in effect
+      const baseOpacity = this.styleConstants.parallelogram.opacity;
+      const currentOpacity = baseOpacity * state.parallelogramState.edgeOpacity;
 
       // Draw v2 translated to v1's tip (with progress for animation)
       this.coordSystem.drawTranslatedVector(
         v2,
         { x: v1.x, y: v1.y },
-        this.config,
+        this.styleConstants,
         state.parallelogramState.v2Progress,
-        this.config.parallelogram.v2CopyColor
+        this.styleConstants.parallelogram.v2CopyColor
       );
 
       // Draw v1 translated to v2's tip (with progress for animation)
       this.coordSystem.drawTranslatedVector(
         v1,
         { x: v2.x, y: v2.y },
-        this.config,
+        this.styleConstants,
         state.parallelogramState.v1Progress,
-        this.config.parallelogram.v1CopyColor
+        this.styleConstants.parallelogram.v1CopyColor
       );
-
-      // Restore original opacity
-      this.config.parallelogram.opacity = savedOpacity;
     }
 
     // Draw result vector
     if (state.resultVector) {
       this.coordSystem.drawVector(
         state.resultVector,
-        this.config,
+        this.styleConstants,
         this.colors,
         true,
         1,
@@ -231,7 +228,7 @@ class VectorCanvas {
     if (state.isDrawing && state.drawingVector) {
       this.coordSystem.drawVector(
         state.drawingVector,
-        this.config,
+        this.styleConstants,
         this.colors,
         false,
         0.5,
@@ -251,8 +248,8 @@ class VectorCanvas {
     const origin = this.mathToScreen(0, 0);
 
     // Calculate arc radius (60 pixels or 20% of smaller vector, whichever is smaller)
-    const mag1 = vector1.magnitude() * this.config.gridSize;
-    const mag2 = vector2.magnitude() * this.config.gridSize;
+    const mag1 = vector1.magnitude() * this.styleConstants.gridSize;
+    const mag2 = vector2.magnitude() * this.styleConstants.gridSize;
     const maxRadius = 60;
     const minRadius = 30;
     const arcRadius = Math.min(maxRadius, Math.max(minRadius, Math.min(mag1, mag2) * 0.4));

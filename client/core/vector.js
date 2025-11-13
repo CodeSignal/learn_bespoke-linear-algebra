@@ -4,12 +4,23 @@
  */
 
 class Vector {
+  // Static default color for result vectors (can be set from styleConstants)
+  static defaultResultColor = '#10b981'; // Default green
+
   constructor(x, y, color, label, lineWidth = null) {
     this.x = x;
     this.y = y;
     this.color = color;
     this.label = label;
     this.lineWidth = lineWidth;  // Optional custom line width
+  }
+
+  /**
+   * Set the default result color for Vector operations
+   * @param {string} color - Color hex string
+   */
+  static setDefaultResultColor(color) {
+    Vector.defaultResultColor = color;
   }
 
   magnitude() {
@@ -53,11 +64,10 @@ class Vector {
   }
 
   add(other) {
-    // Note: CONFIG will be accessed from global scope
     return new Vector(
       this.x + other.x,
       this.y + other.y,
-      CONFIG.colors.result,
+      Vector.defaultResultColor,
       'result'
     );
   }
@@ -66,7 +76,7 @@ class Vector {
     return new Vector(
       this.x - other.x,
       this.y - other.y,
-      CONFIG.colors.result,
+      Vector.defaultResultColor,
       'result'
     );
   }
@@ -75,7 +85,7 @@ class Vector {
     return new Vector(
       this.x * scalar,
       this.y * scalar,
-      CONFIG.colors.result,
+      Vector.defaultResultColor,
       'result'
     );
   }
@@ -90,14 +100,14 @@ class Vector {
     const otherMagnitudeSquared = other.x * other.x + other.y * other.y;
 
     if (otherMagnitudeSquared === 0) {
-      return new Vector(0, 0, CONFIG.colors.result, 'proj');
+      return new Vector(0, 0, Vector.defaultResultColor, 'proj');
     }
 
     const scalar = dotProduct / otherMagnitudeSquared;
     return new Vector(
       scalar * other.x,
       scalar * other.y,
-      CONFIG.colors.result,
+      Vector.defaultResultColor,
       'proj'
     );
   }
@@ -124,12 +134,12 @@ class Vector {
   normalize() {
     const mag = this.magnitude();
     if (mag === 0) {
-      return new Vector(0, 0, CONFIG.colors.result, 'unit');
+      return new Vector(0, 0, Vector.defaultResultColor, 'unit');
     }
     return new Vector(
       this.x / mag,
       this.y / mag,
-      CONFIG.colors.result,
+      Vector.defaultResultColor,
       'û'
     );
   }
@@ -139,7 +149,7 @@ class Vector {
     return new Vector(
       -this.y,
       this.x,
-      CONFIG.colors.result,
+      Vector.defaultResultColor,
       'perp'
     );
   }
@@ -149,7 +159,7 @@ class Vector {
     return new Vector(
       this.x,
       -this.y,
-      CONFIG.colors.result,
+      Vector.defaultResultColor,
       'refl_x'
     );
   }
@@ -159,7 +169,7 @@ class Vector {
     return new Vector(
       -this.x,
       this.y,
-      CONFIG.colors.result,
+      Vector.defaultResultColor,
       'refl_y'
     );
   }
@@ -169,7 +179,7 @@ class Vector {
     return new Vector(
       this.y,
       this.x,
-      CONFIG.colors.result,
+      Vector.defaultResultColor,
       'refl_diag'
     );
   }

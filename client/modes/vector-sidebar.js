@@ -268,18 +268,22 @@ class VectorSidebar {
 
   /**
    * Update operation group visibility based on configuration
-   * @param {Object} config - Configuration object with operationGroups and maxVectors
+   * @param {Object} appConfig - Application configuration object with vectorMode.operationGroups and vectorMode.maxVectors
    */
-  updateOperationGroupVisibility(config) {
+  updateOperationGroupVisibility(appConfig) {
+    const vectorConfig = appConfig.vectorMode || {};
+    const operationGroups = vectorConfig.operationGroups || {};
+    const maxVectors = vectorConfig.maxVectors || 2;
+
     const shouldShowGroup = (groupName) => {
       // First check if the operation group is enabled in configuration
-      if (config.operationGroups && config.operationGroups[groupName] === false) {
+      if (operationGroups[groupName] === false) {
         return false;
       }
 
       // Hide operations that require 2 vectors when maxVectors < 2
       const twoVectorOperations = ['addition', 'dotProduct', 'projectionAngle'];
-      if (twoVectorOperations.includes(groupName) && config.maxVectors < 2) {
+      if (twoVectorOperations.includes(groupName) && maxVectors < 2) {
         return false;
       }
 
@@ -287,8 +291,8 @@ class VectorSidebar {
     };
 
     // Show/hide operation groups based on configuration
-    const operationGroups = this.root.querySelectorAll('[data-operation-group]');
-    operationGroups.forEach(element => {
+    const operationGroupElements = this.root.querySelectorAll('[data-operation-group]');
+    operationGroupElements.forEach(element => {
       const groupName = element.getAttribute('data-operation-group');
       if (shouldShowGroup(groupName)) {
         element.style.display = '';
@@ -299,7 +303,7 @@ class VectorSidebar {
 
     // Show/hide vector panels based on maxVectors configuration
     if (this.elements.vector2Control) {
-      if (config.maxVectors >= 2) {
+      if (maxVectors >= 2) {
         this.elements.vector2Control.style.display = '';
       } else {
         this.elements.vector2Control.style.display = 'none';

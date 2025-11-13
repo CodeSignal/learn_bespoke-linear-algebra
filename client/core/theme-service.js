@@ -9,16 +9,25 @@
     constructor() {
       this.subscribers = [];
       this.colors = null;
+      this.styleConstants = null;
       this.darkModeQuery = null;
       this.themeChangeHandler = null;
-      this.init();
+      // Don't auto-initialize - wait for init() to be called with styleConstants
     }
 
     /**
      * Initialize the service
      * Loads initial colors and sets up theme listener
+     * @param {Object} styleConstants - Style constants object with colors property for fallbacks
      */
-    init() {
+    init(styleConstants) {
+      if (!styleConstants || !styleConstants.colors) {
+        console.warn('CanvasThemeService.init: styleConstants with colors property is required');
+        return;
+      }
+
+      this.styleConstants = styleConstants;
+
       // Load initial colors
       this.loadColors();
 
@@ -36,17 +45,14 @@
      * @returns {Object} Color object with theme-responsive colors
      */
     loadColors() {
+      if (!this.styleConstants) {
+        console.warn('CanvasThemeService.loadColors: styleConstants not set, call init() first');
+        return {};
+      }
+
       const colors = window.ColorUtils
-        ? window.ColorUtils.getColorsFromCSS()
-        : {
-            grid: '#d1d5db',
-            axis: '#9ca3af',
-            text: '#6b7280',
-            hover: '#fbbf24',
-            hoverHighlight: '#f59e0b',
-            accent: '#3b82f6',
-            danger: '#ef4444'
-          };
+        ? window.ColorUtils.getColorsFromCSS(this.styleConstants)
+        : {};
 
       this.colors = colors;
       return colors;
@@ -123,7 +129,7 @@
     }
   }
 
-  // Export singleton instance
+  // Export singleton instance (not initialized until init() is called)
   window.CanvasThemeService = new CanvasThemeService();
 })();
 

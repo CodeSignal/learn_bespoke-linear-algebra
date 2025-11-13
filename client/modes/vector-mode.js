@@ -5,17 +5,18 @@
  */
 
 class VectorMode {
-  constructor(canvas, config, coordSystem, rootElement) {
+  constructor(canvas, appConfig, styleConstants, coordSystem, rootElement) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
-    this.config = config || CONFIG;
+    this.appConfig = appConfig; // Runtime configuration from config.json
+    this.styleConstants = styleConstants; // Styling constants
     this.coordSystem = coordSystem; // Accept shared CoordinateSystem
     this.root = rootElement; // Root element for sidebar (like MatrixMode)
 
     // Initialize modules
     this.sidebar = new VectorSidebar(this.root);
-    this.canvasRenderer = new VectorCanvas(canvas, coordSystem, this.config, {});
-    this.operations = new VectorOperations(this.config);
+    this.canvasRenderer = new VectorCanvas(canvas, coordSystem, styleConstants, {});
+    this.operations = new VectorOperations(appConfig, styleConstants);
 
     // Vectors
     this.vector1 = null;
@@ -144,19 +145,19 @@ class VectorMode {
     const themeColors = window.CanvasThemeService
       ? window.CanvasThemeService.getColors()
       : {
-          grid: CONFIG.colors.grid,
-          axis: CONFIG.colors.axis,
-          text: CONFIG.colors.text,
-          hover: CONFIG.colors.hover,
-          hoverHighlight: CONFIG.colors.hoverHighlight
+          grid: this.styleConstants.colors.grid,
+          axis: this.styleConstants.colors.axis,
+          text: this.styleConstants.colors.text,
+          hover: this.styleConstants.colors.hover,
+          hoverHighlight: this.styleConstants.colors.hoverHighlight
         };
 
-    // Store colors with vector-specific colors from config
+    // Store colors with vector-specific colors from styleConstants
     this.colors = {
       ...themeColors,
-      vector1: this.config.colors.vector1,
-      vector2: this.config.colors.vector2,
-      result: this.config.colors.result
+      vector1: this.styleConstants.colors.vector1,
+      vector2: this.styleConstants.colors.vector2,
+      result: this.styleConstants.colors.result
     };
 
     // Update CoordinateSystem colors if it exists
@@ -231,7 +232,7 @@ class VectorMode {
     this.sidebar.updateButtonStates(this.vector1, this.vector2);
 
     // Update operation group visibility
-    this.sidebar.updateOperationGroupVisibility(this.config);
+    this.sidebar.updateOperationGroupVisibility(this.appConfig);
   }
 
   // ============================================================================
@@ -272,10 +273,10 @@ class VectorMode {
     // Start drawing a new vector
     if (!this.vector1) {
       this.isDrawing = true;
-      this.drawingVector = new Vector(0, 0, this.config.colors.vector1, 'v₁');
-    } else if (!this.vector2 && this.config.maxVectors >= 2) {
+      this.drawingVector = new Vector(0, 0, this.styleConstants.colors.vector1, 'v₁');
+    } else if (!this.vector2 && this.appConfig.vectorMode.maxVectors >= 2) {
       this.isDrawing = true;
-      this.drawingVector = new Vector(0, 0, this.config.colors.vector2, 'v₂');
+      this.drawingVector = new Vector(0, 0, this.styleConstants.colors.vector2, 'v₂');
     }
 
     this.canvas.classList.add('dragging');
@@ -373,7 +374,7 @@ class VectorMode {
         const mag = this.vector1.magnitude().toFixed(2);
         const angle = this.vector1.angleDegrees().toFixed(2);
         logAction(`Vector created: v1 at (${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}), magnitude: ${mag}, angle: ${angle}°`);
-      } else if (!this.vector2 && this.config.maxVectors >= 2) {
+      } else if (!this.vector2 && this.appConfig.vectorMode.maxVectors >= 2) {
         // Only allow second vector if maxVectors is 2 or more
         this.vector2 = this.drawingVector;
         // Log vector creation
@@ -583,7 +584,7 @@ class VectorMode {
 
     // Use Animator for animation loop
     this.animationControl = Animator.animate({
-      duration: this.config.animationDuration,
+      duration: this.styleConstants.animationDuration,
       easingFunction: Animator.easeOutCubic,
       onFrame: (eased) => {
         // Use Animator.lerpVector for interpolation
@@ -629,27 +630,27 @@ class VectorMode {
       scalarB: linearComboData?.scalarB || null
     };
 
-    const totalDuration = this.config.parallelogram.staggerDelay + this.config.parallelogram.translateDuration;
+    const totalDuration = this.styleConstants.parallelogram.staggerDelay + this.styleConstants.parallelogram.translateDuration;
 
     const animate = (currentTime) => {
       const elapsed = currentTime - this.parallelogramState.startTime;
 
       // Phase 1: Fade in edges (0-200ms)
-      if (elapsed < this.config.parallelogram.edgeFadeInDuration) {
-        this.parallelogramState.edgeOpacity = elapsed / this.config.parallelogram.edgeFadeInDuration;
+      if (elapsed < this.styleConstants.parallelogram.edgeFadeInDuration) {
+        this.parallelogramState.edgeOpacity = elapsed / this.styleConstants.parallelogram.edgeFadeInDuration;
       } else {
         this.parallelogramState.edgeOpacity = 1;
       }
 
       // Phase 2: Draw translated v2 from v1's tip (0-400ms)
-      const v2Progress = Math.min(elapsed / this.config.parallelogram.translateDuration, 1);
+      const v2Progress = Math.min(elapsed / this.styleConstants.parallelogram.translateDuration, 1);
       // Use Animator easing function
       this.parallelogramState.v2Progress = Animator.easeOutCubic(v2Progress);
 
       // Phase 3: Draw translated v1 from v2's tip (200-600ms, overlaps phase 2)
-      const v1StartTime = this.config.parallelogram.staggerDelay;
+      const v1StartTime = this.styleConstants.parallelogram.staggerDelay;
       const v1Elapsed = Math.max(0, elapsed - v1StartTime);
-      const v1Progress = Math.min(v1Elapsed / this.config.parallelogram.translateDuration, 1);
+      const v1Progress = Math.min(v1Elapsed / this.styleConstants.parallelogram.translateDuration, 1);
       // Use Animator easing function
       this.parallelogramState.v1Progress = Animator.easeOutCubic(v1Progress);
 

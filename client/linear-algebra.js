@@ -4,10 +4,12 @@
  */
 
 // ============================================================================
-// CONSTANTS & CONFIGURATION
+// STYLE CONSTANTS
 // ============================================================================
+// Immutable styling/layout constants (not runtime configuration)
+// Runtime configuration comes from config.json via ConfigService
 
-const CONFIG = {
+const STYLE_CONSTANTS = {
   gridSize: 40,           // pixels per unit
   arrowHeadSize: 12,      // pixels
   vectorLineWidth: 3,
@@ -40,18 +42,6 @@ const CONFIG = {
     translateDuration: 400,     // ms - each translated vector draws
     staggerDelay: 200,          // ms - delay between translated vectors
   },
-  // Application configuration (can be overridden by config.json)
-  maxVectors: 2,
-  operationGroups: {
-    addition: true,
-    scalarMultiplication: true,
-    dotProduct: true,
-    projectionAngle: true,
-    normalization: true,
-    perpendicular: true,
-    reflection: true,
-    linearCombination: true,
-  },
 };
 
 // ============================================================================
@@ -60,47 +50,57 @@ const CONFIG = {
 
 /**
  * Load configuration from config.json using ConfigService
- * Merges loaded config into CONFIG object with defaults as fallback
+ * Returns immutable appConfig object (single source of truth)
+ * Does not mutate any global state
+ * @returns {Promise<Object>} Immutable application configuration
  */
 async function loadConfig() {
   if (!window.ConfigService) {
     console.warn('ConfigService not available, using default configuration');
-    CONFIG.mode = 'vector';
-      return;
-    }
-
-  const userConfig = await window.ConfigService.loadConfig();
-
-    // Load mode (default to vector for backward compatibility)
-    CONFIG.mode = userConfig.mode || 'vector';
-
-    // Load mode-specific configuration
-    if (CONFIG.mode === 'vector') {
-      // Vector mode configuration
-    const vectorConfig = userConfig.vectorMode || {};
-
-      if (vectorConfig.maxVectors !== undefined) {
-        CONFIG.maxVectors = vectorConfig.maxVectors;
+    // Return default config structure
+    return {
+      mode: 'vector',
+      vectorMode: {
+        maxVectors: 2,
+        operationGroups: {}
+      },
+      matrixMode: {
+        operationGroups: {}
       }
+    };
+  }
 
-      if (vectorConfig.operationGroups) {
-        CONFIG.operationGroups = {
-          ...CONFIG.operationGroups,
-          ...vectorConfig.operationGroups
-        };
-      }
-    } else if (CONFIG.mode === 'matrix') {
-      // Matrix mode configuration
-      const matrixConfig = userConfig.matrixMode || {};
+  // ConfigService.loadConfig() already merges with DEFAULT_CONFIG
+  const rawConfig = await window.ConfigService.loadConfig();
 
-      CONFIG.matrixOperationGroups = {
-        basicTransformations: true,
-        determinant: true,
-        ...matrixConfig.operationGroups
+  // Validate and normalize operation groups using schemas, creating a new object
+  let validatedConfig = { ...rawConfig };
+
+  if (window.OperationSchemas) {
+    if (rawConfig.vectorMode) {
+      validatedConfig.vectorMode = {
+        ...rawConfig.vectorMode,
+        operationGroups: window.OperationSchemas.validateOperationGroups(
+          'vector',
+          rawConfig.vectorMode.operationGroups || {}
+        )
       };
     }
+    if (rawConfig.matrixMode) {
+      validatedConfig.matrixMode = {
+        ...rawConfig.matrixMode,
+        operationGroups: window.OperationSchemas.validateOperationGroups(
+          'matrix',
+          rawConfig.matrixMode.operationGroups || {}
+        )
+      };
+    }
+  }
 
-    console.log(`Configuration loaded successfully. Mode: ${CONFIG.mode}`);
+  console.log(`Configuration loaded successfully. Mode: ${validatedConfig.mode}`);
+
+  // Return immutable config (freeze to prevent mutations)
+  return Object.freeze(validatedConfig);
 }
 
 // ============================================================================
@@ -118,7 +118,13 @@ async function loadConfig() {
  * Delegates mode lifecycle to ModeManager
  */
 async function initializeApp() {
-  await loadConfig();
+  // Load immutable appConfig (single source of truth)
+  const appConfig = await loadConfig();
+
+  // Initialize CanvasThemeService with STYLE_CONSTANTS
+  if (window.CanvasThemeService && typeof window.CanvasThemeService.init === 'function') {
+    window.CanvasThemeService.init(STYLE_CONSTANTS);
+  }
 
   // Ensure ModeManager is available
   if (!window.ModeManager) {
@@ -129,8 +135,8 @@ async function initializeApp() {
     return;
   }
 
-  // Initialize shared CoordinateSystem
-  const coordSystem = window.ModeManager.initializeCoordinateSystem();
+  // Initialize shared CoordinateSystem with styleConstants
+  const coordSystem = window.ModeManager.initializeCoordinateSystem(STYLE_CONSTANTS);
   if (!coordSystem) {
     console.error('Failed to initialize CoordinateSystem');
     if (window.StatusService) {
@@ -148,7 +154,7 @@ async function initializeApp() {
       return null;
     }
     const coordSystem = window.ModeManager.getCoordinateSystem();
-    return new VectorMode(canvas, CONFIG, coordSystem, vectorContent);
+    return new VectorMode(canvas, appConfig, STYLE_CONSTANTS, coordSystem, vectorContent);
   });
 
   // Register matrix mode factory
@@ -159,13 +165,13 @@ async function initializeApp() {
       return null;
     }
     const coordSystem = window.ModeManager.getCoordinateSystem();
-    const mode = new MatrixMode(coordSystem, matrixContent);
+    const mode = new MatrixMode(appConfig, STYLE_CONSTANTS, coordSystem, matrixContent);
     mode.render(); // Initial render
     return mode;
   });
 
   // Set the active mode based on config
-  const mode = CONFIG.mode || 'vector';
+  const mode = appConfig.mode || 'vector';
   window.ModeManager.setMode(mode);
 
   // Help modal is initialized by app.js via HelpService
@@ -173,19 +179,11 @@ async function initializeApp() {
 
 function getColorsFromCSS() {
   if (window.ColorUtils) {
-    return window.ColorUtils.getColorsFromCSS();
+    return window.ColorUtils.getColorsFromCSS(STYLE_CONSTANTS);
   }
-  // Fallback if ColorUtils not available
-  const bespokeElement = document.querySelector('.bespoke') || document.documentElement;
-  const getColor = (varName) => getComputedStyle(bespokeElement).getPropertyValue(varName).trim();
-
-  return {
-    grid: getColor('--bespoke-canvas-grid') || CONFIG.colors.grid,
-    axis: getColor('--bespoke-canvas-axis') || CONFIG.colors.axis,
-    text: getColor('--bespoke-canvas-text') || CONFIG.colors.text,
-    hover: getColor('--bespoke-canvas-hover') || CONFIG.colors.hover,
-    hoverHighlight: getColor('--bespoke-canvas-hover-highlight') || CONFIG.colors.hoverHighlight
-  };
+  // Fallback if ColorUtils not available - return empty object
+  // Callers should handle fallbacks using STYLE_CONSTANTS directly
+  return {};
 }
 
 // Wait for DOM to be ready, then initialize

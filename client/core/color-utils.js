@@ -6,32 +6,27 @@
 (function() {
   /**
    * Get colors from CSS custom properties
-   * @returns {Object} Color object with grid, axis, text, hover, hoverHighlight properties
+   * @param {Object} [styleConstants] - Optional style constants object with colors property for fallbacks
+   * @returns {Object} Color object with grid, axis, text, hover, hoverHighlight, accent, danger properties
    */
-  function getColorsFromCSS() {
+  function getColorsFromCSS(styleConstants = null) {
     const bespokeElement = document.querySelector('.bespoke') || document.documentElement;
     const getColor = (varName) => {
       const value = getComputedStyle(bespokeElement).getPropertyValue(varName).trim();
       return value || null;
     };
 
-    // Default fallback colors (from CONFIG if available)
-    const defaults = {
-      grid: '#d1d5db',
-      axis: '#9ca3af',
-      text: '#6b7280',
-      hover: '#fbbf24',
-      hoverHighlight: '#f59e0b'
-    };
+    // Use styleConstants.colors as fallbacks if provided
+    const fallbacks = styleConstants?.colors || {};
 
     return {
-      grid: getColor('--bespoke-canvas-grid') || defaults.grid,
-      axis: getColor('--bespoke-canvas-axis') || defaults.axis,
-      text: getColor('--bespoke-canvas-text') || defaults.text,
-      hover: getColor('--bespoke-canvas-hover') || defaults.hover,
-      hoverHighlight: getColor('--bespoke-canvas-hover-highlight') || defaults.hoverHighlight,
-      accent: getColor('--bespoke-accent') || '#3b82f6',
-      danger: getColor('--bespoke-danger') || '#ef4444'
+      grid: getColor('--bespoke-canvas-grid') || fallbacks.grid || null,
+      axis: getColor('--bespoke-canvas-axis') || fallbacks.axis || null,
+      text: getColor('--bespoke-canvas-text') || fallbacks.text || null,
+      hover: getColor('--bespoke-canvas-hover') || fallbacks.hover || null,
+      hoverHighlight: getColor('--bespoke-canvas-hover-highlight') || fallbacks.hoverHighlight || null,
+      accent: getColor('--bespoke-accent') || fallbacks.accent || '#3b82f6',
+      danger: getColor('--bespoke-danger') || fallbacks.danger || '#ef4444'
     };
   }
 

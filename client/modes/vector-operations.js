@@ -5,8 +5,14 @@
  */
 
 class VectorOperations {
-  constructor(config) {
-    this.config = config;
+  constructor(appConfig, styleConstants) {
+    this.appConfig = appConfig; // Runtime configuration (for future operation group checks)
+    this.styleConstants = styleConstants; // Styling constants (colors, etc.)
+
+    // Set Vector default result color from styleConstants
+    if (Vector.setDefaultResultColor) {
+      Vector.setDefaultResultColor(styleConstants.colors.result);
+    }
   }
 
   /**
@@ -79,7 +85,7 @@ class VectorOperations {
 
     const result = vector.scale(scalar);
     result.label = `${scalar}v${vectorNum === 1 ? '₁' : '₂'}`;
-    result.color = this.config.colors.result;  // Use green for scaled vectors
+    result.color = this.styleConstants.colors.result;  // Use green for scaled vectors
 
     // Log operation
     logAction(`Scale operation: v${vectorNum} (${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}) * ${scalar}. Result: (${result.x.toFixed(1)}, ${result.y.toFixed(1)})`);
@@ -199,7 +205,7 @@ class VectorOperations {
 
     const result = vector.normalize();
     result.label = vectorNum === 1 ? 'û₁' : 'û₂';
-    result.color = this.config.colors.result;  // Use green for normalized vectors
+    result.color = this.styleConstants.colors.result;  // Use green for normalized vectors
     result.lineWidth = 4;  // Thicker line for better visibility
 
     // Log operation
@@ -229,7 +235,7 @@ class VectorOperations {
 
     const result = vector.perpendicular();
     result.label = vectorNum === 1 ? 'v₁⊥' : 'v₂⊥';
-    result.color = vectorNum === 1 ? this.config.colors.vector1 : this.config.colors.vector2;
+    result.color = vectorNum === 1 ? this.styleConstants.colors.vector1 : this.styleConstants.colors.vector2;
 
     // Log operation
     logAction(`Perpendicular operation: v${vectorNum} (${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}). Result: (${result.x.toFixed(1)}, ${result.y.toFixed(1)})`);
@@ -309,17 +315,17 @@ class VectorOperations {
     // Calculate scaled vectors with proper labels
     const scaledV1 = vector1.scale(scalarA);
     scaledV1.label = `${scalarA}v₁`;
-    scaledV1.color = this.config.parallelogram.v1CopyColor; // Use parallelogram v1 color for consistency
+    scaledV1.color = this.styleConstants.parallelogram.v1CopyColor; // Use parallelogram v1 color for consistency
 
     const scaledV2 = vector2.scale(scalarB);
     scaledV2.label = `${scalarB}v₂`;
-    scaledV2.color = this.config.parallelogram.v2CopyColor; // Use parallelogram v2 color for consistency
+    scaledV2.color = this.styleConstants.parallelogram.v2CopyColor; // Use parallelogram v2 color for consistency
 
     // Calculate result: av₁ + bv₂
     const result = new Vector(
       scaledV1.x + scaledV2.x,
       scaledV1.y + scaledV2.y,
-      this.config.colors.result,
+      this.styleConstants.colors.result,
       `${scalarA}v₁ + ${scalarB}v₂`
     );
 

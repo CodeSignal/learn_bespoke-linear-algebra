@@ -4,7 +4,9 @@
  */
 
 class MatrixMode {
-  constructor(coordinateSystem, rootElement) {
+  constructor(appConfig, styleConstants, coordinateSystem, rootElement) {
+    this.appConfig = appConfig; // Runtime configuration from config.json
+    this.styleConstants = styleConstants; // Styling constants
     this.coordSystem = coordinateSystem;
     this.root = rootElement;
 
@@ -29,8 +31,8 @@ class MatrixMode {
 
     // Basis vectors (î and ĵ)
     this.basisVectors = {
-      i: new Vector(1, 0, CONFIG.colors.matrixBasisI || '#ef4444', 'î'),
-      j: new Vector(0, 1, CONFIG.colors.matrixBasisJ || '#3b82f6', 'ĵ')
+      i: new Vector(1, 0, this.styleConstants.colors.matrixBasisI || '#ef4444', 'î'),
+      j: new Vector(0, 1, this.styleConstants.colors.matrixBasisJ || '#3b82f6', 'ĵ')
     };
 
     // Visualization state
@@ -72,11 +74,11 @@ class MatrixMode {
     const themeColors = window.CanvasThemeService
       ? window.CanvasThemeService.getColors()
       : {
-          grid: CONFIG.colors.grid,
-          axis: CONFIG.colors.axis,
-          text: CONFIG.colors.text,
-          hover: CONFIG.colors.hover,
-          hoverHighlight: CONFIG.colors.hoverHighlight,
+          grid: this.styleConstants.colors.grid,
+          axis: this.styleConstants.colors.axis,
+          text: this.styleConstants.colors.text,
+          hover: this.styleConstants.colors.hover,
+          hoverHighlight: this.styleConstants.colors.hoverHighlight,
           accent: '#3b82f6',
           danger: '#ef4444'
         };
@@ -93,17 +95,16 @@ class MatrixMode {
   }
 
   // ============================================================================
-  // CONFIG-DRIVEN UI VISIBILITY
+  // APP-CONFIG-DRIVEN UI VISIBILITY
   // ============================================================================
 
   applyOperationGroupVisibility() {
-    // Get config with defaults
-    const config = CONFIG.matrixOperationGroups || {
-      determinant: true
-    };
+    // Get config from appConfig
+    const matrixConfig = this.appConfig.matrixMode || {};
+    const operationGroups = matrixConfig.operationGroups || {};
 
     // Show/hide determinant visualization section
-    const showDeterminant = config.determinant !== false;
+    const showDeterminant = operationGroups.determinant !== false;
     const determinantSection = this.root.querySelector('.operation-group');
     if (determinantSection) {
       const label = determinantSection.querySelector('.operation-label span');
@@ -170,11 +171,22 @@ class MatrixMode {
       [m10, m11]
     ]);
 
+    // Log matrix input change
+    logAction(`Matrix input changed: [${m00.toFixed(1)}, ${m01.toFixed(1)}; ${m10.toFixed(1)}, ${m11.toFixed(1)}]`);
+
     // Update preview in real-time
     this.updatePreview();
   }
 
   updatePreview() {
+    // Update determinant display if visualization is active
+    if (this.showDeterminantArea && this.resultsPanel) {
+      const det = this.inputMatrix.determinant();
+      const detText = `det(A) = ${det.toFixed(2)}`;
+      const orientationText = det >= 0 ? 'Orientation: preserved (positive)' : 'Orientation: flipped (negative)';
+      this.displayResult(detText, orientationText);
+    }
+
     // Render to show current state (matrix column vectors update in real-time)
     this.render();
   }
@@ -196,7 +208,14 @@ class MatrixMode {
       const detText = `det(A) = ${det.toFixed(2)}`;
       const orientationText = det >= 0 ? 'Orientation: preserved (positive)' : 'Orientation: flipped (negative)';
       this.displayResult(detText, orientationText);
+    } else if (this.resultsPanel && !this.showDeterminantArea) {
+      // Clear results when hiding visualization
+      this.resultsPanel.clear();
     }
+
+    // Log determinant visualization toggle
+    const action = this.showDeterminantArea ? 'enabled' : 'disabled';
+    logAction(`Determinant visualization ${action}. det(A) = ${det.toFixed(2)}`);
 
     this.render();
 
@@ -236,10 +255,8 @@ class MatrixMode {
       this.resultsPanel.clear();
     }
 
-    // Log action if logger is available
-    if (typeof logAction === 'function') {
-      logAction('Matrix reset to identity');
-    }
+    // Log action
+    logAction('Matrix reset to identity');
 
     if (window.StatusService) {
       window.StatusService.setReady();
@@ -258,6 +275,161 @@ class MatrixMode {
   displayResult(...lines) {
     if (this.resultsPanel) {
       this.resultsPanel.show(...lines);
+    }
+  }
+
+  /**
+   * Update matrix input fields from current inputMatrix state
+   * @private
+   */
+  updateInputFields() {
+    if (this.elements.m00) this.elements.m00.value = this.inputMatrix.get(0, 0).toFixed(1);
+    if (this.elements.m01) this.elements.m01.value = this.inputMatrix.get(0, 1).toFixed(1);
+    if (this.elements.m10) this.elements.m10.value = this.inputMatrix.get(1, 0).toFixed(1);
+    if (this.elements.m11) this.elements.m11.value = this.inputMatrix.get(1, 1).toFixed(1);
+  }
+
+  // ============================================================================
+  // EXTENSIBLE OPERATION HOOKS
+  // ============================================================================
+
+  /**
+   * Apply a preset transformation matrix
+   * Stub for future implementation of preset transformations (rotation, scaling, reflection)
+   * @param {Matrix} presetMatrix - Preset transformation matrix to apply
+   */
+  applyPreset(presetMatrix) {
+    if (!presetMatrix || !(presetMatrix instanceof Matrix)) {
+      console.warn('applyPreset: invalid matrix provided');
+      return;
+    }
+
+    if (window.StatusService) {
+      window.StatusService.setLoading();
+    }
+
+    // Update input matrix
+    this.inputMatrix = presetMatrix.clone();
+
+    // Update DOM input fields
+    this.updateInputFields();
+
+    // Display result with formatted matrix
+    if (this.resultsPanel && window.FormatUtils) {
+      const matrixHtml = window.FormatUtils.formatMatrixAsGrid(this.inputMatrix, 1);
+      this.displayResult(`Applied preset matrix: ${matrixHtml}`);
+    } else if (this.resultsPanel) {
+      this.displayResult(`Applied preset matrix: ${this.inputMatrix.toCompactString()}`);
+    }
+
+    // Log operation
+    logAction(`Applied preset matrix: ${this.inputMatrix.toCompactString()}`);
+
+    // Update visualization
+    this.updatePreview();
+
+    if (window.StatusService) {
+      window.StatusService.setReady();
+    }
+  }
+
+  /**
+   * Transpose the current matrix
+   * Stub for future implementation of transpose operation
+   */
+  transpose() {
+    if (window.StatusService) {
+      window.StatusService.setLoading();
+    }
+
+    // Transpose the matrix
+    this.inputMatrix = this.inputMatrix.transpose();
+
+    // Update DOM input fields
+    this.updateInputFields();
+
+    // Display result with formatted matrix
+    if (this.resultsPanel && window.FormatUtils) {
+      const matrixHtml = window.FormatUtils.formatMatrixAsGrid(this.inputMatrix, 1);
+      this.displayResult(`Transposed matrix: ${matrixHtml}`);
+    } else if (this.resultsPanel) {
+      this.displayResult(`Transposed matrix: ${this.inputMatrix.toCompactString()}`);
+    }
+
+    // Log operation
+    logAction(`Matrix transposed: ${this.inputMatrix.toCompactString()}`);
+
+    // Update visualization
+    this.updatePreview();
+
+    if (window.StatusService) {
+      window.StatusService.setReady();
+    }
+  }
+
+  /**
+   * Multiply matrix by a scalar
+   * Stub for future implementation of scalar multiplication operation
+   * @param {number} scalar - Scalar value to multiply by
+   */
+  scalarMultiply(scalar) {
+    if (typeof scalar !== 'number' || isNaN(scalar)) {
+      console.warn('scalarMultiply: invalid scalar provided');
+      return;
+    }
+
+    if (window.StatusService) {
+      window.StatusService.setLoading();
+    }
+
+    // Scale the matrix
+    this.inputMatrix = this.inputMatrix.scale(scalar);
+
+    // Update DOM input fields
+    this.updateInputFields();
+
+    // Display result with formatted matrix
+    if (this.resultsPanel && window.FormatUtils) {
+      const matrixHtml = window.FormatUtils.formatMatrixAsGrid(this.inputMatrix, 1);
+      this.displayResult(`Scalar multiplication (×${scalar.toFixed(1)}): ${matrixHtml}`);
+    } else if (this.resultsPanel) {
+      this.displayResult(`Scalar multiplication (×${scalar.toFixed(1)}): ${this.inputMatrix.toCompactString()}`);
+    }
+
+    // Log operation
+    logAction(`Matrix scaled by ${scalar.toFixed(1)}: ${this.inputMatrix.toCompactString()}`);
+
+    // Update visualization
+    this.updatePreview();
+
+    if (window.StatusService) {
+      window.StatusService.setReady();
+    }
+  }
+
+  /**
+   * Calculate and display eigenvectors
+   * Stub for future implementation of eigenvector calculation and visualization
+   */
+  showEigenvectors() {
+    if (window.StatusService) {
+      window.StatusService.setLoading();
+    }
+
+    // TODO: Implement eigenvector calculation
+    // For now, display a placeholder message
+    if (this.resultsPanel) {
+      this.displayResult(
+        'Eigenvectors: Not yet implemented',
+        'This feature will calculate and visualize the eigenvectors of the matrix.'
+      );
+    }
+
+    // Log operation
+    logAction('Eigenvector calculation requested (not yet implemented)');
+
+    if (window.StatusService) {
+      window.StatusService.setReady();
     }
   }
 
@@ -282,13 +454,13 @@ class MatrixMode {
     const matrixI = new Vector(
       this.inputMatrix.get(0, 0),
       this.inputMatrix.get(1, 0),
-      CONFIG.colors.matrixBasisI || '#ef4444',
+      this.styleConstants.colors.matrixBasisI || '#ef4444',
       'î'
     );
     const matrixJ = new Vector(
       this.inputMatrix.get(0, 1),
       this.inputMatrix.get(1, 1),
-      CONFIG.colors.matrixBasisJ || '#3b82f6',
+      this.styleConstants.colors.matrixBasisJ || '#3b82f6',
       'ĵ'
     );
     this.drawVector(matrixI, false, 1);
@@ -303,7 +475,7 @@ class MatrixMode {
   drawVector(vector, isDashed = false, opacity = 1) {
     // Use cached colors (loaded in constructor and updated on theme change)
     // MatrixMode doesn't use hover state, so pass false
-    this.coordSystem.drawVector(vector, CONFIG, this.colors, isDashed, opacity, false);
+    this.coordSystem.drawVector(vector, this.styleConstants, this.colors, isDashed, opacity, false);
   }
 
   drawTransformedSquare(matrixI, matrixJ) {

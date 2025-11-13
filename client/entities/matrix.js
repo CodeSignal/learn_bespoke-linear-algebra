@@ -112,7 +112,7 @@ class Matrix {
     const x = this.data[0][0] * vector.x + this.data[0][1] * vector.y;
     const y = this.data[1][0] * vector.x + this.data[1][1] * vector.y;
 
-    return new Vector(x, y, CONFIG.colors.result, 'transformed');
+    return new Vector(x, y, Vector.defaultResultColor, 'transformed');
   }
 
   /**

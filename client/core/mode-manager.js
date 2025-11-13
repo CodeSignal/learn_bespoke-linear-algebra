@@ -18,8 +18,9 @@
     /**
      * Initialize the shared CoordinateSystem
      * Should be called once before registering modes
+     * @param {Object} styleConstants - Style constants object
      */
-    initializeCoordinateSystem() {
+    initializeCoordinateSystem(styleConstants) {
       if (this.coordSystem) {
         return this.coordSystem;
       }
@@ -30,18 +31,12 @@
         return null;
       }
 
-      // Load colors from CSS
+      // Load colors from CSS with styleConstants as fallbacks
       const colors = window.ColorUtils
-        ? window.ColorUtils.getColorsFromCSS()
-        : {
-            grid: CONFIG.colors.grid,
-            axis: CONFIG.colors.axis,
-            text: CONFIG.colors.text,
-            hover: CONFIG.colors.hover,
-            hoverHighlight: CONFIG.colors.hoverHighlight
-          };
+        ? window.ColorUtils.getColorsFromCSS(styleConstants)
+        : {};
 
-      this.coordSystem = new CoordinateSystem(canvas, colors);
+      this.coordSystem = new CoordinateSystem(canvas, colors, styleConstants);
       return this.coordSystem;
     }
 
@@ -152,6 +147,17 @@
      */
     getCurrentModeInstance() {
       return this.currentModeInstance;
+    }
+
+    /**
+     * Reload configuration from config.json
+     * Clears ConfigService cache and re-reads config
+     * Useful for testing or manual config reload
+     */
+    reloadConfig() {
+      if (window.ConfigService && typeof window.ConfigService.clearCache === 'function') {
+        window.ConfigService.clearCache();
+      }
     }
   }
 

@@ -4,10 +4,11 @@
  */
 
 class CoordinateSystem {
-  constructor(canvas, colors, skipAutoSetup = false) {
+  constructor(canvas, colors, styleConstants, skipAutoSetup = false) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.colors = colors || {};
+    this.styleConstants = styleConstants; // Styling constants (gridSize, lineWidths, etc.)
 
     // Canvas dimensions (set by setupCanvas)
     this.width = 0;
@@ -75,8 +76,8 @@ class CoordinateSystem {
    * @returns {object} - {x, y} in mathematical coordinates
    */
   screenToMath(screenX, screenY) {
-    const mathX = (screenX - this.centerX) / CONFIG.gridSize;
-    const mathY = -(screenY - this.centerY) / CONFIG.gridSize;
+    const mathX = (screenX - this.centerX) / this.styleConstants.gridSize;
+    const mathY = -(screenY - this.centerY) / this.styleConstants.gridSize;
     return { x: mathX, y: mathY };
   }
 
@@ -87,8 +88,8 @@ class CoordinateSystem {
    * @returns {object} - {x, y} in screen coordinates
    */
   mathToScreen(mathX, mathY) {
-    const screenX = this.centerX + mathX * CONFIG.gridSize;
-    const screenY = this.centerY - mathY * CONFIG.gridSize;
+    const screenX = this.centerX + mathX * this.styleConstants.gridSize;
+    const screenY = this.centerY - mathY * this.styleConstants.gridSize;
     return { x: screenX, y: screenY };
   }
 
@@ -116,11 +117,11 @@ class CoordinateSystem {
    * Draw the background grid
    */
   drawGrid() {
-    this.ctx.strokeStyle = this.colors.grid || CONFIG.colors.grid;
-    this.ctx.lineWidth = CONFIG.gridLineWidth;
+    this.ctx.strokeStyle = this.colors.grid || this.styleConstants.colors.grid;
+    this.ctx.lineWidth = this.styleConstants.gridLineWidth;
 
     // Vertical lines
-    for (let x = this.centerX % CONFIG.gridSize; x < this.width; x += CONFIG.gridSize) {
+    for (let x = this.centerX % this.styleConstants.gridSize; x < this.width; x += this.styleConstants.gridSize) {
       this.ctx.beginPath();
       this.ctx.moveTo(x, 0);
       this.ctx.lineTo(x, this.height);
@@ -128,7 +129,7 @@ class CoordinateSystem {
     }
 
     // Horizontal lines
-    for (let y = this.centerY % CONFIG.gridSize; y < this.height; y += CONFIG.gridSize) {
+    for (let y = this.centerY % this.styleConstants.gridSize; y < this.height; y += this.styleConstants.gridSize) {
       this.ctx.beginPath();
       this.ctx.moveTo(0, y);
       this.ctx.lineTo(this.width, y);
@@ -140,9 +141,9 @@ class CoordinateSystem {
    * Draw the X and Y axes with labels
    */
   drawAxes() {
-    this.ctx.strokeStyle = this.colors.axis || CONFIG.colors.axis;
-    this.ctx.lineWidth = CONFIG.axisLineWidth;
-    this.ctx.fillStyle = this.colors.text || CONFIG.colors.text;
+    this.ctx.strokeStyle = this.colors.axis || this.styleConstants.colors.axis;
+    this.ctx.lineWidth = this.styleConstants.axisLineWidth;
+    this.ctx.fillStyle = this.colors.text || this.styleConstants.colors.text;
     this.ctx.font = '12px Arial';
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
@@ -160,13 +161,13 @@ class CoordinateSystem {
     this.ctx.stroke();
 
     // Draw tick marks and labels
-    const maxUnits = Math.ceil(Math.max(this.width, this.height) / CONFIG.gridSize / 2);
+    const maxUnits = Math.ceil(Math.max(this.width, this.height) / this.styleConstants.gridSize / 2);
 
     for (let i = -maxUnits; i <= maxUnits; i++) {
       if (i === 0) continue;
 
-      const screenX = this.centerX + i * CONFIG.gridSize;
-      const screenY = this.centerY - i * CONFIG.gridSize;
+      const screenX = this.centerX + i * this.styleConstants.gridSize;
+      const screenY = this.centerY - i * this.styleConstants.gridSize;
 
       // X-axis ticks
       if (screenX >= 0 && screenX <= this.width) {
@@ -239,14 +240,14 @@ class CoordinateSystem {
   /**
    * Draw a vector from the origin
    * @param {Vector} vector - The vector to draw
-   * @param {object} config - Configuration object (gridSize, arrowHeadSize, vectorLineWidth, hitRadius)
+   * @param {object} styleConstants - Style constants object (gridSize, arrowHeadSize, vectorLineWidth, hitRadius)
    * @param {object} colors - Color object (hover, hoverHighlight)
    * @param {boolean} isDashed - Whether to draw with dashed line
    * @param {number} opacity - Opacity (0-1)
    * @param {boolean} isHovered - Whether the vector is hovered
    * @param {number} lineWidthOverride - Override line width
    */
-  drawVector(vector, config, colors, isDashed = false, opacity = 1, isHovered = false, lineWidthOverride = null) {
+  drawVector(vector, styleConstants, colors, isDashed = false, opacity = 1, isHovered = false, lineWidthOverride = null) {
     const start = this.mathToScreen(0, 0);
     const end = this.mathToScreen(vector.x, vector.y);
 
@@ -259,7 +260,7 @@ class CoordinateSystem {
     this.ctx.fillStyle = drawColor;
 
     // Use vector's custom lineWidth if available, otherwise use override or default
-    const lineWidth = vector.lineWidth || lineWidthOverride || (isHovered ? config.vectorLineWidth + 1 : config.vectorLineWidth);
+    const lineWidth = vector.lineWidth || lineWidthOverride || (isHovered ? styleConstants.vectorLineWidth + 1 : styleConstants.vectorLineWidth);
     this.ctx.lineWidth = lineWidth;
 
     if (isDashed) {
@@ -274,7 +275,7 @@ class CoordinateSystem {
 
     // Draw arrowhead
     const angle = Math.atan2(end.y - start.y, end.x - start.x);
-    const headlen = config.arrowHeadSize;
+    const headlen = styleConstants.arrowHeadSize;
 
     this.ctx.beginPath();
     this.ctx.moveTo(end.x, end.y);
@@ -295,7 +296,7 @@ class CoordinateSystem {
       this.ctx.strokeStyle = colors.hoverHighlight;
       this.ctx.lineWidth = 2;
       this.ctx.beginPath();
-      this.ctx.arc(end.x, end.y, config.hitRadius, 0, Math.PI * 2);
+      this.ctx.arc(end.x, end.y, styleConstants.hitRadius, 0, Math.PI * 2);
       this.ctx.stroke();
 
       // Fill circle for better visibility
@@ -323,11 +324,11 @@ class CoordinateSystem {
    *
    * @param {Vector} vector - The vector to draw
    * @param {Object} startPoint - Starting point in math coordinates {x, y}
-   * @param {object} config - Configuration object (gridSize, arrowHeadSize, parallelogram settings)
+   * @param {object} styleConstants - Style constants object (gridSize, arrowHeadSize, parallelogram settings)
    * @param {number} progress - Animation progress 0-1 (1 = fully drawn)
    * @param {string} color - Color override for the vector
    */
-  drawTranslatedVector(vector, startPoint, config, progress = 1, color = null) {
+  drawTranslatedVector(vector, startPoint, styleConstants, progress = 1, color = null) {
     // Convert start point from math to screen coordinates
     const start = this.mathToScreen(startPoint.x, startPoint.y);
 
@@ -340,13 +341,13 @@ class CoordinateSystem {
     if (progress < 0.01) return;
 
     this.ctx.save();
-    this.ctx.globalAlpha = config.parallelogram.opacity;
+    this.ctx.globalAlpha = styleConstants.parallelogram.opacity;
 
     const drawColor = color || vector.color;
     this.ctx.strokeStyle = drawColor;
     this.ctx.fillStyle = drawColor;
-    this.ctx.lineWidth = config.parallelogram.lineWidth;
-    this.ctx.setLineDash(config.parallelogram.dashPattern);
+    this.ctx.lineWidth = styleConstants.parallelogram.lineWidth;
+    this.ctx.setLineDash(styleConstants.parallelogram.dashPattern);
 
     // Draw line from translated start to translated end
     this.ctx.beginPath();
@@ -357,7 +358,7 @@ class CoordinateSystem {
     // Draw arrowhead at end (only if progress is significant)
     if (progress > 0.3) {
       const angle = Math.atan2(end.y - start.y, end.x - start.x);
-      const headlen = config.arrowHeadSize;
+      const headlen = styleConstants.arrowHeadSize;
 
       this.ctx.beginPath();
       this.ctx.moveTo(end.x, end.y);
