@@ -1,13 +1,22 @@
 {
-  "maxVectors": 2,
-  "operationGroups": {
-    "addition": true,
-    "scalarMultiplication": true,
-    "dotProduct": true,
-    "projectionAngle": true,
-    "normalization": true,
-    "perpendicular": true,
-    "reflection": true,
-    "linearCombination": true
+  "mode": "vector",
+  "vectorMode": {
+    "maxVectors": 2,
+    "operationGroups": {
+      "addition": true,
+      "scalarMultiplication": true,
+      "dotProduct": true,
+      "projectionAngle": true,
+      "normalization": true,
+      "perpendicular": true,
+      "reflection": true,
+      "linearCombination": true
+    }
+  },
+  "matrixMode": {
+    "operationGroups": {
+      "basicTransformations": true,
+      "determinant": true
+    }
   }
 }

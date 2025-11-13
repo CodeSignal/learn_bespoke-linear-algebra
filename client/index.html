@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>CodeSignal Linear Algebra Simulator</title>
+  <title>CodeSignal Linear Algebra Playground</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +13,7 @@
 <body class="bespoke">
   <!-- Navigation Header -->
   <header class="header">
-    <h1>CodeSignal Linear Algebra Simulator</h1>
+    <h1>CodeSignal Linear Algebra Playground</h1>
     <!-- APP_SPECIFIC_HEADER_CONTENT -->
     <div class="spacer"></div>
     <div id="status" class="status">Ready</div>
@@ -24,6 +24,8 @@
   <main class="main-container">
     <!-- Left Sidebar: Control Panel -->
     <aside class="sidebar">
+      <!-- Vector Mode Content -->
+      <div class="mode-content" data-mode="vector">
       <div class="sidebar-section">
         <div class="section-header">
           <h2>Vectors</h2>
@@ -100,8 +102,12 @@
           </div>
           <div class="scalar-control">
             <input type="number" id="scalar-input" value="2" step="0.1" />
-            <button id="op-scale-v1" class="btn-primary" disabled>Scale v₁</button>
-            <button id="op-scale-v2" class="btn-primary" disabled>Scale v₂</button>
+            <span class="times-symbol">×</span>
+            <select id="scale-vector-select" class="scale-select">
+              <option value="v1">v1</option>
+              <option value="v2">v2</option>
+            </select>
+            <button id="op-scale" class="btn-primary btn-scale" disabled>Scale</button>
           </div>
         </div>
 
@@ -125,9 +131,9 @@
             <span>Normalization</span>
           </div>
           <div class="normalize-control">
-            <select id="normalize-vector-select" class="normalize-select">
-              <option value="v1">Vector 1</option>
-              <option value="v2">Vector 2</option>
+            <select id="normalize-vector-select" class="vector-select">
+              <option value="v1">v1</option>
+              <option value="v2">v2</option>
             </select>
             <button id="op-normalize" class="btn-primary btn-normalize" disabled>Normalize</button>
           </div>
@@ -138,9 +144,9 @@
             <span>Perpendicular Vector</span>
           </div>
           <div class="perpendicular-control">
-            <select id="perpendicular-vector-select" class="perpendicular-select">
-              <option value="v1">Vector 1</option>
-              <option value="v2">Vector 2</option>
+            <select id="perpendicular-vector-select" class="vector-select">
+              <option value="v1">v1</option>
+              <option value="v2">v2</option>
             </select>
             <button id="op-perpendicular" class="btn-primary btn-perpendicular" disabled>Show Perpendicular</button>
           </div>
@@ -161,10 +167,59 @@
       <!-- Results Section -->
       <div class="sidebar-section">
         <h2>Results</h2>
-        <div id="results-display" class="results-display">
+        <div id="vector-results" class="results-display">
           <p class="hint">Perform an operation to see results</p>
         </div>
       </div>
+      </div>
+      <!-- End Vector Mode Content -->
+
+      <!-- Matrix Mode Content -->
+      <div class="mode-content" data-mode="matrix">
+        <div class="sidebar-section">
+          <div class="section-header">
+            <h2>Matrix</h2>
+            <button id="matrix-reset" class="btn-secondary btn-small">Reset</button>
+          </div>
+
+          <!-- Matrix Input Grid -->
+          <div class="matrix-input-section">
+            <div class="matrix-grid">
+              <div class="matrix-column-headers">
+                <span class="matrix-column-label matrix-col-i">î</span>
+                <span class="matrix-column-label matrix-col-j">ĵ</span>
+              </div>
+              <div class="matrix-row">
+                <input type="number" id="m00" class="matrix-input matrix-col-i" value="1" step="0.1">
+                <input type="number" id="m01" class="matrix-input matrix-col-j" value="0" step="0.1">
+              </div>
+              <div class="matrix-row">
+                <input type="number" id="m10" class="matrix-input matrix-col-i" value="0" step="0.1">
+                <input type="number" id="m11" class="matrix-input matrix-col-j" value="1" step="0.1">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Operations Section -->
+        <div class="sidebar-section">
+          <div class="operation-group">
+            <div class="operation-label">
+              <span>Determinant</span>
+            </div>
+            <button id="show-determinant" class="btn-primary">Show Determinant as Area</button>
+          </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="sidebar-section">
+          <h2>Results</h2>
+          <div id="matrix-results" class="results-display">
+            <p class="hint">Operations results will be displayed here</p>
+          </div>
+        </div>
+      </div>
+      <!-- End Matrix Mode Content -->
     </aside>
 
     <!-- Canvas: Cartesian Plane -->
@@ -178,8 +233,27 @@
 
   <!-- Core Scripts -->
   <script src="./help-modal.js"></script>
-  <script src="./app.js"></script>
   <script src="./logger.js"></script>
+
+  <!-- Core Infrastructure (must load before modes) -->
+  <script src="./core/status.js"></script>
+  <script src="./core/config.js"></script>
+  <script src="./core/help.js"></script>
+  <script src="./core/mode-manager.js"></script>
+  <script src="./core/color-utils.js"></script>
+  <script src="./core/vector.js"></script>
+  <script src="./core/animator.js"></script>
+  <script src="./core/coordinate-system.js"></script>
+  <script src="./app.js"></script>
+
+  <!-- Mathematical Entities -->
+  <script src="./entities/matrix.js"></script>
+
+  <!-- Mode Implementations -->
+  <script src="./modes/vector-mode.js"></script>
+  <script src="./modes/matrix-mode.js"></script>
+
+  <!-- Main Application -->
   <script src="./linear-algebra.js"></script>
 </body>
 </html>

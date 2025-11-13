@@ -1,26 +1,23 @@
 // app.js
 (function() {
-  const status = document.getElementById('status');
   let websocket = null;
-
-  function setStatus(msg) {
-    status.textContent = msg;
-  }
 
   // Initialize WebSocket connection
   function initializeWebSocket() {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host;
     const wsUrl = `${protocol}//${host}`;
-    
+
     try {
       websocket = new WebSocket(wsUrl);
-      
+
       websocket.onopen = function(event) {
         console.log('WebSocket connected');
-        setStatus('Ready (WebSocket connected)');
+        if (window.StatusService) {
+          window.StatusService.setReady();
+        }
       };
-      
+
       websocket.onmessage = function(event) {
         try {
           const data = JSON.parse(event.data);
@@ -31,58 +28,45 @@
           console.error('Error parsing WebSocket message:', error);
         }
       };
-      
+
       websocket.onclose = function(event) {
         console.log('WebSocket disconnected');
-        setStatus('Ready (WebSocket disconnected)');
-        
+        if (window.StatusService) {
+          window.StatusService.setReady();
+        }
+
         // Attempt to reconnect after 3 seconds
         setTimeout(() => {
           console.log('Attempting to reconnect WebSocket...');
           initializeWebSocket();
         }, 3000);
       };
-      
+
       websocket.onerror = function(error) {
         console.error('WebSocket error:', error);
-        setStatus('Ready (WebSocket error)');
+        if (window.StatusService) {
+          window.StatusService.setReady();
+        }
       };
-      
+
     } catch (error) {
       console.error('Failed to create WebSocket connection:', error);
-      setStatus('Ready (WebSocket unavailable)');
-    }
-  }
-
-  // Load help content and initialize modal
-  async function initializeHelpModal() {
-    try {
-      const response = await fetch('./help-content-template.html');
-      const helpContent = await response.text();
-
-      // Initialize help modal with actual content
-      HelpModal.init({
-        triggerSelector: '#btn-help',
-        content: helpContent,
-        theme: 'auto'
-      });
-
-      setStatus('Ready');
-    } catch (error) {
-      console.error('Failed to load help content:', error);
-      // Fallback to placeholder content
-      HelpModal.init({
-        triggerSelector: '#btn-help',
-        content: '<p>Help content could not be loaded. Please check that help-content-template.html exists.</p>',
-        theme: 'auto'
-      });
-      setStatus('Ready (help content unavailable)');
+      if (window.StatusService) {
+        window.StatusService.setReady();
+      }
     }
   }
 
   // Initialize both help modal and WebSocket when DOM is ready
-  function initialize() {
-    initializeHelpModal();
+  async function initialize() {
+    // Initialize help modal using shared service
+    if (window.HelpService) {
+      await window.HelpService.initializeHelpModal({
+        triggerSelector: '#btn-help',
+        theme: 'auto'
+      });
+    }
+
     initializeWebSocket();
   }
 

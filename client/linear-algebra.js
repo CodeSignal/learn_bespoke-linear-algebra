@@ -18,6 +18,8 @@ const CONFIG = {
     vector1: '#ef4444',   // red
     vector2: '#3b82f6',   // blue
     result: '#10b981',    // green
+    matrixBasisI: '#ef4444',  // red for î (same as vector1)
+    matrixBasisJ: '#3b82f6',  // blue for ĵ (same as vector2)
     grid: '#d1d5db',      // lighter gray for better contrast in both modes
     axis: '#9ca3af',      // medium gray
     text: '#6b7280',      // medium gray for labels
@@ -57,1688 +59,194 @@ const CONFIG = {
 // ============================================================================
 
 /**
- * Load configuration from config.json
+ * Load configuration from config.json using ConfigService
  * Merges loaded config into CONFIG object with defaults as fallback
  */
 async function loadConfig() {
-  try {
-    const response = await fetch('./config.json');
-    if (!response.ok) {
-      console.warn('config.json not found, using default configuration');
+  if (!window.ConfigService) {
+    console.warn('ConfigService not available, using default configuration');
+    CONFIG.mode = 'vector';
       return;
     }
 
-    const userConfig = await response.json();
+  const userConfig = await window.ConfigService.loadConfig();
 
-    // Merge user configuration into CONFIG
-    if (userConfig.maxVectors !== undefined) {
-      CONFIG.maxVectors = userConfig.maxVectors;
-    }
+    // Load mode (default to vector for backward compatibility)
+    CONFIG.mode = userConfig.mode || 'vector';
 
-    if (userConfig.operationGroups) {
-      CONFIG.operationGroups = {
-        ...CONFIG.operationGroups,
-        ...userConfig.operationGroups
+    // Load mode-specific configuration
+    if (CONFIG.mode === 'vector') {
+      // Vector mode configuration
+    const vectorConfig = userConfig.vectorMode || {};
+
+      if (vectorConfig.maxVectors !== undefined) {
+        CONFIG.maxVectors = vectorConfig.maxVectors;
+      }
+
+      if (vectorConfig.operationGroups) {
+        CONFIG.operationGroups = {
+          ...CONFIG.operationGroups,
+          ...vectorConfig.operationGroups
+        };
+      }
+    } else if (CONFIG.mode === 'matrix') {
+      // Matrix mode configuration
+      const matrixConfig = userConfig.matrixMode || {};
+
+      CONFIG.matrixOperationGroups = {
+        basicTransformations: true,
+        determinant: true,
+        ...matrixConfig.operationGroups
       };
     }
 
-    console.log('Configuration loaded successfully');
-  } catch (error) {
-    console.warn('Failed to load config.json, using default configuration:', error);
-  }
-}
-
-// ============================================================================
-// VECTOR CLASS
-// ============================================================================
-
-class Vector {
-  constructor(x, y, color, label, lineWidth = null) {
-    this.x = x;
-    this.y = y;
-    this.color = color;
-    this.label = label;
-    this.lineWidth = lineWidth;  // Optional custom line width
-  }
-
-  magnitude() {
-    return Math.sqrt(this.x * this.x + this.y * this.y);
-  }
-
-  angle() {
-    return Math.atan2(this.y, this.x);
-  }
-
-  angleDegrees() {
-    return this.angle() * (180 / Math.PI);
-  }
-
-  /**
-   * Convert to polar representation
-   * @returns {object} - {r: magnitude, theta: angle in degrees (0-360°)}
-   */
-  toPolar() {
-    const r = this.magnitude();
-    let theta = this.angleDegrees();
-
-    // Normalize to 0-360° range
-    while (theta < 0) theta += 360;
-    while (theta >= 360) theta -= 360;
-
-    return { r, theta };
-  }
-
-  /**
-   * Format coordinates based on display mode
-   * @param {string} mode - 'cartesian' or 'polar'
-   * @returns {string} - Formatted coordinate string
-   */
-  formatCoordinates(mode = 'cartesian') {
-    if (mode === 'polar') {
-      const polar = this.toPolar();
-      return `r=${polar.r.toFixed(2)}, θ=${polar.theta.toFixed(1)}°`;
-    }
-    return `[${this.x.toFixed(1)}, ${this.y.toFixed(1)}]`;
-  }
-
-  add(other) {
-    return new Vector(
-      this.x + other.x,
-      this.y + other.y,
-      CONFIG.colors.result,
-      'result'
-    );
-  }
-
-  subtract(other) {
-    return new Vector(
-      this.x - other.x,
-      this.y - other.y,
-      CONFIG.colors.result,
-      'result'
-    );
-  }
-
-  scale(scalar) {
-    return new Vector(
-      this.x * scalar,
-      this.y * scalar,
-      CONFIG.colors.result,
-      'result'
-    );
-  }
-
-  dot(other) {
-    return this.x * other.x + this.y * other.y;
-  }
-
-  // Project this vector onto another vector
-  projectOnto(other) {
-    const dotProduct = this.dot(other);
-    const otherMagnitudeSquared = other.x * other.x + other.y * other.y;
-
-    if (otherMagnitudeSquared === 0) {
-      return new Vector(0, 0, CONFIG.colors.result, 'proj');
-    }
-
-    const scalar = dotProduct / otherMagnitudeSquared;
-    return new Vector(
-      scalar * other.x,
-      scalar * other.y,
-      CONFIG.colors.result,
-      'proj'
-    );
-  }
-
-  // Calculate angle between this vector and another (in radians)
-  angleBetween(other) {
-    const dotProduct = this.dot(other);
-    const mag1 = this.magnitude();
-    const mag2 = other.magnitude();
-
-    if (mag1 === 0 || mag2 === 0) return 0;
-
-    // Clamp to [-1, 1] to avoid floating point errors with acos
-    const cosAngle = Math.max(-1, Math.min(1, dotProduct / (mag1 * mag2)));
-    return Math.acos(cosAngle);
-  }
-
-  // Calculate angle between this vector and another (in degrees)
-  angleBetweenDegrees(other) {
-    return this.angleBetween(other) * (180 / Math.PI);
-  }
-
-  // Return a normalized (unit) vector
-  normalize() {
-    const mag = this.magnitude();
-    if (mag === 0) {
-      return new Vector(0, 0, CONFIG.colors.result, 'unit');
-    }
-    return new Vector(
-      this.x / mag,
-      this.y / mag,
-      CONFIG.colors.result,
-      'û'
-    );
-  }
-
-  // Return a perpendicular vector (90° counterclockwise rotation)
-  perpendicular() {
-    return new Vector(
-      -this.y,
-      this.x,
-      CONFIG.colors.result,
-      'perp'
-    );
-  }
-
-  // Reflect vector across X-axis (horizontal flip)
-  reflectX() {
-    return new Vector(
-      this.x,
-      -this.y,
-      CONFIG.colors.result,
-      'refl_x'
-    );
-  }
-
-  // Reflect vector across Y-axis (vertical flip)
-  reflectY() {
-    return new Vector(
-      -this.x,
-      this.y,
-      CONFIG.colors.result,
-      'refl_y'
-    );
-  }
-
-  // Reflect vector across diagonal line y=x (swap coordinates)
-  reflectDiagonal() {
-    return new Vector(
-      this.y,
-      this.x,
-      CONFIG.colors.result,
-      'refl_diag'
-    );
-  }
-
-  clone() {
-    return new Vector(this.x, this.y, this.color, this.label, this.lineWidth);
-  }
+    console.log(`Configuration loaded successfully. Mode: ${CONFIG.mode}`);
 }
 
 // ============================================================================
 // CANVAS & COORDINATE SYSTEM
 // ============================================================================
-
-class LinearAlgebraApp {
-  constructor() {
-    this.canvas = document.getElementById('grid-canvas');
-    this.ctx = this.canvas.getContext('2d');
-
-    // Vectors
-    this.vector1 = null;
-    this.vector2 = null;
-    this.resultVector = null;
-
-    // Coordinate display mode
-    this.coordinateMode = 'cartesian'; // 'cartesian' or 'polar'
-
-    // Interaction state
-    this.isDrawing = false;
-    this.isEditing = false;
-    this.editTarget = null; // 'vector1' or 'vector2'
-    this.isDragging = false;
-    this.dragTarget = null;
-    this.drawingVector = null;
-    this.mousePos = { x: 0, y: 0 };
-    this.startPos = { x: 0, y: 0 };
-
-    // Hover state
-    this.hoveredVector = null; // 'vector1' or 'vector2' or null
-
-    // Animation state
-    this.isAnimating = false;
-    this.animationStartTime = 0;
-    this.animationFrom = null;
-    this.animationTo = null;
-
-    // Parallelogram animation state
-    this.parallelogramState = null; // { startTime, v1Progress, v2Progress, edgeOpacity }
-
-    // Angle arc visualization state
-    this.angleArcState = null; // { vector1, vector2, angleRadians, angleDegrees }
-
-    // Color cache for theme-responsive rendering
-    this.colors = {};
-
-    // Initialize
-    this.setupCanvas();
-    this.loadColorsFromCSS();    // Load colors before first render
-    this.setupThemeListener();   // Watch for theme changes
-    this.setupEventListeners();
-    this.render();
-  }
-
-  setupCanvas() {
-    const resizeCanvas = () => {
-      const container = this.canvas.parentElement;
-      const dpr = window.devicePixelRatio || 1;
-
-      this.canvas.width = container.clientWidth * dpr;
-      this.canvas.height = container.clientHeight * dpr;
-
-      this.canvas.style.width = container.clientWidth + 'px';
-      this.canvas.style.height = container.clientHeight + 'px';
-
-      this.ctx.scale(dpr, dpr);
-
-      this.width = container.clientWidth;
-      this.height = container.clientHeight;
-      this.centerX = this.width / 2;
-      this.centerY = this.height / 2;
-
-      this.render();
-    };
-
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-  }
-
-  setupEventListeners() {
-    // Canvas mouse events
-    this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
-    this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
-    this.canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
-    this.canvas.addEventListener('mouseleave', (e) => this.handleMouseLeave(e));
-
-    // Canvas reset button
-    document.getElementById('canvas-reset').addEventListener('click', () => this.clearAll());
-
-    // Coordinate mode toggle
-    document.getElementById('coord-mode').addEventListener('change', (e) => {
-      this.coordinateMode = e.target.value;
-      this.updateUI();
-    });
-
-    document.getElementById('op-add').addEventListener('click', () => this.performAdd());
-    document.getElementById('op-subtract').addEventListener('click', () => this.performSubtract());
-    document.getElementById('op-scale-v1').addEventListener('click', () => this.performScale(1));
-    document.getElementById('op-scale-v2').addEventListener('click', () => this.performScale(2));
-    document.getElementById('op-dot').addEventListener('click', () => this.performDot());
-
-    // New operation buttons
-    document.getElementById('op-project').addEventListener('click', () => this.performProject());
-    document.getElementById('op-angle').addEventListener('click', () => this.performAngleBetween());
-
-    // Normalize and perpendicular with dropdown selection
-    document.getElementById('op-normalize').addEventListener('click', () => {
-      const select = document.getElementById('normalize-vector-select');
-      const vectorNum = select.value === 'v1' ? 1 : 2;
-      this.performNormalize(vectorNum);
-    });
-
-    document.getElementById('op-perpendicular').addEventListener('click', () => {
-      const select = document.getElementById('perpendicular-vector-select');
-      const vectorNum = select.value === 'v1' ? 1 : 2;
-      this.performPerpendicular(vectorNum);
-    });
-
-    // Reflection operation buttons
-    document.getElementById('op-reflect-v1').addEventListener('click', () => this.performReflect(1));
-    document.getElementById('op-reflect-v2').addEventListener('click', () => this.performReflect(2));
-
-    // Linear combination button
-    document.getElementById('op-linear-combo').addEventListener('click', () => this.performLinearCombination());
-
-    // Linear combination input listeners to update button text
-    document.getElementById('lc-scalar-a').addEventListener('input', () => this.updateLinearComboButton());
-    document.getElementById('lc-scalar-b').addEventListener('input', () => this.updateLinearComboButton());
-  }
-
-  loadColorsFromCSS() {
-    // Map canvas colors to CSS variables
-    const themeColors = {
-      grid: '--bespoke-canvas-grid',
-      axis: '--bespoke-canvas-axis',
-      text: '--bespoke-canvas-text',
-      hover: '--bespoke-canvas-hover',
-      hoverHighlight: '--bespoke-canvas-hover-highlight',
-    };
-
-    // Load theme-responsive colors from CSS
-    for (const [key, cssVar] of Object.entries(themeColors)) {
-      this.colors[key] = this.getColorFromCSS(cssVar);
-    }
-
-    // Copy semantic colors from CONFIG (theme-independent)
-    this.colors.vector1 = CONFIG.colors.vector1;
-    this.colors.vector2 = CONFIG.colors.vector2;
-    this.colors.result = CONFIG.colors.result;
-  }
-
-  setupThemeListener() {
-    // Listen for system theme changes
-    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-    darkModeQuery.addEventListener('change', () => {
-      this.loadColorsFromCSS();  // Reload colors
-      this.render();             // Re-render canvas
-    });
-  }
-
-  getColorFromCSS(variableName) {
-    const bespokeElement = document.querySelector('.bespoke') || document.documentElement;
-    return getComputedStyle(bespokeElement).getPropertyValue(variableName).trim();
-  }
-
-  // ============================================================================
-  // COORDINATE TRANSFORMATIONS
-  // ============================================================================
-
-  screenToMath(screenX, screenY) {
-    const mathX = (screenX - this.centerX) / CONFIG.gridSize;
-    const mathY = -(screenY - this.centerY) / CONFIG.gridSize;
-    return { x: mathX, y: mathY };
-  }
-
-  mathToScreen(mathX, mathY) {
-    const screenX = this.centerX + mathX * CONFIG.gridSize;
-    const screenY = this.centerY - mathY * CONFIG.gridSize;
-    return { x: screenX, y: screenY };
-  }
-
-  snapToGrid(value) {
-    return Math.round(value * 2) / 2; // Snap to 0.5 increments
-  }
-
-  // Check if mouse is near vector endpoint (for editing)
-  checkEndpointHit(mouseScreenX, mouseScreenY) {
-    const checkVector = (vector) => {
-      if (!vector) return false;
-      const endpoint = this.mathToScreen(vector.x, vector.y);
-      const dx = mouseScreenX - endpoint.x;
-      const dy = mouseScreenY - endpoint.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      return distance <= CONFIG.hitRadius;
-    };
-
-    // Check vector1 first, then vector2
-    if (this.vector1 && checkVector(this.vector1)) {
-      return 'vector1';
-    }
-    if (this.vector2 && checkVector(this.vector2)) {
-      return 'vector2';
-    }
-    return null;
-  }
-
-  // ============================================================================
-  // RENDERING
-  // ============================================================================
-
-  render() {
-    this.ctx.clearRect(0, 0, this.width, this.height);
-
-    this.drawGrid();
-    this.drawAxes();
-
-    // Draw vectors with hover state
-    if (this.vector1) this.drawVector(this.vector1, false, 1, this.hoveredVector === 'vector1');
-    if (this.vector2) this.drawVector(this.vector2, false, 1, this.hoveredVector === 'vector2');
-
-    // Draw angle arc if angle visualization is active
-    if (this.angleArcState) {
-      this.drawAngleArc(
-        this.angleArcState.vector1,
-        this.angleArcState.vector2,
-        this.angleArcState.angleRadians,
-        this.angleArcState.angleDegrees
-      );
-    }
-
-    // Draw negated vector for subtraction (dashed style, similar to parallelogram edges)
-    if (this.parallelogramState && this.parallelogramState.negatedVector2) {
-      this.drawVector(
-        this.parallelogramState.negatedVector2,
-        true,  // dashed
-        0.5,   // 50% opacity like parallelogram edges
-        false  // no hover
-      );
-    }
-
-    // Draw parallelogram edges (if animating)
-    if (this.parallelogramState && this.parallelogramState.useVector1 && this.parallelogramState.useVector2) {
-      // Apply edge opacity for fade-in effect
-      const savedOpacity = CONFIG.parallelogram.opacity;
-      CONFIG.parallelogram.opacity = savedOpacity * this.parallelogramState.edgeOpacity;
-
-      const v1 = this.parallelogramState.useVector1;
-      const v2 = this.parallelogramState.useVector2;
-
-      // Draw v2 translated to v1's tip (with progress for animation)
-      this.drawTranslatedVector(
-        v2,
-        { x: v1.x, y: v1.y },
-        this.parallelogramState.v2Progress,
-        CONFIG.parallelogram.v2CopyColor
-      );
-
-      // Draw v1 translated to v2's tip (with progress for animation)
-      this.drawTranslatedVector(
-        v1,
-        { x: v2.x, y: v2.y },
-        this.parallelogramState.v1Progress,
-        CONFIG.parallelogram.v1CopyColor
-      );
-
-      // Restore original opacity
-      CONFIG.parallelogram.opacity = savedOpacity;
-    }
-
-    if (this.resultVector) this.drawVector(this.resultVector, true, 1, false);
-
-    // Draw vector being created
-    if (this.isDrawing && this.drawingVector) {
-      this.drawVector(this.drawingVector, false, 0.5, false);
-    }
-
-    this.updateUI();
-  }
-
-  drawGrid() {
-    this.ctx.strokeStyle = this.colors.grid;
-    this.ctx.lineWidth = CONFIG.gridLineWidth;
-
-    // Vertical lines
-    for (let x = this.centerX % CONFIG.gridSize; x < this.width; x += CONFIG.gridSize) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(x, 0);
-      this.ctx.lineTo(x, this.height);
-      this.ctx.stroke();
-    }
-
-    // Horizontal lines
-    for (let y = this.centerY % CONFIG.gridSize; y < this.height; y += CONFIG.gridSize) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(0, y);
-      this.ctx.lineTo(this.width, y);
-      this.ctx.stroke();
-    }
-  }
-
-  drawAxes() {
-    this.ctx.strokeStyle = this.colors.axis;
-    this.ctx.lineWidth = CONFIG.axisLineWidth;
-    this.ctx.fillStyle = this.colors.text;
-    this.ctx.font = '12px Arial';
-    this.ctx.textAlign = 'center';
-    this.ctx.textBaseline = 'middle';
-
-    // X-axis
-    this.ctx.beginPath();
-    this.ctx.moveTo(0, this.centerY);
-    this.ctx.lineTo(this.width, this.centerY);
-    this.ctx.stroke();
-
-    // Y-axis
-    this.ctx.beginPath();
-    this.ctx.moveTo(this.centerX, 0);
-    this.ctx.lineTo(this.centerX, this.height);
-    this.ctx.stroke();
-
-    // Draw tick marks and labels
-    const maxUnits = Math.ceil(Math.max(this.width, this.height) / CONFIG.gridSize / 2);
-
-    for (let i = -maxUnits; i <= maxUnits; i++) {
-      if (i === 0) continue;
-
-      const screenX = this.centerX + i * CONFIG.gridSize;
-      const screenY = this.centerY - i * CONFIG.gridSize;
-
-      // X-axis ticks
-      if (screenX >= 0 && screenX <= this.width) {
-        this.ctx.beginPath();
-        this.ctx.moveTo(screenX, this.centerY - 5);
-        this.ctx.lineTo(screenX, this.centerY + 5);
-        this.ctx.stroke();
-        this.ctx.fillText(i.toString(), screenX, this.centerY + 15);
-      }
-
-      // Y-axis ticks
-      if (screenY >= 0 && screenY <= this.height) {
-        this.ctx.beginPath();
-        this.ctx.moveTo(this.centerX - 5, screenY);
-        this.ctx.lineTo(this.centerX + 5, screenY);
-        this.ctx.stroke();
-        this.ctx.fillText(i.toString(), this.centerX - 15, screenY);
-      }
-    }
-
-    // Draw origin label
-    this.ctx.fillText('0', this.centerX - 15, this.centerY + 15);
-
-    // Draw axis labels
-    this.ctx.font = 'bold 14px Arial';
-    this.ctx.fillText('x', this.width - 20, this.centerY + 20);
-    this.ctx.fillText('y', this.centerX + 20, 20);
-  }
-
-  /**
-   * Calculate smart label position based on vector angle to avoid collisions
-   * @param {Vector} vector - The vector to calculate label position for
-   * @param {number} baseOffset - Base offset distance in pixels (default: 20)
-   * @returns {{x: number, y: number}} - Screen coordinates for label position
-   */
-  calculateSmartLabelPosition(vector, baseOffset = 20) {
-    const end = this.mathToScreen(vector.x, vector.y);
-    const magnitude = vector.magnitude();
-
-    // For very short vectors (normalized vectors have magnitude ~1), increase offset
-    const offsetMultiplier = magnitude < 1.5 ? 1.8 : 1.0;
-    const offset = baseOffset * offsetMultiplier;
-
-    // Calculate vector angle
-    const angle = Math.atan2(vector.y, vector.x);
-
-    // Position label perpendicular to vector (90 degrees offset)
-    // We add π/2 to rotate the offset perpendicular to the vector
-    const labelAngle = angle + Math.PI / 2;
-
-    // Calculate label position
-    // For vectors pointing right (angle near 0), label goes above
-    // For vectors pointing up (angle near π/2), label goes left
-    // For vectors pointing left (angle near π), label goes below
-    // For vectors pointing down (angle near -π/2), label goes right
-    let labelX = end.x + offset * Math.cos(labelAngle);
-    let labelY = end.y - offset * Math.sin(labelAngle);
-
-    // Adjust to keep labels above/right for better readability
-    // If label would be below or left of endpoint, flip it to other side
-    if (labelY > end.y + 5) {
-      // Label is too far below, flip to above
-      labelX = end.x - offset * Math.cos(labelAngle);
-      labelY = end.y + offset * Math.sin(labelAngle);
-    }
-
-    return { x: labelX, y: labelY };
-  }
-
-  drawVector(vector, isDashed = false, opacity = 1, isHovered = false, lineWidthOverride = null) {
-    const start = this.mathToScreen(0, 0);
-    const end = this.mathToScreen(vector.x, vector.y);
-
-    this.ctx.save();
-    this.ctx.globalAlpha = opacity;
-
-    // Use hover color if hovered, otherwise use vector color
-    const drawColor = isHovered ? this.colors.hover : vector.color;
-    this.ctx.strokeStyle = drawColor;
-    this.ctx.fillStyle = drawColor;
-
-    // Use vector's custom lineWidth if available, otherwise use override or default
-    const lineWidth = vector.lineWidth || lineWidthOverride || (isHovered ? CONFIG.vectorLineWidth + 1 : CONFIG.vectorLineWidth);
-    this.ctx.lineWidth = lineWidth;
-
-    if (isDashed) {
-      this.ctx.setLineDash([5, 5]);
-    }
-
-    // Draw line
-    this.ctx.beginPath();
-    this.ctx.moveTo(start.x, start.y);
-    this.ctx.lineTo(end.x, end.y);
-    this.ctx.stroke();
-
-    // Draw arrowhead
-    const angle = Math.atan2(end.y - start.y, end.x - start.x);
-    const headlen = CONFIG.arrowHeadSize;
-
-    this.ctx.beginPath();
-    this.ctx.moveTo(end.x, end.y);
-    this.ctx.lineTo(
-      end.x - headlen * Math.cos(angle - Math.PI / 6),
-      end.y - headlen * Math.sin(angle - Math.PI / 6)
-    );
-    this.ctx.lineTo(
-      end.x - headlen * Math.cos(angle + Math.PI / 6),
-      end.y - headlen * Math.sin(angle + Math.PI / 6)
-    );
-    this.ctx.closePath();
-    this.ctx.fill();
-
-    // Draw hover highlight circle around endpoint
-    if (isHovered) {
-      this.ctx.globalAlpha = 0.3 * opacity;
-      this.ctx.strokeStyle = this.colors.hoverHighlight;
-      this.ctx.lineWidth = 2;
-      this.ctx.beginPath();
-      this.ctx.arc(end.x, end.y, CONFIG.hitRadius, 0, Math.PI * 2);
-      this.ctx.stroke();
-
-      // Fill circle for better visibility
-      this.ctx.globalAlpha = 0.1 * opacity;
-      this.ctx.fillStyle = this.colors.hoverHighlight;
-      this.ctx.fill();
-
-      this.ctx.globalAlpha = opacity; // Reset alpha
-    }
-
-    // Draw label using smart positioning
-    if (vector.label) {
-      this.ctx.font = 'bold 16px serif';
-      this.ctx.fillStyle = drawColor;
-      const labelPos = this.calculateSmartLabelPosition(vector);
-      this.ctx.fillText(vector.label, labelPos.x, labelPos.y);
-    }
-
-    this.ctx.restore();
-  }
-
-  /**
-   * Draw a vector translated from a non-origin starting point
-   * Used for visualizing parallelogram law in vector addition/subtraction
-   *
-   * @param {Vector} vector - The vector to draw
-   * @param {Object} startPoint - Starting point in math coordinates {x, y}
-   * @param {number} progress - Animation progress 0-1 (1 = fully drawn)
-   * @param {string} color - Color override for the vector
-   */
-  drawTranslatedVector(vector, startPoint, progress = 1, color = null) {
-    // Convert start point from math to screen coordinates
-    const start = this.mathToScreen(startPoint.x, startPoint.y);
-
-    // Calculate endpoint: startPoint + (vector * progress)
-    const endMathX = startPoint.x + (vector.x * progress);
-    const endMathY = startPoint.y + (vector.y * progress);
-    const end = this.mathToScreen(endMathX, endMathY);
-
-    // If progress is near zero, don't draw anything
-    if (progress < 0.01) return;
-
-    this.ctx.save();
-    this.ctx.globalAlpha = CONFIG.parallelogram.opacity;
-
-    const drawColor = color || vector.color;
-    this.ctx.strokeStyle = drawColor;
-    this.ctx.fillStyle = drawColor;
-    this.ctx.lineWidth = CONFIG.parallelogram.lineWidth;
-    this.ctx.setLineDash(CONFIG.parallelogram.dashPattern);
-
-    // Draw line from translated start to translated end
-    this.ctx.beginPath();
-    this.ctx.moveTo(start.x, start.y);
-    this.ctx.lineTo(end.x, end.y);
-    this.ctx.stroke();
-
-    // Draw arrowhead at end (only if progress is significant)
-    if (progress > 0.3) {
-      const angle = Math.atan2(end.y - start.y, end.x - start.x);
-      const headlen = CONFIG.arrowHeadSize;
-
-      this.ctx.beginPath();
-      this.ctx.moveTo(end.x, end.y);
-      this.ctx.lineTo(
-        end.x - headlen * Math.cos(angle - Math.PI / 6),
-        end.y - headlen * Math.sin(angle - Math.PI / 6)
-      );
-      this.ctx.lineTo(
-        end.x - headlen * Math.cos(angle + Math.PI / 6),
-        end.y - headlen * Math.sin(angle + Math.PI / 6)
-      );
-      this.ctx.closePath();
-      this.ctx.fill();
-    }
-
-    // No label for parallelogram edges (keeps canvas clean)
-
-    this.ctx.restore();
-  }
-
-  /**
-   * Draw an angle arc between two vectors at the origin
-   * @param {Vector} vector1 - First vector
-   * @param {Vector} vector2 - Second vector
-   * @param {number} angleRadians - Angle in radians
-   * @param {number} angleDegrees - Angle in degrees for label
-   */
-  drawAngleArc(vector1, vector2, angleRadians, angleDegrees) {
-    const origin = this.mathToScreen(0, 0);
-
-    // Calculate arc radius (60 pixels or 20% of smaller vector, whichever is smaller)
-    const mag1 = vector1.magnitude() * CONFIG.gridSize;
-    const mag2 = vector2.magnitude() * CONFIG.gridSize;
-    const maxRadius = 60;
-    const minRadius = 30;
-    const arcRadius = Math.min(maxRadius, Math.max(minRadius, Math.min(mag1, mag2) * 0.4));
-
-    // Get angles for both vectors (in screen coordinates, y is inverted)
-    const angle1 = Math.atan2(-vector1.y, vector1.x);  // Negative y because screen y is inverted
-    const angle2 = Math.atan2(-vector2.y, vector2.x);
-
-    // Determine start and end angles (ensure we draw the smaller arc)
-    let startAngle = angle1;
-    let endAngle = angle2;
-
-    // Normalize angles to 0-2π range
-    if (startAngle < 0) startAngle += Math.PI * 2;
-    if (endAngle < 0) endAngle += Math.PI * 2;
-
-    // Swap if needed to draw counterclockwise from smaller to larger
-    if (startAngle > endAngle) {
-      [startAngle, endAngle] = [endAngle, startAngle];
-    }
-
-    // If the arc would be > 180°, draw the other way
-    if (endAngle - startAngle > Math.PI) {
-      [startAngle, endAngle] = [endAngle, startAngle];
-    }
-
-    this.ctx.save();
-
-    // Draw filled arc sector
-    this.ctx.beginPath();
-    this.ctx.moveTo(origin.x, origin.y);
-    this.ctx.arc(origin.x, origin.y, arcRadius, startAngle, endAngle);
-    this.ctx.closePath();
-
-    // Fill with semi-transparent purple/amber color
-    this.ctx.fillStyle = 'rgba(168, 85, 247, 0.2)';  // Purple with 20% opacity
-    this.ctx.fill();
-
-    // Draw arc outline for better visibility
-    this.ctx.beginPath();
-    this.ctx.arc(origin.x, origin.y, arcRadius, startAngle, endAngle);
-    this.ctx.strokeStyle = 'rgba(168, 85, 247, 0.6)';  // Purple with 60% opacity
-    this.ctx.lineWidth = 2;
-    this.ctx.stroke();
-
-    // Draw angle label at midpoint of arc
-    const midAngle = (startAngle + endAngle) / 2;
-    const labelRadius = arcRadius * 0.6;  // Place label at 60% of arc radius
-    const labelX = origin.x + labelRadius * Math.cos(midAngle);
-    const labelY = origin.y + labelRadius * Math.sin(midAngle);
-
-    this.ctx.font = 'bold 14px serif';
-    this.ctx.fillStyle = 'rgb(147, 51, 234)';  // Darker purple for text
-    this.ctx.textAlign = 'center';
-    this.ctx.textBaseline = 'middle';
-    this.ctx.fillText(`${angleDegrees.toFixed(1)}°`, labelX, labelY);
-
-    this.ctx.restore();
-  }
-
-  // ============================================================================
-  // MOUSE INTERACTION
-  // ============================================================================
-
-  getMousePos(e) {
-    const rect = this.canvas.getBoundingClientRect();
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    };
-  }
-
-  handleMouseDown(e) {
-    if (this.isAnimating) return;
-
-    const pos = this.getMousePos(e);
-    const mathPos = this.screenToMath(pos.x, pos.y);
-
-    // Check if clicking on an existing vector endpoint for editing
-    const hitVector = this.checkEndpointHit(pos.x, pos.y);
-
-    if (hitVector) {
-      // Start editing existing vector
-      this.isEditing = true;
-      this.editTarget = hitVector;
-      this.canvas.classList.add('dragging');
-      return;
-    }
-
-    // Not editing - start drawing a new vector
-    this.startPos = {
-      x: this.snapToGrid(mathPos.x),
-      y: this.snapToGrid(mathPos.y)
-    };
-
-    // Start drawing a new vector
-    if (!this.vector1) {
-      this.isDrawing = true;
-      this.drawingVector = new Vector(0, 0, CONFIG.colors.vector1, 'v₁');
-    } else if (!this.vector2 && CONFIG.maxVectors >= 2) {
-      this.isDrawing = true;
-      this.drawingVector = new Vector(0, 0, CONFIG.colors.vector2, 'v₂');
-    }
-
-    this.canvas.classList.add('dragging');
-  }
-
-  handleMouseMove(e) {
-    const pos = this.getMousePos(e);
-
-    // Handle editing mode
-    if (this.isEditing) {
-      const mathPos = this.screenToMath(pos.x, pos.y);
-      const snappedX = this.snapToGrid(mathPos.x);
-      const snappedY = this.snapToGrid(mathPos.y);
-
-      // Update the vector being edited
-      if (this.editTarget === 'vector1' && this.vector1) {
-        this.vector1.x = snappedX;
-        this.vector1.y = snappedY;
-      } else if (this.editTarget === 'vector2' && this.vector2) {
-        this.vector2.x = snappedX;
-        this.vector2.y = snappedY;
-      }
-
-      // Clear result vector, parallelogram, and angle arc when editing
-      this.resultVector = null;
-      this.parallelogramState = null;
-      this.angleArcState = null;
-      this.render();
-      return;
-    }
-
-    // Handle drawing mode
-    if (this.isDrawing) {
-      const mathPos = this.screenToMath(pos.x, pos.y);
-      const snappedX = this.snapToGrid(mathPos.x);
-      const snappedY = this.snapToGrid(mathPos.y);
-
-      this.drawingVector.x = snappedX - this.startPos.x;
-      this.drawingVector.y = snappedY - this.startPos.y;
-
-      this.render();
-      return;
-    }
-
-    // Handle hover detection (when not drawing or editing)
-    const hitVector = this.checkEndpointHit(pos.x, pos.y);
-    if (hitVector !== this.hoveredVector) {
-      this.hoveredVector = hitVector;
-      this.canvas.style.cursor = hitVector ? 'pointer' : 'crosshair';
-      this.render();
-    }
-  }
-
-  handleMouseUp(e) {
-    // Handle editing mode
-    if (this.isEditing) {
-      // Log vector editing
-      if (this.editTarget === 'vector1' && this.vector1) {
-        const mag = this.vector1.magnitude().toFixed(2);
-        const angle = this.vector1.angleDegrees().toFixed(2);
-        logAction(`Vector edited: v1 to (${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}), magnitude: ${mag}, angle: ${angle}°`);
-      } else if (this.editTarget === 'vector2' && this.vector2) {
-        const mag = this.vector2.magnitude().toFixed(2);
-        const angle = this.vector2.angleDegrees().toFixed(2);
-        logAction(`Vector edited: v2 to (${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}), magnitude: ${mag}, angle: ${angle}°`);
-      }
-
-      this.isEditing = false;
-      this.editTarget = null;
-      this.canvas.classList.remove('dragging');
-
-      // Check hover state after editing
-      const pos = this.getMousePos(e);
-      const hitVector = this.checkEndpointHit(pos.x, pos.y);
-      this.hoveredVector = hitVector;
-      this.canvas.style.cursor = hitVector ? 'pointer' : 'crosshair';
-
-      this.render();
-      return;
-    }
-
-    // Handle drawing mode
-    if (!this.isDrawing) return;
-
-    this.isDrawing = false;
-    this.canvas.classList.remove('dragging');
-
-    // Only create vector if it has non-zero magnitude
-    if (this.drawingVector && (this.drawingVector.x !== 0 || this.drawingVector.y !== 0)) {
-      if (!this.vector1) {
-        this.vector1 = this.drawingVector;
-        // Log vector creation
-        const mag = this.vector1.magnitude().toFixed(2);
-        const angle = this.vector1.angleDegrees().toFixed(2);
-        logAction(`Vector created: v1 at (${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}), magnitude: ${mag}, angle: ${angle}°`);
-      } else if (!this.vector2 && CONFIG.maxVectors >= 2) {
-        // Only allow second vector if maxVectors is 2 or more
-        this.vector2 = this.drawingVector;
-        // Log vector creation
-        const mag = this.vector2.magnitude().toFixed(2);
-        const angle = this.vector2.angleDegrees().toFixed(2);
-        logAction(`Vector created: v2 at (${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}), magnitude: ${mag}, angle: ${angle}°`);
-      }
-      this.resultVector = null; // Clear any previous result
-    }
-
-    this.drawingVector = null;
-    this.render();
-  }
-
-  handleMouseLeave(e) {
-    if (this.isDrawing || this.isEditing) {
-      this.handleMouseUp(e);
-    }
-
-    // Clear hover state when leaving canvas
-    this.hoveredVector = null;
-    this.canvas.style.cursor = 'crosshair';
-  }
-
-  // ============================================================================
-  // VECTOR OPERATIONS
-  // ============================================================================
-
-  clearAll() {
-    this.vector1 = null;
-    this.vector2 = null;
-    this.resultVector = null;
-    this.parallelogramState = null;
-    this.angleArcState = null;
-    this.render();
-    // Log canvas clear
-    logAction('Canvas cleared');
-  }
-
-  performAdd() {
-    if (!this.vector1 || !this.vector2) return;
-
-    const result = this.vector1.add(this.vector2);
-    result.label = 'v₁ + v₂';
-
-    // Log operation
-    logAction(`Add operation: v1 (${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}) + v2 (${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}). Result: (${result.x.toFixed(1)}, ${result.y.toFixed(1)})`);
-
-    // Animate parallelogram construction with v1 and v2, no negated vector
-    this.animateParallelogram(result, this.vector1, this.vector2, null, () => {
-      const formula = `v₁ + v₂ = [${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}] + [${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}]`;
-      const resultText = `= [${result.x.toFixed(1)}, ${result.y.toFixed(1)}]`;
-      this.displayResult(formula, resultText);
-    });
-  }
-
-  performSubtract() {
-    if (!this.vector1 || !this.vector2) return;
-
-    const result = this.vector1.subtract(this.vector2);
-    result.label = 'v₁ - v₂';
-
-    // Log operation
-    logAction(`Subtract operation: v1 (${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}) - v2 (${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}). Result: (${result.x.toFixed(1)}, ${result.y.toFixed(1)})`);
-
-    // Create negated v2 for parallelogram visualization (v1 - v2 = v1 + (-v2))
-    const negV2 = new Vector(
-      -this.vector2.x,
-      -this.vector2.y,
-      this.vector2.color,
-      '-v₂'
-    );
-
-    // Animate parallelogram with v1 and -v2, show both v2 (solid) and -v2 (dashed)
-    this.animateParallelogram(result, this.vector1, negV2, negV2, () => {
-      const formula = `v₁ - v₂ = [${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}] - [${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}]`;
-      const resultText = `= [${result.x.toFixed(1)}, ${result.y.toFixed(1)}]`;
-      this.displayResult(formula, resultText);
-    });
-  }
-
-  performScale(vectorNum) {
-    const scalar = parseFloat(document.getElementById('scalar-input').value);
-    if (isNaN(scalar)) return;
-
-    // Clear parallelogram and angle arc from previous operations
-    this.parallelogramState = null;
-    this.angleArcState = null;
-
-    let vector, result;
-
-    if (vectorNum === 1 && this.vector1) {
-      vector = this.vector1;
-      result = vector.scale(scalar);
-      result.label = `${scalar}v₁`;
-      result.color = CONFIG.colors.result;  // Use green for scaled vectors
-    } else if (vectorNum === 2 && this.vector2) {
-      vector = this.vector2;
-      result = vector.scale(scalar);
-      result.label = `${scalar}v₂`;
-      result.color = CONFIG.colors.result;  // Use green for scaled vectors
-    } else {
-      return;
-    }
-
-    // Log operation
-    logAction(`Scale operation: v${vectorNum} (${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}) * ${scalar}. Result: (${result.x.toFixed(1)}, ${result.y.toFixed(1)})`);
-
-    this.animateToResult(result, () => {
-      const formula = `${scalar}v${vectorNum} = ${scalar} × [${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}]`;
-      const resultText = `= [${result.x.toFixed(1)}, ${result.y.toFixed(1)}]`;
-      this.displayResult(formula, resultText);
-    });
-  }
-
-  performDot() {
-    if (!this.vector1 || !this.vector2) return;
-
-    // Clear parallelogram and angle arc from previous operations
-    this.parallelogramState = null;
-    this.angleArcState = null;
-
-    const dotProduct = this.vector1.dot(this.vector2);
-
-    // Log operation
-    logAction(`Dot product: v1 (${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}) · v2 (${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}). Result: ${dotProduct.toFixed(2)}`);
-
-    const formula = `v₁ · v₂ = [${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}] · [${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}]`;
-    const calculation = `= (${this.vector1.x.toFixed(1)} × ${this.vector2.x.toFixed(1)}) + (${this.vector1.y.toFixed(1)} × ${this.vector2.y.toFixed(1)})`;
-    const resultText = `= ${dotProduct.toFixed(2)}`;
-
-    this.resultVector = null;
-    this.render();
-    this.displayResult(formula, calculation, resultText);
-  }
-
-  performProject() {
-    if (!this.vector1 || !this.vector2) return;
-
-    // Clear parallelogram and angle arc from previous operations
-    this.parallelogramState = null;
-    this.angleArcState = null;
-
-    const result = this.vector1.projectOnto(this.vector2);
-    result.label = 'proj_v₂(v₁)';
-
-    // Log operation
-    logAction(`Project operation: v1 (${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}) onto v2 (${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}). Result: (${result.x.toFixed(2)}, ${result.y.toFixed(2)})`);
-
-    this.animateToResult(result, () => {
-      const dotProduct = this.vector1.dot(this.vector2);
-      const mag2Squared = this.vector2.x * this.vector2.x + this.vector2.y * this.vector2.y;
-      const scalar = dotProduct / mag2Squared;
-
-      const formula = `proj_v₂(v₁) = ((v₁·v₂)/(v₂·v₂)) × v₂`;
-      const calculation = `= ((${dotProduct.toFixed(2)})/(${mag2Squared.toFixed(2)})) × [${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}]`;
-      const resultText = `= [${result.x.toFixed(2)}, ${result.y.toFixed(2)}]`;
-      this.displayResult(formula, calculation, resultText);
-    });
-  }
-
-  performAngleBetween() {
-    if (!this.vector1 || !this.vector2) return;
-
-    // Clear parallelogram from previous add/subtract operations
-    this.parallelogramState = null;
-
-    const angleRad = this.vector1.angleBetween(this.vector2);
-    const angleDeg = this.vector1.angleBetweenDegrees(this.vector2);
-
-    // Log operation
-    logAction(`Angle between: v1 (${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}) and v2 (${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}). Result: ${angleDeg.toFixed(2)}°`);
-
-    // Set angle arc state for visualization
-    this.angleArcState = {
-      vector1: this.vector1,
-      vector2: this.vector2,
-      angleRadians: angleRad,
-      angleDegrees: angleDeg
-    };
-
-    const dotProduct = this.vector1.dot(this.vector2);
-    const mag1 = this.vector1.magnitude();
-    const mag2 = this.vector2.magnitude();
-
-    const formula = `θ = arccos((v₁·v₂)/(||v₁||×||v₂||))`;
-    const calculation = `= arccos((${dotProduct.toFixed(2)})/(${mag1.toFixed(2)}×${mag2.toFixed(2)}))`;
-    const resultText = `= ${angleDeg.toFixed(2)}° (${angleRad.toFixed(3)} radians)`;
-
-    this.resultVector = null;
-    this.render();
-    this.displayResult(formula, calculation, resultText);
-  }
-
-  performNormalize(vectorNum) {
-    // Clear parallelogram and angle arc from previous operations
-    this.parallelogramState = null;
-    this.angleArcState = null;
-
-    let vector, result;
-
-    if (vectorNum === 1 && this.vector1) {
-      vector = this.vector1;
-      result = vector.normalize();
-      result.label = 'û₁';
-      result.color = CONFIG.colors.result;  // Use green for normalized vectors
-      result.lineWidth = 4;  // Thicker line for better visibility
-    } else if (vectorNum === 2 && this.vector2) {
-      vector = this.vector2;
-      result = vector.normalize();
-      result.label = 'û₂';
-      result.color = CONFIG.colors.result;  // Use green for normalized vectors
-      result.lineWidth = 4;  // Thicker line for better visibility
-    } else {
-      return;
-    }
-
-    // Log operation
-    logAction(`Normalize operation: v${vectorNum} (${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}). Result: (${result.x.toFixed(3)}, ${result.y.toFixed(3)})`);
-
-    this.animateToResult(result, () => {
-      const mag = vector.magnitude();
-      const formula = `û${vectorNum} = v${vectorNum}/||v${vectorNum}||`;
-      const calculation = `= [${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}]/${mag.toFixed(2)}`;
-      const resultText = `= [${result.x.toFixed(3)}, ${result.y.toFixed(3)}] (magnitude = 1.0)`;
-      this.displayResult(formula, calculation, resultText);
-    });
-  }
-
-  performPerpendicular(vectorNum) {
-    // Clear parallelogram and angle arc from previous operations
-    this.parallelogramState = null;
-    this.angleArcState = null;
-
-    let vector, result;
-
-    if (vectorNum === 1 && this.vector1) {
-      vector = this.vector1;
-      result = vector.perpendicular();
-      result.label = 'v₁⊥';
-      result.color = CONFIG.colors.vector1;
-    } else if (vectorNum === 2 && this.vector2) {
-      vector = this.vector2;
-      result = vector.perpendicular();
-      result.label = 'v₂⊥';
-      result.color = CONFIG.colors.vector2;
-    } else {
-      return;
-    }
-
-    // Log operation
-    logAction(`Perpendicular operation: v${vectorNum} (${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}). Result: (${result.x.toFixed(1)}, ${result.y.toFixed(1)})`);
-
-    this.animateToResult(result, () => {
-      const formula = `v${vectorNum}⊥ = [-y, x] (90° rotation)`;
-      const calculation = `= [${-vector.y.toFixed(1)}, ${vector.x.toFixed(1)}]`;
-      const resultText = `= [${result.x.toFixed(1)}, ${result.y.toFixed(1)}]`;
-      this.displayResult(formula, calculation, resultText);
-    });
-  }
-
-  performReflect(vectorNum) {
-    // Clear parallelogram and angle arc from previous operations
-    this.parallelogramState = null;
-    this.angleArcState = null;
-
-    let vector, result, reflectionType, axis, formula;
-
-    // Get the reflection type from dropdown
-    const selectId = `reflect-type-v${vectorNum}`;
-    reflectionType = document.getElementById(selectId).value;
-
-    if (vectorNum === 1 && this.vector1) {
-      vector = this.vector1;
-    } else if (vectorNum === 2 && this.vector2) {
-      vector = this.vector2;
-    } else {
-      return;
-    }
-
-    // Perform the appropriate reflection
-    switch(reflectionType) {
-      case 'x-axis':
-        result = vector.reflectX();
-        result.label = `v${vectorNum}_reflₓ`;
-        axis = 'X-axis';
-        formula = `Reflect v${vectorNum} across X-axis: (x, y) → (x, -y)`;
-        break;
-      case 'y-axis':
-        result = vector.reflectY();
-        result.label = `v${vectorNum}_refly`;
-        axis = 'Y-axis';
-        formula = `Reflect v${vectorNum} across Y-axis: (x, y) → (-x, y)`;
-        break;
-      case 'diagonal':
-        result = vector.reflectDiagonal();
-        result.label = `v${vectorNum}_reflᵈ`;
-        axis = 'diagonal (y=x)';
-        formula = `Reflect v${vectorNum} across y=x: (x, y) → (y, x)`;
-        break;
-      default:
-        return;
-    }
-
-    // Log operation
-    logAction(`Reflect ${axis}: v${vectorNum} (${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}). Result: (${result.x.toFixed(1)}, ${result.y.toFixed(1)})`);
-
-    this.animateToResult(result, () => {
-      const calculation = `[${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}] → [${result.x.toFixed(1)}, ${result.y.toFixed(1)}]`;
-      this.displayResult(formula, calculation);
-    });
-  }
-
-  updateLinearComboButton() {
-    const scalarA = parseFloat(document.getElementById('lc-scalar-a').value) || 0;
-    const scalarB = parseFloat(document.getElementById('lc-scalar-b').value) || 0;
-    const button = document.getElementById('op-linear-combo');
-
-    // Format the button text with proper signs
-    const aText = scalarA === 1 ? '' : scalarA === -1 ? '-' : scalarA;
-    const bText = scalarB >= 0 ? ` + ${scalarB === 1 ? '' : scalarB}` : ` - ${Math.abs(scalarB) === 1 ? '' : Math.abs(scalarB)}`;
-
-    button.textContent = `${aText}v₁${bText}v₂`;
-  }
-
-  performLinearCombination() {
-    if (!this.vector1 || !this.vector2) return;
-
-    // Get scalar values from inputs
-    const scalarA = parseFloat(document.getElementById('lc-scalar-a').value);
-    const scalarB = parseFloat(document.getElementById('lc-scalar-b').value);
-
-    if (isNaN(scalarA) || isNaN(scalarB)) return;
-
-    // Clear parallelogram and angle arc from previous operations
-    this.parallelogramState = null;
-    this.angleArcState = null;
-
-    // Calculate scaled vectors
-    const scaledV1 = this.vector1.scale(scalarA);
-    const scaledV2 = this.vector2.scale(scalarB);
-
-    // Calculate result: av₁ + bv₂
-    const result = new Vector(
-      scaledV1.x + scaledV2.x,
-      scaledV1.y + scaledV2.y,
-      CONFIG.colors.result,
-      `${scalarA}v₁ + ${scalarB}v₂`
-    );
-
-    // Log operation
-    logAction(`Linear combination: ${scalarA}v1 + ${scalarB}v2. Result: (${result.x.toFixed(2)}, ${result.y.toFixed(2)})`);
-
-    // Animate with parallelogram showing scaled vectors
-    // Use scaled vectors for parallelogram visualization
-    this.animateParallelogram(result, scaledV1, scaledV2, null, () => {
-      const formula = `${scalarA}v₁ + ${scalarB}v₂`;
-      const calculation = `= ${scalarA}[${this.vector1.x.toFixed(1)}, ${this.vector1.y.toFixed(1)}] + ${scalarB}[${this.vector2.x.toFixed(1)}, ${this.vector2.y.toFixed(1)}]`;
-      const resultText = `= [${result.x.toFixed(2)}, ${result.y.toFixed(2)}]`;
-      this.displayResult(formula, calculation, resultText);
-    });
-  }
-
-  // ============================================================================
-  // ANIMATION
-  // ============================================================================
-
-  animateToResult(targetVector, onComplete) {
-    this.isAnimating = true;
-    this.animationStartTime = performance.now();
-    this.animationFrom = this.resultVector ? this.resultVector.clone() : new Vector(0, 0, targetVector.color, '');
-    this.animationTo = targetVector;
-
-    const animate = (currentTime) => {
-      const elapsed = currentTime - this.animationStartTime;
-      const progress = Math.min(elapsed / CONFIG.animationDuration, 1);
-
-      // Easing function (ease-out-cubic)
-      const eased = 1 - Math.pow(1 - progress, 3);
-
-      this.resultVector = new Vector(
-        this.animationFrom.x + (this.animationTo.x - this.animationFrom.x) * eased,
-        this.animationFrom.y + (this.animationTo.y - this.animationFrom.y) * eased,
-        this.animationTo.color,
-        this.animationTo.label,
-        this.animationTo.lineWidth
-      );
-
-      this.render();
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        this.isAnimating = false;
-        this.resultVector = this.animationTo;
-        this.render();
-        if (onComplete) onComplete();
-      }
-    };
-
-    requestAnimationFrame(animate);
-  }
-
-  /**
-   * Animate parallelogram construction with staggered phases
-   * Phase 1 (0-200ms): Fade in edges
-   * Phase 2 (0-400ms): Draw translated v2 from v1's tip
-   * Phase 3 (200-600ms): Draw translated v1 from v2's tip (overlaps phase 2)
-   * Then triggers result vector animation
-   *
-   * @param {Vector} resultVector - The final result vector to animate after parallelogram
-   * @param {Vector} vector1 - First vector (usually v₁)
-   * @param {Vector} vector2 - Second vector (v₂ for addition, -v₂ for subtraction)
-   * @param {Vector} negatedVector2 - For subtraction: -v₂ to draw dashed; null for addition
-   * @param {Function} onComplete - Callback when all animations complete
-   */
-  animateParallelogram(resultVector, vector1, vector2, negatedVector2, onComplete) {
-    this.parallelogramState = {
-      startTime: performance.now(),
-      v1Progress: 0,
-      v2Progress: 0,
-      edgeOpacity: 0,
-      useVector1: vector1,
-      useVector2: vector2,
-      negatedVector2: negatedVector2
-    };
-
-    const totalDuration = CONFIG.parallelogram.staggerDelay + CONFIG.parallelogram.translateDuration;
-
-    const animate = (currentTime) => {
-      const elapsed = currentTime - this.parallelogramState.startTime;
-
-      // Phase 1: Fade in edges (0-200ms)
-      if (elapsed < CONFIG.parallelogram.edgeFadeInDuration) {
-        this.parallelogramState.edgeOpacity = elapsed / CONFIG.parallelogram.edgeFadeInDuration;
-      } else {
-        this.parallelogramState.edgeOpacity = 1;
-      }
-
-      // Phase 2: Draw translated v2 from v1's tip (0-400ms)
-      const v2Progress = Math.min(elapsed / CONFIG.parallelogram.translateDuration, 1);
-      // Cubic easing (ease-out)
-      this.parallelogramState.v2Progress = 1 - Math.pow(1 - v2Progress, 3);
-
-      // Phase 3: Draw translated v1 from v2's tip (200-600ms, overlaps phase 2)
-      const v1StartTime = CONFIG.parallelogram.staggerDelay;
-      const v1Elapsed = Math.max(0, elapsed - v1StartTime);
-      const v1Progress = Math.min(v1Elapsed / CONFIG.parallelogram.translateDuration, 1);
-      // Cubic easing (ease-out)
-      this.parallelogramState.v1Progress = 1 - Math.pow(1 - v1Progress, 3);
-
-      this.render();
-
-      if (elapsed < totalDuration) {
-        requestAnimationFrame(animate);
-      } else {
-        // Parallelogram animation complete, now animate result vector
-        this.parallelogramState.v1Progress = 1;
-        this.parallelogramState.v2Progress = 1;
-        this.parallelogramState.edgeOpacity = 1;
-        this.render();
-
-        // Trigger result vector animation
-        this.animateToResult(resultVector, onComplete);
-      }
-    };
-
-    requestAnimationFrame(animate);
-  }
-
-  // ============================================================================
-  // UI UPDATES
-  // ============================================================================
-
-  /**
-   * Check if an operation group should be visible based on configuration
-   * @param {string} groupName - Name of the operation group
-   * @returns {boolean} - True if the group should be shown
-   */
-  shouldShowOperationGroup(groupName) {
-    // First check if the operation group is enabled in configuration
-    if (CONFIG.operationGroups[groupName] === false) {
-      return false;
-    }
-
-    // Hide operations that require 2 vectors when maxVectors < 2
-    const twoVectorOperations = ['addition', 'dotProduct', 'projectionAngle'];
-    if (twoVectorOperations.includes(groupName) && CONFIG.maxVectors < 2) {
-      return false;
-    }
-
-    return true;
-  }
-
-  updateUI() {
-    // Update Vector 1
-    if (this.vector1) {
-      document.getElementById('v1-coords').textContent =
-        this.vector1.formatCoordinates(this.coordinateMode);
-      document.getElementById('v1-magnitude').textContent =
-        this.vector1.magnitude().toFixed(2);
-    } else {
-      document.getElementById('v1-coords').textContent = 'Not created';
-      document.getElementById('v1-magnitude').textContent = '—';
-    }
-
-    // Update Vector 2
-    if (this.vector2) {
-      document.getElementById('v2-coords').textContent =
-        this.vector2.formatCoordinates(this.coordinateMode);
-      document.getElementById('v2-magnitude').textContent =
-        this.vector2.magnitude().toFixed(2);
-    } else {
-      document.getElementById('v2-coords').textContent = 'Not created';
-      document.getElementById('v2-magnitude').textContent = '—';
-    }
-
-    // Enable/disable operation buttons
-    const bothExist = this.vector1 && this.vector2;
-    document.getElementById('op-add').disabled = !bothExist;
-    document.getElementById('op-subtract').disabled = !bothExist;
-    document.getElementById('op-dot').disabled = !bothExist;
-    document.getElementById('op-scale-v1').disabled = !this.vector1;
-    document.getElementById('op-scale-v2').disabled = !this.vector2;
-
-    // Enable/disable new operation buttons
-    document.getElementById('op-project').disabled = !bothExist;
-    document.getElementById('op-angle').disabled = !bothExist;
-
-    // Normalize and perpendicular dropdown management
-    const v1Exists = this.vector1;
-    const v2Exists = this.vector2;
-    const anyVectorExists = v1Exists || v2Exists;
-
-    // Enable/disable normalize button and manage dropdown
-    document.getElementById('op-normalize').disabled = !anyVectorExists;
-    const normalizeSelect = document.getElementById('normalize-vector-select');
-    normalizeSelect.querySelector('option[value="v1"]').disabled = !v1Exists;
-    normalizeSelect.querySelector('option[value="v2"]').disabled = !v2Exists;
-
-    // Auto-select available vector
-    if (v1Exists && !v2Exists) {
-      normalizeSelect.value = 'v1';
-    } else if (!v1Exists && v2Exists) {
-      normalizeSelect.value = 'v2';
-    }
-
-    // Enable/disable perpendicular button and manage dropdown
-    document.getElementById('op-perpendicular').disabled = !anyVectorExists;
-    const perpSelect = document.getElementById('perpendicular-vector-select');
-    perpSelect.querySelector('option[value="v1"]').disabled = !v1Exists;
-    perpSelect.querySelector('option[value="v2"]').disabled = !v2Exists;
-
-    // Auto-select available vector
-    if (v1Exists && !v2Exists) {
-      perpSelect.value = 'v1';
-    } else if (!v1Exists && v2Exists) {
-      perpSelect.value = 'v2';
-    }
-
-    // Enable/disable reflection buttons
-    document.getElementById('op-reflect-v1').disabled = !this.vector1;
-    document.getElementById('op-reflect-v2').disabled = !this.vector2;
-
-    // Enable/disable linear combination button
-    document.getElementById('op-linear-combo').disabled = !bothExist;
-
-    // Update linear combination button text
-    this.updateLinearComboButton();
-
-    // Show/hide operation groups based on configuration
-    document.querySelectorAll('[data-operation-group]').forEach(element => {
-      const groupName = element.getAttribute('data-operation-group');
-      if (this.shouldShowOperationGroup(groupName)) {
-        element.style.display = '';
-      } else {
-        element.style.display = 'none';
-      }
-    });
-
-    // Show/hide vector panels based on maxVectors configuration
-    const vector2Control = document.getElementById('vector2-control');
-    if (vector2Control) {
-      if (CONFIG.maxVectors >= 2) {
-        vector2Control.style.display = '';
-      } else {
-        vector2Control.style.display = 'none';
-      }
-    }
-  }
-
-  displayResult(...lines) {
-    const resultsDiv = document.getElementById('results-display');
-    resultsDiv.innerHTML = lines.map(line =>
-      `<p class="formula">${line}</p>`
-    ).join('');
-  }
-}
+// Note: Vector class is now loaded from core/vector.js
+// Note: VectorMode class is now loaded from modes/vector-mode.js
 
 // ============================================================================
 // INITIALIZATION
 // ============================================================================
 
 let app;
+let matrixMode;
 
-// Wait for DOM to be ready, then load config and initialize app
+/**
+ * Initialize the application based on configured mode
+ */
+async function initializeApp() {
+  await loadConfig();
+
+  if (CONFIG.mode === 'matrix') {
+    // Matrix mode
+    console.log('Initializing Matrix Mode');
+
+    // Hide vector mode UI, show matrix mode UI
+    if (window.ModeManager) {
+      window.ModeManager.showMatrixMode();
+    } else {
+      // Fallback if ModeManager not available
+    const vectorContent = document.querySelector('.mode-content[data-mode="vector"]');
+    const matrixContent = document.querySelector('.mode-content[data-mode="matrix"]');
+    if (vectorContent) vectorContent.style.display = 'none';
+    if (matrixContent) {
+      matrixContent.style.display = 'flex';
+      matrixContent.classList.add('active');
+      }
+    }
+
+    // Find matrix mode container
+    const matrixContent = document.querySelector('.mode-content[data-mode="matrix"]');
+    if (!matrixContent) {
+      console.error('Matrix mode container not found');
+      return;
+    }
+
+    // Initialize coordinate system
+    // Use CSS colors if available, fallback to CONFIG defaults
+    // MatrixMode will update colors in its constructor
+    const canvas = document.getElementById('grid-canvas');
+    const colors = window.ColorUtils
+      ? window.ColorUtils.getColorsFromCSS()
+      : {
+          grid: CONFIG.colors.grid,
+          axis: CONFIG.colors.axis,
+          text: CONFIG.colors.text,
+          hover: CONFIG.colors.hover,
+          hoverHighlight: CONFIG.colors.hoverHighlight
+        };
+
+    const coordSystem = new CoordinateSystem(canvas, colors);
+
+    // Set up resize callback
+    coordSystem.setResizeCallback(() => {
+      if (matrixMode) matrixMode.render();
+    });
+
+    // Initialize matrix mode with root element
+    // MatrixMode handles its own theme listener and color updates
+    matrixMode = new MatrixMode(coordSystem, matrixContent);
+    matrixMode.render();
+
+    // Matrix reset button (use scoped query)
+    const matrixResetButton = matrixContent.querySelector('#matrix-reset');
+    if (matrixResetButton) {
+      matrixResetButton.addEventListener('click', () => {
+        matrixMode.inputMatrix = Matrix.identity(2);
+        if (matrixMode.elements.m00) matrixMode.elements.m00.value = '1';
+        if (matrixMode.elements.m01) matrixMode.elements.m01.value = '0';
+        if (matrixMode.elements.m10) matrixMode.elements.m10.value = '0';
+        if (matrixMode.elements.m11) matrixMode.elements.m11.value = '1';
+
+        matrixMode.showDeterminantArea = false;
+
+        // Reset Show Area button text
+        if (matrixMode.elements.showDeterminant) {
+          matrixMode.elements.showDeterminant.textContent = 'Show Area';
+        }
+
+        matrixMode.render();
+        if (matrixMode.elements.results) {
+          matrixMode.elements.results.innerHTML = '<p class="hint">Matrix visualization updates in real-time</p>';
+        }
+        logAction('Matrix reset to identity');
+      });
+    }
+
+  } else {
+    // Vector mode (existing code)
+    console.log('Initializing Vector Mode');
+
+    // Show vector mode UI, hide matrix mode UI
+    if (window.ModeManager) {
+      window.ModeManager.showVectorMode();
+    } else {
+      // Fallback if ModeManager not available
+    const vectorContent = document.querySelector('.mode-content[data-mode="vector"]');
+    const matrixContent = document.querySelector('.mode-content[data-mode="matrix"]');
+    if (vectorContent) {
+      vectorContent.style.display = 'flex';
+      vectorContent.classList.add('active');
+    }
+    if (matrixContent) matrixContent.style.display = 'none';
+    }
+
+    // Initialize vector mode app
+    const canvas = document.getElementById('grid-canvas');
+    app = new VectorMode(canvas, CONFIG);
+  }
+
+  // Help modal is initialized by app.js via HelpService
+}
+
+function getColorsFromCSS() {
+  if (window.ColorUtils) {
+    return window.ColorUtils.getColorsFromCSS();
+  }
+  // Fallback if ColorUtils not available
+  const bespokeElement = document.querySelector('.bespoke') || document.documentElement;
+  const getColor = (varName) => getComputedStyle(bespokeElement).getPropertyValue(varName).trim();
+
+  return {
+    grid: getColor('--bespoke-canvas-grid') || CONFIG.colors.grid,
+    axis: getColor('--bespoke-canvas-axis') || CONFIG.colors.axis,
+    text: getColor('--bespoke-canvas-text') || CONFIG.colors.text,
+    hover: getColor('--bespoke-canvas-hover') || CONFIG.colors.hover,
+    hoverHighlight: getColor('--bespoke-canvas-hover-highlight') || CONFIG.colors.hoverHighlight
+  };
+}
+
+// Wait for DOM to be ready, then initialize
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', async () => {
-    await loadConfig();
-    app = new LinearAlgebraApp();
-    initializeHelpModal();
-  });
+  document.addEventListener('DOMContentLoaded', initializeApp);
 } else {
-  (async () => {
-    await loadConfig();
-    app = new LinearAlgebraApp();
-    initializeHelpModal();
-  })();
+  initializeApp();
 }
 
-// ============================================================================
-// HELP MODAL CONTENT
-// ============================================================================
-
-function initializeHelpModal() {
-  const helpContent = `
-    <section>
-      <h2>Interactive Linear Algebra</h2>
-      <p>
-        This application lets you visualize vector operations in 2D space.
-        Draw vectors on the canvas and perform mathematical operations to see
-        the results visually and numerically.
-      </p>
-    </section>
-
-    <section>
-      <h2>Coordinate Systems</h2>
-      <p>
-        Vectors can be represented in two different coordinate systems. Use the
-        dropdown in the Vectors section to switch between them:
-      </p>
-
-      <h3>Cartesian Coordinates (x, y)</h3>
-      <ul>
-        <li><strong>x</strong>: Horizontal displacement from the origin</li>
-        <li><strong>y</strong>: Vertical displacement from the origin</li>
-        <li>Example: <code>[3.0, 4.0]</code></li>
-        <li>Best for: Component-based operations like addition and subtraction</li>
-      </ul>
-
-      <h3>Polar Coordinates (r, θ)</h3>
-      <ul>
-        <li><strong>r</strong>: Distance from the origin (magnitude)</li>
-        <li><strong>θ</strong>: Angle from the positive x-axis (0-360°)</li>
-        <li>Example: <code>r=5.0, θ=53.1°</code></li>
-        <li>Best for: Understanding direction and magnitude relationships</li>
-      </ul>
-
-      <div class="tip">
-        <strong>💡 Tip:</strong> Both representations describe the same vector!
-        Switch between modes to understand how they relate.
-      </div>
-    </section>
-
-    <section>
-      <h2>Creating Vectors</h2>
-      <ul>
-        <li><strong>Click and drag</strong> on the canvas to create a vector</li>
-        <li>The first vector you create is <span style="color: #e53e3e;">v₁ (red)</span></li>
-        <li>The second vector you create is <span style="color: #3182ce;">v₂ (blue)</span></li>
-        <li>Vectors automatically snap to a 0.5 unit grid for precision</li>
-        <li>Click the <strong>Clear</strong> button to start over</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Editing Vectors</h2>
-      <ul>
-        <li>Click near the <strong>arrowhead</strong> of a vector to select it</li>
-        <li>The selected vector will highlight with a glowing circle</li>
-        <li>Drag to reposition the vector endpoint</li>
-        <li>The vector information updates in real-time</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Vector Operations</h2>
-      <p>All operations create a <span style="color: #38a169;">result vector (green)</span>:</p>
-
-      <h3>Addition & Subtraction</h3>
-      <ul>
-        <li><strong>Add:</strong> Combines two vectors using the parallelogram rule</li>
-        <li><strong>Subtract:</strong> v₁ - v₂ = v₁ + (-v₂), with animated parallelogram visualization</li>
-      </ul>
-
-      <h3>Scalar Multiplication</h3>
-      <ul>
-        <li>Enter a number and click <strong>Scale v₁</strong> or <strong>Scale v₂</strong></li>
-        <li>Positive scalars: stretch or shrink the vector</li>
-        <li>Negative scalars: reverse direction</li>
-      </ul>
-
-      <h3>Dot Product</h3>
-      <ul>
-        <li>Computes: v₁ · v₂ = x₁x₂ + y₁y₂</li>
-        <li>Result is a scalar (number), not a vector</li>
-        <li>Measures how much two vectors "agree" in direction</li>
-      </ul>
-
-      <h3>Other Operations</h3>
-      <ul>
-        <li><strong>Project:</strong> Projects v₁ onto v₂</li>
-        <li><strong>Angle Between:</strong> Calculates and displays the angle between vectors</li>
-        <li><strong>Normalize:</strong> Creates a unit vector (length 1) in the same direction</li>
-        <li><strong>Perpendicular:</strong> Rotates the vector 90° counterclockwise</li>
-        <li><strong>Reflect:</strong> Mirrors the vector across an axis or diagonal</li>
-        <li><strong>Linear Combination:</strong> Computes av₁ + bv₂ with custom scalars</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Tips</h2>
-      <ul>
-        <li>Try switching to polar mode to better understand angles and magnitudes</li>
-        <li>Watch the animated parallelogram when adding or subtracting vectors</li>
-        <li>The canvas shows grid lines for precise placement</li>
-        <li>All calculations are displayed in the Results panel</li>
-      </ul>
-    </section>
-  `;
-
-  HelpModal.init({
-    triggerSelector: '#btn-help',
-    content: helpContent
-  });
-}
+// Help modal is now initialized by app.js via HelpService
+// The help content comes from help-content-template.html
