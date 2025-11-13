@@ -478,6 +478,17 @@ body.bespoke {
   align-items: center;
 }
 
+.bespoke input[type="number"]::-webkit-outer-spin-button,
+.bespoke input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.bespoke input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 .bespoke .linear-combo-control input[type="number"] {
   width: 60px;
   min-height: 32px;
