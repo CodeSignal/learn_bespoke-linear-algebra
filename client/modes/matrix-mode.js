@@ -15,12 +15,14 @@ class MatrixMode {
       m01: this.root.querySelector('#m01'),
       m10: this.root.querySelector('#m10'),
       m11: this.root.querySelector('#m11'),
-      // Results container
-      results: this.root.querySelector('#matrix-results'),
       // Buttons
       showDeterminant: this.root.querySelector('#show-determinant'),
       matrixReset: this.root.querySelector('#matrix-reset')
     };
+
+    // Initialize ResultsPanel for result display
+    const resultsElement = this.root.querySelector('#matrix-results');
+    this.resultsPanel = resultsElement ? new ResultsPanel(resultsElement, 'Operations results will be displayed here') : null;
 
     // Matrix state
     this.inputMatrix = Matrix.identity(2); // Current transformation matrix
@@ -36,12 +38,23 @@ class MatrixMode {
 
     // Color cache for theme-responsive rendering
     this.colors = {};
+    this.accentColor = null;
+    this.dangerColor = null;
 
-    // Load colors from CSS (standardized approach)
-    this.loadColorsFromCSS();
+    // Event listener references for cleanup
+    this.eventListeners = [];
+    this.themeUnsubscribe = null;
 
-    // Set up theme listener for consistent theme handling
-    this.setupThemeListener();
+    // Load colors from CanvasThemeService
+    this.loadColors();
+
+    // Subscribe to theme changes
+    if (window.CanvasThemeService) {
+      this.themeUnsubscribe = window.CanvasThemeService.subscribe(() => {
+        this.loadColors();
+        this.render();
+      });
+    }
 
     this.setupEventListeners();
     this.applyOperationGroupVisibility();
@@ -52,38 +65,31 @@ class MatrixMode {
   // ============================================================================
 
   /**
-   * Load colors from CSS using ColorUtils (standardized approach)
+   * Load colors from CanvasThemeService
    */
-  loadColorsFromCSS() {
-    // Load theme-responsive colors from CSS using ColorUtils
-    const colors = window.ColorUtils
-      ? window.ColorUtils.getColorsFromCSS()
+  loadColors() {
+    // Load theme-responsive colors from CanvasThemeService
+    const themeColors = window.CanvasThemeService
+      ? window.CanvasThemeService.getColors()
       : {
           grid: CONFIG.colors.grid,
           axis: CONFIG.colors.axis,
           text: CONFIG.colors.text,
           hover: CONFIG.colors.hover,
-          hoverHighlight: CONFIG.colors.hoverHighlight
+          hoverHighlight: CONFIG.colors.hoverHighlight,
+          accent: '#3b82f6',
+          danger: '#ef4444'
         };
 
     // Store colors
-    this.colors = colors;
+    this.colors = themeColors;
+
+    // Cache accent and danger colors for drawTransformedSquare
+    this.accentColor = themeColors.accent || '#10b981';
+    this.dangerColor = themeColors.danger || '#ef4444';
 
     // Update CoordinateSystem colors
-    this.coordSystem.updateColors(colors);
-  }
-
-  /**
-   * Set up theme change listener (standardized approach)
-   */
-  setupThemeListener() {
-    // Listen for system theme changes
-    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-    darkModeQuery.addEventListener('change', () => {
-      this.loadColorsFromCSS();  // Reload colors (updates CoordinateSystem automatically)
-      this.render();             // Re-render canvas
-    });
+    this.coordSystem.updateColors(themeColors);
   }
 
   // ============================================================================
@@ -113,14 +119,37 @@ class MatrixMode {
 
   setupEventListeners() {
     // Matrix input handlers
-    if (this.elements.m00) this.elements.m00.addEventListener('input', () => this.handleMatrixInput());
-    if (this.elements.m01) this.elements.m01.addEventListener('input', () => this.handleMatrixInput());
-    if (this.elements.m10) this.elements.m10.addEventListener('input', () => this.handleMatrixInput());
-    if (this.elements.m11) this.elements.m11.addEventListener('input', () => this.handleMatrixInput());
+    const matrixInputHandler = () => this.handleMatrixInput();
+
+    if (this.elements.m00) {
+      this.elements.m00.addEventListener('input', matrixInputHandler);
+      this.eventListeners.push({ element: this.elements.m00, event: 'input', handler: matrixInputHandler });
+    }
+    if (this.elements.m01) {
+      this.elements.m01.addEventListener('input', matrixInputHandler);
+      this.eventListeners.push({ element: this.elements.m01, event: 'input', handler: matrixInputHandler });
+    }
+    if (this.elements.m10) {
+      this.elements.m10.addEventListener('input', matrixInputHandler);
+      this.eventListeners.push({ element: this.elements.m10, event: 'input', handler: matrixInputHandler });
+    }
+    if (this.elements.m11) {
+      this.elements.m11.addEventListener('input', matrixInputHandler);
+      this.eventListeners.push({ element: this.elements.m11, event: 'input', handler: matrixInputHandler });
+    }
 
     // Show determinant button
     if (this.elements.showDeterminant) {
-      this.elements.showDeterminant.addEventListener('click', () => this.toggleDeterminantVisualization());
+      const handler = () => this.toggleDeterminantVisualization();
+      this.elements.showDeterminant.addEventListener('click', handler);
+      this.eventListeners.push({ element: this.elements.showDeterminant, event: 'click', handler });
+    }
+
+    // Reset button handler (moved from linear-algebra.js)
+    if (this.elements.matrixReset) {
+      const handler = () => this.handleReset();
+      this.elements.matrixReset.addEventListener('click', handler);
+      this.eventListeners.push({ element: this.elements.matrixReset, event: 'click', handler });
     }
   }
 
@@ -151,13 +180,70 @@ class MatrixMode {
   }
 
   toggleDeterminantVisualization() {
+    if (window.StatusService) {
+      window.StatusService.setLoading();
+    }
+
     this.showDeterminantArea = !this.showDeterminantArea;
 
     if (this.elements.showDeterminant) {
       this.elements.showDeterminant.textContent = this.showDeterminantArea ? 'Hide Area' : 'Show Area';
     }
 
+    // Calculate and display determinant
+    const det = this.inputMatrix.determinant();
+    if (this.resultsPanel && this.showDeterminantArea) {
+      const detText = `det(A) = ${det.toFixed(2)}`;
+      const orientationText = det >= 0 ? 'Orientation: preserved (positive)' : 'Orientation: flipped (negative)';
+      this.displayResult(detText, orientationText);
+    }
+
     this.render();
+
+    if (window.StatusService) {
+      window.StatusService.setReady();
+    }
+  }
+
+  /**
+   * Handle matrix reset button click
+   * Resets matrix to identity and clears determinant visualization
+   */
+  handleReset() {
+    if (window.StatusService) {
+      window.StatusService.setLoading();
+    }
+
+    this.inputMatrix = Matrix.identity(2);
+
+    // Update input fields
+    if (this.elements.m00) this.elements.m00.value = '1';
+    if (this.elements.m01) this.elements.m01.value = '0';
+    if (this.elements.m10) this.elements.m10.value = '0';
+    if (this.elements.m11) this.elements.m11.value = '1';
+
+    this.showDeterminantArea = false;
+
+    // Reset Show Area button text
+    if (this.elements.showDeterminant) {
+      this.elements.showDeterminant.textContent = 'Show Area';
+    }
+
+    this.render();
+
+    // Clear results
+    if (this.resultsPanel) {
+      this.resultsPanel.clear();
+    }
+
+    // Log action if logger is available
+    if (typeof logAction === 'function') {
+      logAction('Matrix reset to identity');
+    }
+
+    if (window.StatusService) {
+      window.StatusService.setReady();
+    }
   }
 
   // ============================================================================
@@ -165,49 +251,14 @@ class MatrixMode {
   // ============================================================================
 
   /**
-   * Format a matrix as an HTML grid element
-   * @param {Matrix} matrix - Matrix instance to format
-   * @param {number} precision - Decimal places (default: 1)
-   * @returns {string} - HTML string with matrix grid
-   */
-  formatMatrixAsGrid(matrix, precision = 1) {
-    const rows = matrix.rows;
-    const cols = matrix.cols;
-    // Create inline grid without padding/background for results display
-    let html = '<span style="display: inline-flex; flex-direction: column; gap: 0.125rem; margin: 0 0.25rem; vertical-align: middle;">';
-
-    for (let i = 0; i < rows; i++) {
-      html += '<span style="display: flex; gap: 0.25rem; justify-content: center;">';
-      for (let j = 0; j < cols; j++) {
-        const value = matrix.get(i, j).toFixed(precision);
-        html += `<span style="display: inline-block; min-width: 2.5em; text-align: center; font-family: monospace;">${value}</span>`;
-      }
-      html += '</span>';
-    }
-    html += '</span>';
-    return html;
-  }
-
-  /**
-   * Format a vector as a string
-   * @param {Vector} vector - Vector instance to format
-   * @param {number} precision - Decimal places (default: 1)
-   * @returns {string} - Formatted vector string like [x, y]
-   */
-  formatVector(vector, precision = 1) {
-    return `[${vector.x.toFixed(precision)}, ${vector.y.toFixed(precision)}]`;
-  }
-
-  /**
-   * Display result lines in the results panel (similar to vector mode)
+   * Display result lines in the results panel
+   * Uses ResultsPanel and FormatUtils for consistent formatting
    * @param {...string} lines - One or more lines to display (can contain HTML)
    */
   displayResult(...lines) {
-    if (!this.elements.results) return;
-
-    this.elements.results.innerHTML = lines.map(line =>
-      `<p class="formula">${line}</p>`
-    ).join('');
+    if (this.resultsPanel) {
+      this.resultsPanel.show(...lines);
+    }
   }
 
 
@@ -267,19 +318,11 @@ class MatrixMode {
 
     const det = this.inputMatrix.determinant();
 
-    // Get colors from CSS
-    const accentColor = window.ColorUtils
-      ? window.ColorUtils.getColorFromCSS('--bespoke-accent', '#10b981')
-      : '#10b981';
-    const dangerColor = window.ColorUtils
-      ? window.ColorUtils.getColorFromCSS('--bespoke-danger', '#ef4444')
-      : '#ef4444';
-
     ctx.save();
     ctx.globalAlpha = 0.3;
 
-    // Color based on determinant sign
-    const fillColor = det >= 0 ? accentColor : dangerColor;
+    // Use cached accent/danger colors from theme service
+    const fillColor = det >= 0 ? this.accentColor : this.dangerColor;
 
     // Fill parallelogram
     ctx.fillStyle = fillColor;
@@ -314,10 +357,32 @@ class MatrixMode {
   }
 
   // ============================================================================
-  // CLEANUP
+  // LIFECYCLE HOOKS
   // ============================================================================
 
-  cleanup() {
-    // No cleanup needed - no animations or timers to cancel
+  /**
+   * Clean up resources when mode is destroyed
+   */
+  destroy() {
+    // Remove all event listeners
+    if (this.eventListeners) {
+      this.eventListeners.forEach(({ element, event, handler }) => {
+        if (element && typeof element.removeEventListener === 'function') {
+          element.removeEventListener(event, handler);
+        }
+      });
+      this.eventListeners = [];
+    }
+
+    // Unsubscribe from theme service
+    if (this.themeUnsubscribe) {
+      this.themeUnsubscribe();
+      this.themeUnsubscribe = null;
+    }
+
+    // Clear state
+    this.inputMatrix = null;
+    this.basisVectors = null;
+    this.showDeterminantArea = false;
   }
 }

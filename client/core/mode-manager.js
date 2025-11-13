@@ -1,6 +1,7 @@
 /**
  * Mode Manager
- * Handles mode visibility and switching between vector and matrix modes
+ * Lifecycle controller for managing vector and matrix modes
+ * Owns shared resources (CoordinateSystem) and handles mode instantiation/teardown
  */
 
 (function() {
@@ -9,36 +10,132 @@
       this.vectorContent = document.querySelector('.mode-content[data-mode="vector"]');
       this.matrixContent = document.querySelector('.mode-content[data-mode="matrix"]');
       this.currentMode = null;
+      this.currentModeInstance = null;
+      this.modes = {}; // Registry of mode factories
+      this.coordSystem = null; // Shared CoordinateSystem instance
     }
 
     /**
-     * Show vector mode and hide matrix mode
+     * Initialize the shared CoordinateSystem
+     * Should be called once before registering modes
      */
-    showVectorMode() {
-      if (this.matrixContent) {
-        this.matrixContent.classList.remove('active');
-        this.matrixContent.classList.add('hidden');
+    initializeCoordinateSystem() {
+      if (this.coordSystem) {
+        return this.coordSystem;
       }
-      if (this.vectorContent) {
-        this.vectorContent.classList.remove('hidden');
-        this.vectorContent.classList.add('active');
+
+      const canvas = document.getElementById('grid-canvas');
+      if (!canvas) {
+        console.error('Canvas element not found');
+        return null;
       }
-      this.currentMode = 'vector';
+
+      // Load colors from CSS
+      const colors = window.ColorUtils
+        ? window.ColorUtils.getColorsFromCSS()
+        : {
+            grid: CONFIG.colors.grid,
+            axis: CONFIG.colors.axis,
+            text: CONFIG.colors.text,
+            hover: CONFIG.colors.hover,
+            hoverHighlight: CONFIG.colors.hoverHighlight
+          };
+
+      this.coordSystem = new CoordinateSystem(canvas, colors);
+      return this.coordSystem;
     }
 
     /**
-     * Show matrix mode and hide vector mode
+     * Get the shared CoordinateSystem instance
+     * @returns {CoordinateSystem|null}
      */
-    showMatrixMode() {
-      if (this.vectorContent) {
-        this.vectorContent.classList.remove('active');
-        this.vectorContent.classList.add('hidden');
+    getCoordinateSystem() {
+      return this.coordSystem;
+    }
+
+    /**
+     * Register a mode factory
+     * @param {string} name - Mode name ('vector' or 'matrix')
+     * @param {Function} factory - Factory function that returns a mode instance
+     *                               The instance should have a destroy() method
+     */
+    registerMode(name, factory) {
+      this.modes[name] = factory;
+    }
+
+    /**
+     * Set the active mode
+     * Handles teardown of current mode and instantiation of new mode
+     * @param {string} modeName - Mode name ('vector' or 'matrix')
+     */
+    setMode(modeName) {
+      if (!this.modes[modeName]) {
+        console.error(`Mode '${modeName}' not registered`);
+        return;
       }
-      if (this.matrixContent) {
-        this.matrixContent.classList.remove('hidden');
-        this.matrixContent.classList.add('active');
+
+      // Destroy current mode if exists
+      if (this.currentModeInstance && typeof this.currentModeInstance.destroy === 'function') {
+        try {
+          this.currentModeInstance.destroy();
+        } catch (error) {
+          console.error(`Error destroying mode '${this.currentMode}':`, error);
+        }
       }
-      this.currentMode = 'matrix';
+
+      // Update UI visibility
+      this.updateUIVisibility(modeName);
+
+      // Instantiate new mode
+      try {
+        const factory = this.modes[modeName];
+        const modeInstance = factory();
+
+        if (!modeInstance) {
+          throw new Error(`Mode factory returned null for '${modeName}'`);
+        }
+
+        this.currentModeInstance = modeInstance;
+        this.currentMode = modeName;
+
+        // Update shared services
+        if (window.StatusService) {
+          window.StatusService.setReady();
+        }
+
+        console.log(`Mode '${modeName}' activated`);
+      } catch (error) {
+        console.error(`Error instantiating mode '${modeName}':`, error);
+        if (window.StatusService) {
+          window.StatusService.setStatus('Failed to initialize mode');
+        }
+      }
+    }
+
+    /**
+     * Update UI visibility for mode switching
+     * @param {string} modeName - Mode name ('vector' or 'matrix')
+     */
+    updateUIVisibility(modeName) {
+      if (modeName === 'vector') {
+        if (this.matrixContent) {
+          this.matrixContent.classList.remove('active');
+          this.matrixContent.classList.add('hidden');
+        }
+        if (this.vectorContent) {
+          this.vectorContent.classList.remove('hidden');
+          this.vectorContent.classList.add('active');
+        }
+      } else if (modeName === 'matrix') {
+        if (this.vectorContent) {
+          this.vectorContent.classList.remove('active');
+          this.vectorContent.classList.add('hidden');
+        }
+        if (this.matrixContent) {
+          this.matrixContent.classList.remove('hidden');
+          this.matrixContent.classList.add('active');
+        }
+      }
     }
 
     /**
@@ -50,20 +147,14 @@
     }
 
     /**
-     * Get the results container for the current mode
-     * @returns {HTMLElement|null} Results container element or null
+     * Get the current mode instance
+     * @returns {object|null} Current mode instance or null
      */
-    getResultsContainer() {
-      if (this.currentMode === 'vector') {
-        return document.getElementById('vector-results');
-      } else if (this.currentMode === 'matrix') {
-        return document.getElementById('matrix-results');
-      }
-      return null;
+    getCurrentModeInstance() {
+      return this.currentModeInstance;
     }
   }
 
   // Export singleton instance
   window.ModeManager = new ModeManager();
 })();
-

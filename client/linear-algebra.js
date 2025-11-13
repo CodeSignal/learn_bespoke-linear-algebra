@@ -113,113 +113,60 @@ async function loadConfig() {
 // INITIALIZATION
 // ============================================================================
 
-let app;
-let matrixMode;
-
 /**
  * Initialize the application based on configured mode
+ * Delegates mode lifecycle to ModeManager
  */
 async function initializeApp() {
   await loadConfig();
 
-  if (CONFIG.mode === 'matrix') {
-    // Matrix mode
-    console.log('Initializing Matrix Mode');
-
-    // Hide vector mode UI, show matrix mode UI
-    if (window.ModeManager) {
-      window.ModeManager.showMatrixMode();
-    } else {
-      // Fallback if ModeManager not available
-    const vectorContent = document.querySelector('.mode-content[data-mode="vector"]');
-    const matrixContent = document.querySelector('.mode-content[data-mode="matrix"]');
-    if (vectorContent) vectorContent.style.display = 'none';
-    if (matrixContent) {
-      matrixContent.style.display = 'flex';
-      matrixContent.classList.add('active');
-      }
+  // Ensure ModeManager is available
+  if (!window.ModeManager) {
+    console.error('ModeManager not available');
+    if (window.StatusService) {
+      window.StatusService.setStatus('Failed to initialize');
     }
+    return;
+  }
 
-    // Find matrix mode container
+  // Initialize shared CoordinateSystem
+  const coordSystem = window.ModeManager.initializeCoordinateSystem();
+  if (!coordSystem) {
+    console.error('Failed to initialize CoordinateSystem');
+    if (window.StatusService) {
+      window.StatusService.setStatus('Failed to initialize');
+    }
+    return;
+  }
+
+  // Register vector mode factory
+  window.ModeManager.registerMode('vector', () => {
+    const canvas = document.getElementById('grid-canvas');
+    const vectorContent = document.querySelector('.mode-content[data-mode="vector"]');
+    if (!vectorContent) {
+      console.error('Vector mode container not found');
+      return null;
+    }
+    const coordSystem = window.ModeManager.getCoordinateSystem();
+    return new VectorMode(canvas, CONFIG, coordSystem, vectorContent);
+  });
+
+  // Register matrix mode factory
+  window.ModeManager.registerMode('matrix', () => {
     const matrixContent = document.querySelector('.mode-content[data-mode="matrix"]');
     if (!matrixContent) {
       console.error('Matrix mode container not found');
-      return;
+      return null;
     }
+    const coordSystem = window.ModeManager.getCoordinateSystem();
+    const mode = new MatrixMode(coordSystem, matrixContent);
+    mode.render(); // Initial render
+    return mode;
+  });
 
-    // Initialize coordinate system
-    // Use CSS colors if available, fallback to CONFIG defaults
-    // MatrixMode will update colors in its constructor
-    const canvas = document.getElementById('grid-canvas');
-    const colors = window.ColorUtils
-      ? window.ColorUtils.getColorsFromCSS()
-      : {
-          grid: CONFIG.colors.grid,
-          axis: CONFIG.colors.axis,
-          text: CONFIG.colors.text,
-          hover: CONFIG.colors.hover,
-          hoverHighlight: CONFIG.colors.hoverHighlight
-        };
-
-    const coordSystem = new CoordinateSystem(canvas, colors);
-
-    // Set up resize callback
-    coordSystem.setResizeCallback(() => {
-      if (matrixMode) matrixMode.render();
-    });
-
-    // Initialize matrix mode with root element
-    // MatrixMode handles its own theme listener and color updates
-    matrixMode = new MatrixMode(coordSystem, matrixContent);
-    matrixMode.render();
-
-    // Matrix reset button (use scoped query)
-    const matrixResetButton = matrixContent.querySelector('#matrix-reset');
-    if (matrixResetButton) {
-      matrixResetButton.addEventListener('click', () => {
-        matrixMode.inputMatrix = Matrix.identity(2);
-        if (matrixMode.elements.m00) matrixMode.elements.m00.value = '1';
-        if (matrixMode.elements.m01) matrixMode.elements.m01.value = '0';
-        if (matrixMode.elements.m10) matrixMode.elements.m10.value = '0';
-        if (matrixMode.elements.m11) matrixMode.elements.m11.value = '1';
-
-        matrixMode.showDeterminantArea = false;
-
-        // Reset Show Area button text
-        if (matrixMode.elements.showDeterminant) {
-          matrixMode.elements.showDeterminant.textContent = 'Show Area';
-        }
-
-        matrixMode.render();
-        if (matrixMode.elements.results) {
-          matrixMode.elements.results.innerHTML = '<p class="hint">Matrix visualization updates in real-time</p>';
-        }
-        logAction('Matrix reset to identity');
-      });
-    }
-
-  } else {
-    // Vector mode (existing code)
-    console.log('Initializing Vector Mode');
-
-    // Show vector mode UI, hide matrix mode UI
-    if (window.ModeManager) {
-      window.ModeManager.showVectorMode();
-    } else {
-      // Fallback if ModeManager not available
-    const vectorContent = document.querySelector('.mode-content[data-mode="vector"]');
-    const matrixContent = document.querySelector('.mode-content[data-mode="matrix"]');
-    if (vectorContent) {
-      vectorContent.style.display = 'flex';
-      vectorContent.classList.add('active');
-    }
-    if (matrixContent) matrixContent.style.display = 'none';
-    }
-
-    // Initialize vector mode app
-    const canvas = document.getElementById('grid-canvas');
-    app = new VectorMode(canvas, CONFIG);
-  }
+  // Set the active mode based on config
+  const mode = CONFIG.mode || 'vector';
+  window.ModeManager.setMode(mode);
 
   // Help modal is initialized by app.js via HelpService
 }
