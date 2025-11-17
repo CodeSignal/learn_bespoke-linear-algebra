@@ -28,12 +28,22 @@ class MatrixMode {
       showDeterminant: this.root.querySelector('#show-determinant'),
       matrixReset: this.root.querySelector('#matrix-reset'),
       // Determinant dropdown
-      determinantMatrixSelect: this.root.querySelector('#determinant-matrix-select')
+      determinantMatrixSelect: this.root.querySelector('#determinant-matrix-select'),
+      // Operation buttons
+      opMatrixAdd: this.root.querySelector('#op-matrix-add'),
+      opMatrixScale: this.root.querySelector('#op-matrix-scale'),
+      opMatrixMultiply: this.root.querySelector('#op-matrix-multiply'),
+      // Scalar multiplication controls
+      matrixScalarInput: this.root.querySelector('#matrix-scalar-input'),
+      matrixScalarSelect: this.root.querySelector('#matrix-scalar-select')
     };
 
     // Initialize ResultsPanel for result display
     const resultsElement = this.root.querySelector('#matrix-results');
     this.resultsPanel = resultsElement ? new ResultsPanel(resultsElement, 'Operations results will be displayed here') : null;
+
+    // Initialize MatrixOperations
+    this.operations = new MatrixOperations(appConfig, styleConstants);
 
     // Matrix state
     this.inputMatrixA = Matrix.identity(2); // Matrix A
@@ -72,6 +82,7 @@ class MatrixMode {
     this.setupEventListeners();
     this.applyOperationGroupVisibility();
     this.applyMatrixVisibility();
+    this.updateButtonStates(); // Initialize button states
   }
 
   // ============================================================================
@@ -115,15 +126,24 @@ class MatrixMode {
     const matrixConfig = this.appConfig.matrixMode || {};
     const operationGroups = matrixConfig.operationGroups || {};
 
-    // Show/hide determinant visualization section
-    const showDeterminant = operationGroups.determinant !== false;
-    const determinantSection = this.root.querySelector('.operation-group');
-    if (determinantSection) {
-      const label = determinantSection.querySelector('.operation-label span');
-      if (label && label.textContent.includes('Determinant')) {
-        determinantSection.style.display = showDeterminant ? '' : 'none';
+    const shouldShowGroup = (groupName) => {
+      // First check if the operation group is enabled in configuration
+      if (operationGroups[groupName] === false) {
+        return false;
       }
-    }
+      return true;
+    };
+
+    // Show/hide operation groups based on configuration
+    const operationGroupElements = this.root.querySelectorAll('[data-operation-group]');
+    operationGroupElements.forEach(element => {
+      const groupName = element.getAttribute('data-operation-group');
+      if (shouldShowGroup(groupName)) {
+        element.style.display = '';
+      } else {
+        element.style.display = 'none';
+      }
+    });
   }
 
   /**
@@ -233,6 +253,27 @@ class MatrixMode {
       this.elements.matrixReset.addEventListener('click', handler);
       this.eventListeners.push({ element: this.elements.matrixReset, event: 'click', handler });
     }
+
+    // Matrix addition button
+    if (this.elements.opMatrixAdd) {
+      const handler = () => this.handleAdd();
+      this.elements.opMatrixAdd.addEventListener('click', handler);
+      this.eventListeners.push({ element: this.elements.opMatrixAdd, event: 'click', handler });
+    }
+
+    // Scalar multiplication button
+    if (this.elements.opMatrixScale) {
+      const handler = () => this.handleScalarMultiply();
+      this.elements.opMatrixScale.addEventListener('click', handler);
+      this.eventListeners.push({ element: this.elements.opMatrixScale, event: 'click', handler });
+    }
+
+    // Matrix multiplication button
+    if (this.elements.opMatrixMultiply) {
+      const handler = () => this.handleMultiply();
+      this.elements.opMatrixMultiply.addEventListener('click', handler);
+      this.eventListeners.push({ element: this.elements.opMatrixMultiply, event: 'click', handler });
+    }
   }
 
   // ============================================================================
@@ -257,6 +298,8 @@ class MatrixMode {
 
     // Update preview in real-time
     this.updatePreview();
+    // Update button states
+    this.updateButtonStates();
   }
 
   handleMatrixBInput() {
@@ -277,6 +320,8 @@ class MatrixMode {
 
     // Update preview in real-time
     this.updatePreview();
+    // Update button states
+    this.updateButtonStates();
   }
 
   updatePreview() {
@@ -400,6 +445,153 @@ class MatrixMode {
 
     if (window.StatusService) {
       window.StatusService.setReady();
+    }
+
+    // Update button states after reset
+    this.updateButtonStates();
+  }
+
+  // ============================================================================
+  // MATRIX OPERATION HANDLERS
+  // ============================================================================
+
+  /**
+   * Handle matrix addition operation
+   */
+  handleAdd() {
+    if (window.StatusService) {
+      window.StatusService.setLoading();
+    }
+
+    const matrixConfig = this.appConfig.matrixMode || {};
+    const maxMatrices = matrixConfig.maxMatrices || 1;
+
+    if (maxMatrices < 2) {
+      if (this.resultsPanel) {
+        this.displayResult('Matrix B is not available. Enable maxMatrices >= 2 in config.');
+      }
+      if (window.StatusService) {
+        window.StatusService.setReady();
+      }
+      return;
+    }
+
+    const result = this.operations.add(this.inputMatrixA, this.inputMatrixB);
+
+    if (result && this.resultsPanel) {
+      this.displayResult(...result.resultLines);
+    }
+
+    if (window.StatusService) {
+      window.StatusService.setReady();
+    }
+  }
+
+  /**
+   * Handle scalar multiplication operation
+   */
+  handleScalarMultiply() {
+    if (window.StatusService) {
+      window.StatusService.setLoading();
+    }
+
+    const scalar = this.elements.matrixScalarInput
+      ? parseFloat(this.elements.matrixScalarInput.value)
+      : NaN;
+
+    if (isNaN(scalar)) {
+      if (this.resultsPanel) {
+        this.displayResult('Please enter a valid scalar value.');
+      }
+      if (window.StatusService) {
+        window.StatusService.setReady();
+      }
+      return;
+    }
+
+    const matrixLabel = this.elements.matrixScalarSelect
+      ? this.elements.matrixScalarSelect.value
+      : 'A';
+
+    const selectedMatrix = matrixLabel === 'A' ? this.inputMatrixA : this.inputMatrixB;
+    const result = this.operations.scalarMultiply(selectedMatrix, scalar, matrixLabel);
+
+    if (result && this.resultsPanel) {
+      this.displayResult(...result.resultLines);
+    }
+
+    if (window.StatusService) {
+      window.StatusService.setReady();
+    }
+  }
+
+  /**
+   * Handle matrix multiplication operation
+   */
+  handleMultiply() {
+    if (window.StatusService) {
+      window.StatusService.setLoading();
+    }
+
+    const matrixConfig = this.appConfig.matrixMode || {};
+    const maxMatrices = matrixConfig.maxMatrices || 1;
+
+    if (maxMatrices < 2) {
+      if (this.resultsPanel) {
+        this.displayResult('Matrix B is not available. Enable maxMatrices >= 2 in config.');
+      }
+      if (window.StatusService) {
+        window.StatusService.setReady();
+      }
+      return;
+    }
+
+    const result = this.operations.multiply(this.inputMatrixA, this.inputMatrixB);
+
+    if (result && this.resultsPanel) {
+      this.displayResult(...result.resultLines);
+    }
+
+    if (window.StatusService) {
+      window.StatusService.setReady();
+    }
+  }
+
+  /**
+   * Update button states based on matrix availability
+   */
+  updateButtonStates() {
+    const matrixConfig = this.appConfig.matrixMode || {};
+    const maxMatrices = matrixConfig.maxMatrices || 1;
+    const bothMatricesAvailable = maxMatrices >= 2;
+
+    // Two-matrix operations require both matrices
+    if (this.elements.opMatrixAdd) {
+      this.elements.opMatrixAdd.disabled = !bothMatricesAvailable;
+    }
+    if (this.elements.opMatrixMultiply) {
+      this.elements.opMatrixMultiply.disabled = !bothMatricesAvailable;
+    }
+
+    // Scalar multiplication requires at least one matrix
+    if (this.elements.opMatrixScale) {
+      this.elements.opMatrixScale.disabled = false; // Always enabled if matrices exist
+    }
+
+    // Update scalar select options based on maxMatrices
+    if (this.elements.matrixScalarSelect) {
+      const optionB = this.elements.matrixScalarSelect.querySelector('option[value="B"]');
+      if (optionB) {
+        if (maxMatrices >= 2) {
+          optionB.style.display = '';
+        } else {
+          optionB.style.display = 'none';
+          // If B is selected but not available, switch to A
+          if (this.elements.matrixScalarSelect.value === 'B') {
+            this.elements.matrixScalarSelect.value = 'A';
+          }
+        }
+      }
     }
   }
 

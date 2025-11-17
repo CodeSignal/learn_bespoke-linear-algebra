@@ -1,5 +1,5 @@
 {
-  "mode": "vector",
+  "mode": "matrix",
   "vectorMode": {
     "maxVectors": 2,
     "operationGroups": {
@@ -16,6 +16,9 @@
   "matrixMode": {
     "maxMatrices": 2,
     "operationGroups": {
+      "addition": true,
+      "scalarMultiplication": true,
+      "multiplication": true,
       "determinant": true
     }
   }
