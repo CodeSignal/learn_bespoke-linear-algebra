@@ -13,8 +13,9 @@
 /* Matrix Input Section */
 .matrix-input-section {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: var(--bespoke-space-md);
+  justify-content: center;
 }
 
 .matrix-input-section h3, .matrix-input-section h4 {
@@ -24,25 +25,72 @@
   color: var(--bespoke-fg);
 }
 
+.matrix-display-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.matrix-label {
+  font-family: 'Times New Roman', serif;
+  font-size: var(--bespoke-font-size-lg);
+  font-weight: var(--bespoke-font-weight-semibold);
+  color: var(--bespoke-fg);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25em;
+}
+
+.matrix-label .matrix-name {
+  font-style: italic;
+  font-weight: var(--bespoke-font-weight-bold);
+}
+
+.matrix-label .matrix-equals {
+  margin: 0 0.15em;
+}
+
+.matrix-label .matrix-brackets {
+  font-size: 1.2em;
+  font-weight: var(--bespoke-font-weight-normal);
+  margin: 0 0.1em;
+}
+
+.matrix-label .matrix-basis-vector {
+  font-style: italic;
+  font-weight: var(--bespoke-font-weight-bold);
+  margin: 0 0.15em;
+}
+
+.matrix-label .matrix-basis-vector.matrix-col-i {
+  color: var(--matrix-basis-i-color);
+}
+
+.matrix-label .matrix-basis-vector.matrix-col-j {
+  color: var(--matrix-basis-j-color);
+}
+
 .matrix-grid {
   display: flex;
   flex-direction: column;
-  gap: var(--bespoke-space-sm);
-  margin: var(--bespoke-space-md) 0;
-  padding: var(--bespoke-space-md);
+  gap: var(--bespoke-space-xs);
+  margin: 0;
+  padding: var(--bespoke-space-sm);
   background: var(--bespoke-canvas);
   border-radius: var(--bespoke-radius-sm);
 }
 
 .matrix-row {
   display: flex;
-  gap: var(--bespoke-space-sm);
+  gap: var(--bespoke-space-xs);
   justify-content: center;
 }
 
 .bespoke input[type="number"].matrix-input {
-  width: 70px;
-  height: 40px;
+  width: 55px;
+  height: 32px;
   text-align: center;
   font-family: 'Courier New', monospace;
   font-weight: 600;
@@ -51,7 +99,7 @@
   color: var(--bespoke-input-text);
   border: 2px solid var(--bespoke-stroke);
   border-radius: var(--bespoke-radius-sm);
-  padding: var(--bespoke-space-xs) var(--bespoke-space-sm);
+  padding: var(--bespoke-space-xs);
 }
 
 .bespoke input[type="number"].matrix-input:hover {
@@ -75,13 +123,13 @@
 /* Matrix Column Headers */
 .matrix-column-headers {
   display: flex;
-  gap: var(--bespoke-space-sm);
+  gap: var(--bespoke-space-xs);
   justify-content: center;
-  margin-bottom: var(--bespoke-space-xs);
+  margin-bottom: 0;
 }
 
 .matrix-column-label {
-  width: 70px;
+  width: 55px;
   text-align: center;
   font-family: 'Times New Roman', serif;
   font-style: italic;
@@ -157,8 +205,12 @@
   }
 
   .matrix-input {
-    width: 60px;
-    height: 36px;
+    width: 50px;
+    height: 28px;
+  }
+
+  .matrix-label {
+    font-size: var(--bespoke-font-size-base);
   }
 }
 
