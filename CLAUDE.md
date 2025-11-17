@@ -8,6 +8,11 @@ This is **Interactive Linear Algebra** - an educational web application for teac
 
 This application also serves as a reference implementation of the **Bespoke framework** - a reusable set of generalized CSS and JavaScript components designed for building embedded educational applications.
 
+**Agent protocol:** Before making any change, Claude Code must read the root
+`AGENTS.md` plus every nested `AGENTS.md` that covers the files being edited
+(`client/`, `client/core/`, `client/modes/`, etc.). Treat those documents and
+`BESPOKE.md` as hard requirements, not suggestions.
+
 ## Quick Start
 
 ```bash
