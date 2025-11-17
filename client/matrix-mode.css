@@ -260,6 +260,22 @@
   flex: 1;
 }
 
+/* Determinant Control */
+.determinant-control {
+  display: flex;
+  gap: var(--bespoke-space-sm);
+  align-items: center;
+}
+
+.bespoke .matrix-select {
+  width: 80px;
+}
+
+.btn-determinant {
+  flex-grow: 1;
+  min-width: 90px;
+}
+
 /* Responsive Design - Matrix Mode Specific */
 @media (max-width: 768px) {
   .preset-grid {

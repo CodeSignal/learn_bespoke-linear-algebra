@@ -26,7 +26,9 @@ class MatrixMode {
       matrixBWrapper: this.root.querySelector('#matrix-b-wrapper'),
       // Buttons
       showDeterminant: this.root.querySelector('#show-determinant'),
-      matrixReset: this.root.querySelector('#matrix-reset')
+      matrixReset: this.root.querySelector('#matrix-reset'),
+      // Determinant dropdown
+      determinantMatrixSelect: this.root.querySelector('#determinant-matrix-select')
     };
 
     // Initialize ResultsPanel for result display
@@ -45,6 +47,7 @@ class MatrixMode {
 
     // Visualization state
     this.showDeterminantArea = false;
+    this.selectedDeterminantMatrix = 'A';
 
     // Color cache for theme-responsive rendering
     this.colors = {};
@@ -137,6 +140,26 @@ class MatrixMode {
         this.elements.matrixBWrapper.style.display = 'none';
       }
     }
+
+    // Hide/show matrix B option in determinant dropdown
+    if (this.elements.determinantMatrixSelect) {
+      const optionB = this.elements.determinantMatrixSelect.querySelector('option[value="B"]');
+      if (optionB) {
+        if (maxMatrices >= 2) {
+          optionB.style.display = '';
+        } else {
+          optionB.style.display = 'none';
+          // If B is selected but not available, switch to A
+          if (this.selectedDeterminantMatrix === 'B') {
+            this.selectedDeterminantMatrix = 'A';
+            this.elements.determinantMatrixSelect.value = 'A';
+            if (this.showDeterminantArea) {
+              this.updateDeterminantVisualization();
+            }
+          }
+        }
+      }
+    }
   }
 
   // ============================================================================
@@ -182,6 +205,19 @@ class MatrixMode {
     if (this.elements.m11_b) {
       this.elements.m11_b.addEventListener('input', matrixBInputHandler);
       this.eventListeners.push({ element: this.elements.m11_b, event: 'input', handler: matrixBInputHandler });
+    }
+
+    // Determinant matrix dropdown
+    if (this.elements.determinantMatrixSelect) {
+      const handler = () => {
+        this.selectedDeterminantMatrix = this.elements.determinantMatrixSelect.value;
+        // If visualization is active, update it immediately
+        if (this.showDeterminantArea) {
+          this.updateDeterminantVisualization();
+        }
+      };
+      this.elements.determinantMatrixSelect.addEventListener('change', handler);
+      this.eventListeners.push({ element: this.elements.determinantMatrixSelect, event: 'change', handler });
     }
 
     // Show determinant button
@@ -246,13 +282,36 @@ class MatrixMode {
   updatePreview() {
     // Update determinant display if visualization is active
     if (this.showDeterminantArea && this.resultsPanel) {
-      const det = this.inputMatrixA.determinant();
-      const detText = `det(A) = ${det.toFixed(2)}`;
-      const orientationText = det >= 0 ? 'Orientation: preserved (positive)' : 'Orientation: flipped (negative)';
-      this.displayResult(detText, orientationText);
+      this.updateDeterminantDisplay();
     }
 
     // Render to show current state (matrix column vectors update in real-time)
+    this.render();
+  }
+
+  /**
+   * Update determinant display based on selected matrix
+   * @private
+   */
+  updateDeterminantDisplay() {
+    if (!this.resultsPanel) return;
+
+    const selectedMatrix = this.selectedDeterminantMatrix === 'A' ? this.inputMatrixA : this.inputMatrixB;
+    const det = selectedMatrix.determinant();
+    const matrixLabel = this.selectedDeterminantMatrix;
+    const detText = `det(${matrixLabel}) = ${det.toFixed(2)}`;
+    const orientationText = det >= 0 ? 'Orientation: preserved (positive)' : 'Orientation: flipped (negative)';
+    this.displayResult(detText, orientationText);
+  }
+
+  /**
+   * Update determinant visualization (called when dropdown changes or matrix updates)
+   * @private
+   */
+  updateDeterminantVisualization() {
+    if (!this.showDeterminantArea) return;
+
+    this.updateDeterminantDisplay();
     this.render();
   }
 
@@ -267,10 +326,13 @@ class MatrixMode {
       this.elements.showDeterminant.textContent = this.showDeterminantArea ? 'Hide Area' : 'Show Area';
     }
 
-    // Calculate and display determinant
-    const det = this.inputMatrixA.determinant();
+    // Calculate and display determinant for selected matrix
+    const selectedMatrix = this.selectedDeterminantMatrix === 'A' ? this.inputMatrixA : this.inputMatrixB;
+    const det = selectedMatrix.determinant();
+    const matrixLabel = this.selectedDeterminantMatrix;
+
     if (this.resultsPanel && this.showDeterminantArea) {
-      const detText = `det(A) = ${det.toFixed(2)}`;
+      const detText = `det(${matrixLabel}) = ${det.toFixed(2)}`;
       const orientationText = det >= 0 ? 'Orientation: preserved (positive)' : 'Orientation: flipped (negative)';
       this.displayResult(detText, orientationText);
     } else if (this.resultsPanel && !this.showDeterminantArea) {
@@ -280,7 +342,7 @@ class MatrixMode {
 
     // Log determinant visualization toggle
     const action = this.showDeterminantArea ? 'enabled' : 'disabled';
-    logAction(`Determinant visualization ${action}. det(A) = ${det.toFixed(2)}`);
+    logAction(`Determinant visualization ${action}. det(${matrixLabel}) = ${det.toFixed(2)}`);
 
     this.render();
 
@@ -314,10 +376,16 @@ class MatrixMode {
     if (this.elements.m11_b) this.elements.m11_b.value = '1';
 
     this.showDeterminantArea = false;
+    this.selectedDeterminantMatrix = 'A';
 
     // Reset Show Area button text
     if (this.elements.showDeterminant) {
       this.elements.showDeterminant.textContent = 'Show Area';
+    }
+
+    // Reset dropdown to A
+    if (this.elements.determinantMatrixSelect) {
+      this.elements.determinantMatrixSelect.value = 'A';
     }
 
     this.render();
@@ -553,16 +621,20 @@ class MatrixMode {
     const matrixConfig = this.appConfig.matrixMode || {};
     const maxMatrices = matrixConfig.maxMatrices || 1;
 
+    // Declare matrix B vectors outside the conditional block so they're accessible for determinant visualization
+    let matrixBI = null;
+    let matrixBJ = null;
+
     if (maxMatrices >= 2) {
       // Column 1: [m00_b, m10_b] → î_B vector
       // Column 2: [m01_b, m11_b] → ĵ_B vector
-      const matrixBI = new Vector(
+      matrixBI = new Vector(
         this.inputMatrixB.get(0, 0),
         this.inputMatrixB.get(1, 0),
         this.styleConstants.colors.matrixBasisIB || '#f59e0b',
         'î'
       );
-      const matrixBJ = new Vector(
+      matrixBJ = new Vector(
         this.inputMatrixB.get(0, 1),
         this.inputMatrixB.get(1, 1),
         this.styleConstants.colors.matrixBasisJB || '#a855f7',
@@ -572,9 +644,13 @@ class MatrixMode {
       this.drawVector(matrixBJ, false, 1, false, null, 'B');
     }
 
-    // Draw determinant area visualization (parallelogram formed by matrix A column vectors)
+    // Draw determinant area visualization (parallelogram formed by selected matrix column vectors)
     if (this.showDeterminantArea) {
-      this.drawTransformedSquare(matrixAI, matrixAJ);
+      if (this.selectedDeterminantMatrix === 'A') {
+        this.drawTransformedSquare(matrixAI, matrixAJ, this.inputMatrixA, 'A');
+      } else if (this.selectedDeterminantMatrix === 'B' && maxMatrices >= 2 && matrixBI && matrixBJ) {
+        this.drawTransformedSquare(matrixBI, matrixBJ, this.inputMatrixB, 'B');
+      }
     }
   }
 
@@ -584,7 +660,7 @@ class MatrixMode {
     this.coordSystem.drawVector(vector, this.styleConstants, this.colors, isDashed, opacity, isHovered, lineWidthOverride, subscript);
   }
 
-  drawTransformedSquare(matrixI, matrixJ) {
+  drawTransformedSquare(matrixI, matrixJ, matrix, matrixLabel) {
     const ctx = this.coordSystem.ctx;
     const origin = this.coordSystem.mathToScreen(0, 0);
     const corner1 = this.coordSystem.mathToScreen(matrixI.x, matrixI.y);
@@ -594,7 +670,7 @@ class MatrixMode {
     );
     const corner3 = this.coordSystem.mathToScreen(matrixJ.x, matrixJ.y);
 
-    const det = this.inputMatrixA.determinant();
+    const det = matrix.determinant();
 
     ctx.save();
     ctx.globalAlpha = 0.3;
@@ -629,7 +705,7 @@ class MatrixMode {
     const centerX = (origin.x + corner1.x + corner2.x + corner3.x) / 4;
     const centerY = (origin.y + corner1.y + corner2.y + corner3.y) / 4;
 
-    ctx.fillText(`det(A) = ${Math.abs(det).toFixed(2)}`, centerX, centerY);
+    ctx.fillText(`det(${matrixLabel}) = ${Math.abs(det).toFixed(2)}`, centerX, centerY);
 
     ctx.restore();
   }
