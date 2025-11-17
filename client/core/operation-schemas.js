@@ -18,7 +18,6 @@ const VECTOR_OPERATION_GROUPS = {
 
 // Matrix operation group keys
 const MATRIX_OPERATION_GROUPS = {
-  basicTransformations: 'basicTransformations',
   determinant: 'determinant'
 };
 

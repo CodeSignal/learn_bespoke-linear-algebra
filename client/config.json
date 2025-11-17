@@ -1,5 +1,5 @@
 {
-  "mode": "vector",
+  "mode": "matrix",
   "vectorMode": {
     "maxVectors": 2,
     "operationGroups": {
@@ -15,7 +15,6 @@
   },
   "matrixMode": {
     "operationGroups": {
-      "basicTransformations": true,
       "determinant": true
     }
   }

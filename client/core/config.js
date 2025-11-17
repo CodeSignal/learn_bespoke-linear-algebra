@@ -25,7 +25,6 @@
     },
     matrixMode: {
       operationGroups: {
-        basicTransformations: true,
         determinant: true
       }
     }
