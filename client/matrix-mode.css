@@ -1,0 +1,164 @@
+/* Matrix Mode Specific Styles */
+
+/* Matrix Mode Color Variables */
+.mode-content[data-mode="matrix"] {
+  --matrix-basis-i-color: #ef4444;
+  --matrix-basis-j-color: #3b82f6;
+  --matrix-basis-i-border: rgba(239, 68, 68, 0.3);
+  --matrix-basis-i-border-hover: rgba(239, 68, 68, 0.5);
+  --matrix-basis-j-border: rgba(59, 130, 246, 0.3);
+  --matrix-basis-j-border-hover: rgba(59, 130, 246, 0.5);
+}
+
+/* Matrix Input Section */
+.matrix-input-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bespoke-space-md);
+}
+
+.matrix-input-section h3, .matrix-input-section h4 {
+  font-size: var(--bespoke-font-size-base);
+  font-weight: 600;
+  margin: 0;
+  color: var(--bespoke-fg);
+}
+
+.matrix-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bespoke-space-sm);
+  margin: var(--bespoke-space-md) 0;
+  padding: var(--bespoke-space-md);
+  background: var(--bespoke-canvas);
+  border-radius: var(--bespoke-radius-sm);
+}
+
+.matrix-row {
+  display: flex;
+  gap: var(--bespoke-space-sm);
+  justify-content: center;
+}
+
+.bespoke input[type="number"].matrix-input {
+  width: 70px;
+  height: 40px;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  font-size: var(--bespoke-font-size-base);
+  background: var(--bespoke-input-bg);
+  color: var(--bespoke-input-text);
+  border: 2px solid var(--bespoke-stroke);
+  border-radius: var(--bespoke-radius-sm);
+  padding: var(--bespoke-space-xs) var(--bespoke-space-sm);
+}
+
+.bespoke input[type="number"].matrix-input:hover {
+  border-color: var(--bespoke-muted);
+}
+
+.bespoke input[type="number"].matrix-input:focus {
+  outline: 2px solid var(--bespoke-accent);
+  outline-offset: 1px;
+  border-color: var(--bespoke-accent);
+}
+
+/* WebKit autofill override for matrix inputs */
+.bespoke input[type="number"].matrix-input:-webkit-autofill,
+.bespoke input[type="number"].matrix-input:-webkit-autofill:hover,
+.bespoke input[type="number"].matrix-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--bespoke-input-bg) inset !important;
+  -webkit-text-fill-color: var(--bespoke-input-text) !important;
+}
+
+/* Matrix Column Headers */
+.matrix-column-headers {
+  display: flex;
+  gap: var(--bespoke-space-sm);
+  justify-content: center;
+  margin-bottom: var(--bespoke-space-xs);
+}
+
+.matrix-column-label {
+  width: 70px;
+  text-align: center;
+  font-family: 'Times New Roman', serif;
+  font-style: italic;
+  font-weight: bold;
+  font-size: var(--bespoke-font-size-lg);
+  padding: var(--bespoke-space-xs) 0;
+}
+
+.matrix-column-label.matrix-col-i {
+  color: var(--matrix-basis-i-color);
+}
+
+.matrix-column-label.matrix-col-j {
+  color: var(--matrix-basis-j-color);
+}
+
+/* Matrix Column Color Coding */
+.bespoke input[type="number"].matrix-input.matrix-col-i {
+  border-color: var(--matrix-basis-i-border);
+}
+
+.bespoke input[type="number"].matrix-input.matrix-col-i:hover {
+  border-color: var(--matrix-basis-i-border-hover);
+}
+
+.bespoke input[type="number"].matrix-input.matrix-col-i:focus {
+  border-color: var(--matrix-basis-i-color);
+  outline-color: var(--matrix-basis-i-color);
+}
+
+.bespoke input[type="number"].matrix-input.matrix-col-j {
+  border-color: var(--matrix-basis-j-border);
+}
+
+.bespoke input[type="number"].matrix-input.matrix-col-j:hover {
+  border-color: var(--matrix-basis-j-border-hover);
+}
+
+.bespoke input[type="number"].matrix-input.matrix-col-j:focus {
+  border-color: var(--matrix-basis-j-color);
+  outline-color: var(--matrix-basis-j-color);
+}
+
+.preset-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bespoke-space-sm);
+}
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--bespoke-space-sm);
+}
+
+.preset-grid .btn-small {
+  width: 100%;
+}
+
+.operation-buttons {
+  display: flex;
+  gap: var(--bespoke-space-xs);
+}
+
+.operation-buttons .btn-small {
+  flex: 1;
+}
+
+/* Responsive Design - Matrix Mode Specific */
+@media (max-width: 768px) {
+  .preset-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .matrix-input {
+    width: 60px;
+    height: 36px;
+  }
+}
+

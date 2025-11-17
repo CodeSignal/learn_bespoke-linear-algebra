@@ -1,0 +1,207 @@
+/* Vector Mode Specific Styles */
+
+/* Vector Mode Color Variables */
+.mode-content[data-mode="vector"] {
+  --vector-1-color: #ef4444;
+  --vector-2-color: #3b82f6;
+}
+
+/* Vector Controls */
+.vector-control {
+  /* Extend shared control-card styles */
+  background: var(--bespoke-secondary-bg);
+  border-radius: var(--bespoke-radius-md);
+  padding: var(--bespoke-space-md);
+  border: 1px solid var(--bespoke-stroke);
+}
+
+.vector-control h3 {
+  font-size: var(--bespoke-font-size-base);
+  font-weight: 600;
+  margin: 0 0 var(--bespoke-space-md) 0;
+  color: var(--bespoke-fg);
+  display: flex;
+  align-items: center;
+  gap: var(--bespoke-space-sm);
+}
+
+.vector-label {
+  font-family: 'Times New Roman', serif;
+  font-style: italic;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.v1-color {
+  color: var(--vector-1-color);
+}
+
+.v2-color {
+  color: var(--vector-2-color);
+}
+
+.vector-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bespoke-space-sm);
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--bespoke-font-size-sm);
+}
+
+.info-row .label {
+  color: var(--bespoke-muted);
+  font-weight: 500;
+}
+
+.info-row .value {
+  color: var(--bespoke-fg);
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+/* Vector-specific Selects - Override specific properties */
+.bespoke .scale-select {
+  flex: 1;
+  min-width: 0;
+}
+
+.bespoke .reflect-select {
+  flex: 1;
+  min-width: 0;
+}
+
+.bespoke .vector-select {
+  width: 60px;
+}
+
+/* Scalar Control */
+.scalar-control {
+  display: flex;
+  gap: var(--bespoke-space-sm);
+  align-items: center;
+}
+
+.bespoke .scalar-control input {
+  width: 70px;
+  /* Extend shared input-number styles */
+  min-height: 32px;
+  padding: var(--bespoke-space-sm);
+  background: var(--bespoke-input-bg);
+  color: var(--bespoke-input-text);
+  border: 1px solid var(--bespoke-stroke);
+  border-radius: var(--bespoke-radius-sm);
+  font-size: var(--bespoke-font-size-base);
+  font-weight: 500;
+  text-align: center;
+}
+
+.bespoke .scalar-control input:hover {
+  border-color: var(--bespoke-muted);
+}
+
+.bespoke .scalar-control input:focus {
+  outline: 2px solid var(--bespoke-accent);
+  outline-offset: 1px;
+  border-color: var(--bespoke-accent);
+}
+
+.times-symbol {
+  font-size: var(--bespoke-font-size-lg);
+  font-weight: 600;
+  color: var(--bespoke-fg);
+  padding: 0 var(--bespoke-space-xs);
+  flex-shrink: 0;
+}
+
+.btn-scale {
+  flex-shrink: 0;
+  min-width: 90px;
+  padding: var(--bespoke-space-sm) var(--bespoke-space-md);
+  font-size: var(--bespoke-font-size-sm);
+}
+
+/* Reflection Control */
+.reflection-control {
+  display: flex;
+  gap: var(--bespoke-space-sm);
+  align-items: center;
+  margin-top: var(--bespoke-space-md);
+  padding-top: var(--bespoke-space-md);
+  border-top: 1px solid var(--bespoke-stroke);
+}
+
+.btn-reflect {
+  flex-shrink: 0;
+  min-width: 80px;
+  padding: var(--bespoke-space-sm) var(--bespoke-space-md);
+  font-size: var(--bespoke-font-size-sm);
+}
+
+/* Normalize Control */
+.normalize-control {
+  display: flex;
+  gap: var(--bespoke-space-sm);
+  align-items: center;
+}
+
+.btn-normalize {
+  flex-grow: 1;
+  min-width: 90px;
+  padding: var(--bespoke-space-sm) var(--bespoke-space-md);
+  font-size: var(--bespoke-font-size-sm);
+}
+
+/* Perpendicular Control */
+.perpendicular-control {
+  display: flex;
+  gap: var(--bespoke-space-sm);
+  align-items: center;
+}
+
+.btn-perpendicular {
+  flex-grow: 1;
+  min-width: 90px;
+  padding: var(--bespoke-space-sm) var(--bespoke-space-md);
+  font-size: var(--bespoke-font-size-sm);
+}
+
+/* Linear Combination Controls */
+.linear-combo-control {
+  display: flex;
+  gap: var(--bespoke-space-sm);
+  align-items: center;
+}
+
+.bespoke .linear-combo-control input[type="number"] {
+  width: 60px;
+  min-height: 32px;
+  padding: var(--bespoke-space-sm);
+  background: var(--bespoke-input-bg);
+  color: var(--bespoke-input-text);
+  border: 1px solid var(--bespoke-stroke);
+  border-radius: var(--bespoke-radius-sm);
+  font-size: var(--bespoke-font-size-sm);
+  font-weight: 600;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.bespoke .linear-combo-control input[type="number"]:hover {
+  border-color: var(--bespoke-muted);
+}
+
+.bespoke .linear-combo-control input[type="number"]:focus {
+  outline: 2px solid var(--bespoke-accent);
+  outline-offset: 1px;
+  border-color: var(--bespoke-accent);
+}
+
+.linear-combo-control .btn-primary {
+  flex: 1;
+  min-width: 0;
+}
+
