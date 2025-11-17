@@ -12,11 +12,18 @@ class MatrixMode {
 
     // Cache frequently used DOM elements
     this.elements = {
-      // Matrix inputs
+      // Matrix A inputs
       m00: this.root.querySelector('#m00'),
       m01: this.root.querySelector('#m01'),
       m10: this.root.querySelector('#m10'),
       m11: this.root.querySelector('#m11'),
+      // Matrix B inputs
+      m00_b: this.root.querySelector('#m00_b'),
+      m01_b: this.root.querySelector('#m01_b'),
+      m10_b: this.root.querySelector('#m10_b'),
+      m11_b: this.root.querySelector('#m11_b'),
+      // Matrix B wrapper (for visibility control)
+      matrixBWrapper: this.root.querySelector('#matrix-b-wrapper'),
       // Buttons
       showDeterminant: this.root.querySelector('#show-determinant'),
       matrixReset: this.root.querySelector('#matrix-reset')
@@ -27,9 +34,10 @@ class MatrixMode {
     this.resultsPanel = resultsElement ? new ResultsPanel(resultsElement, 'Operations results will be displayed here') : null;
 
     // Matrix state
-    this.inputMatrix = Matrix.identity(2); // Current transformation matrix
+    this.inputMatrixA = Matrix.identity(2); // Matrix A
+    this.inputMatrixB = Matrix.identity(2); // Matrix B
 
-    // Basis vectors (î and ĵ)
+    // Basis vectors (î and ĵ) for matrix A
     this.basisVectors = {
       i: new Vector(1, 0, this.styleConstants.colors.matrixBasisI || '#ef4444', 'î'),
       j: new Vector(0, 1, this.styleConstants.colors.matrixBasisJ || '#3b82f6', 'ĵ')
@@ -60,6 +68,7 @@ class MatrixMode {
 
     this.setupEventListeners();
     this.applyOperationGroupVisibility();
+    this.applyMatrixVisibility();
   }
 
   // ============================================================================
@@ -114,29 +123,65 @@ class MatrixMode {
     }
   }
 
+  /**
+   * Show/hide matrix B panel based on maxMatrices configuration
+   */
+  applyMatrixVisibility() {
+    const matrixConfig = this.appConfig.matrixMode || {};
+    const maxMatrices = matrixConfig.maxMatrices || 1;
+
+    if (this.elements.matrixBWrapper) {
+      if (maxMatrices >= 2) {
+        this.elements.matrixBWrapper.style.display = '';
+      } else {
+        this.elements.matrixBWrapper.style.display = 'none';
+      }
+    }
+  }
+
   // ============================================================================
   // EVENT LISTENERS
   // ============================================================================
 
   setupEventListeners() {
-    // Matrix input handlers
-    const matrixInputHandler = () => this.handleMatrixInput();
+    // Matrix A input handlers
+    const matrixAInputHandler = () => this.handleMatrixAInput();
 
     if (this.elements.m00) {
-      this.elements.m00.addEventListener('input', matrixInputHandler);
-      this.eventListeners.push({ element: this.elements.m00, event: 'input', handler: matrixInputHandler });
+      this.elements.m00.addEventListener('input', matrixAInputHandler);
+      this.eventListeners.push({ element: this.elements.m00, event: 'input', handler: matrixAInputHandler });
     }
     if (this.elements.m01) {
-      this.elements.m01.addEventListener('input', matrixInputHandler);
-      this.eventListeners.push({ element: this.elements.m01, event: 'input', handler: matrixInputHandler });
+      this.elements.m01.addEventListener('input', matrixAInputHandler);
+      this.eventListeners.push({ element: this.elements.m01, event: 'input', handler: matrixAInputHandler });
     }
     if (this.elements.m10) {
-      this.elements.m10.addEventListener('input', matrixInputHandler);
-      this.eventListeners.push({ element: this.elements.m10, event: 'input', handler: matrixInputHandler });
+      this.elements.m10.addEventListener('input', matrixAInputHandler);
+      this.eventListeners.push({ element: this.elements.m10, event: 'input', handler: matrixAInputHandler });
     }
     if (this.elements.m11) {
-      this.elements.m11.addEventListener('input', matrixInputHandler);
-      this.eventListeners.push({ element: this.elements.m11, event: 'input', handler: matrixInputHandler });
+      this.elements.m11.addEventListener('input', matrixAInputHandler);
+      this.eventListeners.push({ element: this.elements.m11, event: 'input', handler: matrixAInputHandler });
+    }
+
+    // Matrix B input handlers
+    const matrixBInputHandler = () => this.handleMatrixBInput();
+
+    if (this.elements.m00_b) {
+      this.elements.m00_b.addEventListener('input', matrixBInputHandler);
+      this.eventListeners.push({ element: this.elements.m00_b, event: 'input', handler: matrixBInputHandler });
+    }
+    if (this.elements.m01_b) {
+      this.elements.m01_b.addEventListener('input', matrixBInputHandler);
+      this.eventListeners.push({ element: this.elements.m01_b, event: 'input', handler: matrixBInputHandler });
+    }
+    if (this.elements.m10_b) {
+      this.elements.m10_b.addEventListener('input', matrixBInputHandler);
+      this.eventListeners.push({ element: this.elements.m10_b, event: 'input', handler: matrixBInputHandler });
+    }
+    if (this.elements.m11_b) {
+      this.elements.m11_b.addEventListener('input', matrixBInputHandler);
+      this.eventListeners.push({ element: this.elements.m11_b, event: 'input', handler: matrixBInputHandler });
     }
 
     // Show determinant button
@@ -158,21 +203,41 @@ class MatrixMode {
   // MATRIX INPUT HANDLING
   // ============================================================================
 
-  handleMatrixInput() {
-    // Read matrix values from DOM inputs
+  handleMatrixAInput() {
+    // Read matrix A values from DOM inputs
     const m00 = parseFloat(this.elements.m00?.value) || 0;
     const m01 = parseFloat(this.elements.m01?.value) || 0;
     const m10 = parseFloat(this.elements.m10?.value) || 0;
     const m11 = parseFloat(this.elements.m11?.value) || 0;
 
-    // Update input matrix
-    this.inputMatrix = new Matrix(2, 2, [
+    // Update input matrix A
+    this.inputMatrixA = new Matrix(2, 2, [
       [m00, m01],
       [m10, m11]
     ]);
 
     // Log matrix input change
-    logAction(`Matrix input changed: [${m00.toFixed(1)}, ${m01.toFixed(1)}; ${m10.toFixed(1)}, ${m11.toFixed(1)}]`);
+    logAction(`Matrix A input changed: [${m00.toFixed(1)}, ${m01.toFixed(1)}; ${m10.toFixed(1)}, ${m11.toFixed(1)}]`);
+
+    // Update preview in real-time
+    this.updatePreview();
+  }
+
+  handleMatrixBInput() {
+    // Read matrix B values from DOM inputs
+    const m00_b = parseFloat(this.elements.m00_b?.value) || 0;
+    const m01_b = parseFloat(this.elements.m01_b?.value) || 0;
+    const m10_b = parseFloat(this.elements.m10_b?.value) || 0;
+    const m11_b = parseFloat(this.elements.m11_b?.value) || 0;
+
+    // Update input matrix B
+    this.inputMatrixB = new Matrix(2, 2, [
+      [m00_b, m01_b],
+      [m10_b, m11_b]
+    ]);
+
+    // Log matrix input change
+    logAction(`Matrix B input changed: [${m00_b.toFixed(1)}, ${m01_b.toFixed(1)}; ${m10_b.toFixed(1)}, ${m11_b.toFixed(1)}]`);
 
     // Update preview in real-time
     this.updatePreview();
@@ -181,7 +246,7 @@ class MatrixMode {
   updatePreview() {
     // Update determinant display if visualization is active
     if (this.showDeterminantArea && this.resultsPanel) {
-      const det = this.inputMatrix.determinant();
+      const det = this.inputMatrixA.determinant();
       const detText = `det(A) = ${det.toFixed(2)}`;
       const orientationText = det >= 0 ? 'Orientation: preserved (positive)' : 'Orientation: flipped (negative)';
       this.displayResult(detText, orientationText);
@@ -203,7 +268,7 @@ class MatrixMode {
     }
 
     // Calculate and display determinant
-    const det = this.inputMatrix.determinant();
+    const det = this.inputMatrixA.determinant();
     if (this.resultsPanel && this.showDeterminantArea) {
       const detText = `det(A) = ${det.toFixed(2)}`;
       const orientationText = det >= 0 ? 'Orientation: preserved (positive)' : 'Orientation: flipped (negative)';
@@ -226,20 +291,27 @@ class MatrixMode {
 
   /**
    * Handle matrix reset button click
-   * Resets matrix to identity and clears determinant visualization
+   * Resets both matrices to identity and clears determinant visualization
    */
   handleReset() {
     if (window.StatusService) {
       window.StatusService.setLoading();
     }
 
-    this.inputMatrix = Matrix.identity(2);
+    this.inputMatrixA = Matrix.identity(2);
+    this.inputMatrixB = Matrix.identity(2);
 
-    // Update input fields
+    // Update matrix A input fields
     if (this.elements.m00) this.elements.m00.value = '1';
     if (this.elements.m01) this.elements.m01.value = '0';
     if (this.elements.m10) this.elements.m10.value = '0';
     if (this.elements.m11) this.elements.m11.value = '1';
+
+    // Update matrix B input fields
+    if (this.elements.m00_b) this.elements.m00_b.value = '1';
+    if (this.elements.m01_b) this.elements.m01_b.value = '0';
+    if (this.elements.m10_b) this.elements.m10_b.value = '0';
+    if (this.elements.m11_b) this.elements.m11_b.value = '1';
 
     this.showDeterminantArea = false;
 
@@ -256,7 +328,7 @@ class MatrixMode {
     }
 
     // Log action
-    logAction('Matrix reset to identity');
+    logAction('Matrices reset to identity');
 
     if (window.StatusService) {
       window.StatusService.setReady();
@@ -279,14 +351,25 @@ class MatrixMode {
   }
 
   /**
-   * Update matrix input fields from current inputMatrix state
+   * Update matrix A input fields from current inputMatrixA state
    * @private
    */
-  updateInputFields() {
-    if (this.elements.m00) this.elements.m00.value = this.inputMatrix.get(0, 0).toFixed(1);
-    if (this.elements.m01) this.elements.m01.value = this.inputMatrix.get(0, 1).toFixed(1);
-    if (this.elements.m10) this.elements.m10.value = this.inputMatrix.get(1, 0).toFixed(1);
-    if (this.elements.m11) this.elements.m11.value = this.inputMatrix.get(1, 1).toFixed(1);
+  updateInputFieldsA() {
+    if (this.elements.m00) this.elements.m00.value = this.inputMatrixA.get(0, 0).toFixed(1);
+    if (this.elements.m01) this.elements.m01.value = this.inputMatrixA.get(0, 1).toFixed(1);
+    if (this.elements.m10) this.elements.m10.value = this.inputMatrixA.get(1, 0).toFixed(1);
+    if (this.elements.m11) this.elements.m11.value = this.inputMatrixA.get(1, 1).toFixed(1);
+  }
+
+  /**
+   * Update matrix B input fields from current inputMatrixB state
+   * @private
+   */
+  updateInputFieldsB() {
+    if (this.elements.m00_b) this.elements.m00_b.value = this.inputMatrixB.get(0, 0).toFixed(1);
+    if (this.elements.m01_b) this.elements.m01_b.value = this.inputMatrixB.get(0, 1).toFixed(1);
+    if (this.elements.m10_b) this.elements.m10_b.value = this.inputMatrixB.get(1, 0).toFixed(1);
+    if (this.elements.m11_b) this.elements.m11_b.value = this.inputMatrixB.get(1, 1).toFixed(1);
   }
 
   // ============================================================================
@@ -308,22 +391,22 @@ class MatrixMode {
       window.StatusService.setLoading();
     }
 
-    // Update input matrix
-    this.inputMatrix = presetMatrix.clone();
+    // Update input matrix A
+    this.inputMatrixA = presetMatrix.clone();
 
     // Update DOM input fields
-    this.updateInputFields();
+    this.updateInputFieldsA();
 
     // Display result with formatted matrix
     if (this.resultsPanel && window.FormatUtils) {
-      const matrixHtml = window.FormatUtils.formatMatrixAsGrid(this.inputMatrix, 1);
+      const matrixHtml = window.FormatUtils.formatMatrixAsGrid(this.inputMatrixA, 1);
       this.displayResult(`Applied preset matrix: ${matrixHtml}`);
     } else if (this.resultsPanel) {
-      this.displayResult(`Applied preset matrix: ${this.inputMatrix.toCompactString()}`);
+      this.displayResult(`Applied preset matrix: ${this.inputMatrixA.toCompactString()}`);
     }
 
     // Log operation
-    logAction(`Applied preset matrix: ${this.inputMatrix.toCompactString()}`);
+    logAction(`Applied preset matrix: ${this.inputMatrixA.toCompactString()}`);
 
     // Update visualization
     this.updatePreview();
@@ -342,22 +425,22 @@ class MatrixMode {
       window.StatusService.setLoading();
     }
 
-    // Transpose the matrix
-    this.inputMatrix = this.inputMatrix.transpose();
+    // Transpose the matrix A
+    this.inputMatrixA = this.inputMatrixA.transpose();
 
     // Update DOM input fields
-    this.updateInputFields();
+    this.updateInputFieldsA();
 
     // Display result with formatted matrix
     if (this.resultsPanel && window.FormatUtils) {
-      const matrixHtml = window.FormatUtils.formatMatrixAsGrid(this.inputMatrix, 1);
+      const matrixHtml = window.FormatUtils.formatMatrixAsGrid(this.inputMatrixA, 1);
       this.displayResult(`Transposed matrix: ${matrixHtml}`);
     } else if (this.resultsPanel) {
-      this.displayResult(`Transposed matrix: ${this.inputMatrix.toCompactString()}`);
+      this.displayResult(`Transposed matrix: ${this.inputMatrixA.toCompactString()}`);
     }
 
     // Log operation
-    logAction(`Matrix transposed: ${this.inputMatrix.toCompactString()}`);
+    logAction(`Matrix transposed: ${this.inputMatrixA.toCompactString()}`);
 
     // Update visualization
     this.updatePreview();
@@ -382,22 +465,22 @@ class MatrixMode {
       window.StatusService.setLoading();
     }
 
-    // Scale the matrix
-    this.inputMatrix = this.inputMatrix.scale(scalar);
+    // Scale the matrix A
+    this.inputMatrixA = this.inputMatrixA.scale(scalar);
 
     // Update DOM input fields
-    this.updateInputFields();
+    this.updateInputFieldsA();
 
     // Display result with formatted matrix
     if (this.resultsPanel && window.FormatUtils) {
-      const matrixHtml = window.FormatUtils.formatMatrixAsGrid(this.inputMatrix, 1);
+      const matrixHtml = window.FormatUtils.formatMatrixAsGrid(this.inputMatrixA, 1);
       this.displayResult(`Scalar multiplication (×${scalar.toFixed(1)}): ${matrixHtml}`);
     } else if (this.resultsPanel) {
-      this.displayResult(`Scalar multiplication (×${scalar.toFixed(1)}): ${this.inputMatrix.toCompactString()}`);
+      this.displayResult(`Scalar multiplication (×${scalar.toFixed(1)}): ${this.inputMatrixA.toCompactString()}`);
     }
 
     // Log operation
-    logAction(`Matrix scaled by ${scalar.toFixed(1)}: ${this.inputMatrix.toCompactString()}`);
+    logAction(`Matrix scaled by ${scalar.toFixed(1)}: ${this.inputMatrixA.toCompactString()}`);
 
     // Update visualization
     this.updatePreview();
@@ -448,34 +531,57 @@ class MatrixMode {
     this.coordSystem.drawGrid();
     this.coordSystem.drawAxes();
 
-    // Always draw matrix column vectors (i_hat and j_hat) from inputMatrix
-    // Column 1: [m00, m10] → i_hat vector
-    // Column 2: [m01, m11] → j_hat vector
-    const matrixI = new Vector(
-      this.inputMatrix.get(0, 0),
-      this.inputMatrix.get(1, 0),
+    // Draw matrix A column vectors (î_A and ĵ_A)
+    // Column 1: [m00, m10] → î_A vector
+    // Column 2: [m01, m11] → ĵ_A vector
+    const matrixAI = new Vector(
+      this.inputMatrixA.get(0, 0),
+      this.inputMatrixA.get(1, 0),
       this.styleConstants.colors.matrixBasisI || '#ef4444',
       'î'
     );
-    const matrixJ = new Vector(
-      this.inputMatrix.get(0, 1),
-      this.inputMatrix.get(1, 1),
+    const matrixAJ = new Vector(
+      this.inputMatrixA.get(0, 1),
+      this.inputMatrixA.get(1, 1),
       this.styleConstants.colors.matrixBasisJ || '#3b82f6',
       'ĵ'
     );
-    this.drawVector(matrixI, false, 1);
-    this.drawVector(matrixJ, false, 1);
+    this.drawVector(matrixAI, false, 1, false, null, 'A');
+    this.drawVector(matrixAJ, false, 1, false, null, 'A');
 
-    // Draw determinant area visualization (parallelogram formed by matrix column vectors)
+    // Draw matrix B column vectors (î_B and ĵ_B) if maxMatrices >= 2
+    const matrixConfig = this.appConfig.matrixMode || {};
+    const maxMatrices = matrixConfig.maxMatrices || 1;
+
+    if (maxMatrices >= 2) {
+      // Column 1: [m00_b, m10_b] → î_B vector
+      // Column 2: [m01_b, m11_b] → ĵ_B vector
+      const matrixBI = new Vector(
+        this.inputMatrixB.get(0, 0),
+        this.inputMatrixB.get(1, 0),
+        this.styleConstants.colors.matrixBasisIB || '#f59e0b',
+        'î'
+      );
+      const matrixBJ = new Vector(
+        this.inputMatrixB.get(0, 1),
+        this.inputMatrixB.get(1, 1),
+        this.styleConstants.colors.matrixBasisJB || '#a855f7',
+        'ĵ'
+      );
+      this.drawVector(matrixBI, false, 1, false, null, 'B');
+      this.drawVector(matrixBJ, false, 1, false, null, 'B');
+    }
+
+    // Draw determinant area visualization (parallelogram formed by matrix A column vectors)
     if (this.showDeterminantArea) {
-      this.drawTransformedSquare(matrixI, matrixJ);
+      this.drawTransformedSquare(matrixAI, matrixAJ);
     }
   }
 
-  drawVector(vector, isDashed = false, opacity = 1) {
+  drawVector(vector, isDashed = false, opacity = 1, isHovered = false, lineWidthOverride = null, subscript = null) {
     // Use cached colors (loaded in constructor and updated on theme change)
     // MatrixMode doesn't use hover state, so pass false
-    this.coordSystem.drawVector(vector, this.styleConstants, this.colors, isDashed, opacity, false);
+    this.coordSystem.drawVector(vector, this.styleConstants, this.colors, isDashed, opacity, isHovered, lineWidthOverride, subscript);
   }
 
   drawTransformedSquare(matrixI, matrixJ) {
@@ -488,7 +594,7 @@ class MatrixMode {
     );
     const corner3 = this.coordSystem.mathToScreen(matrixJ.x, matrixJ.y);
 
-    const det = this.inputMatrix.determinant();
+    const det = this.inputMatrixA.determinant();
 
     ctx.save();
     ctx.globalAlpha = 0.3;
@@ -553,7 +659,8 @@ class MatrixMode {
     }
 
     // Clear state
-    this.inputMatrix = null;
+    this.inputMatrixA = null;
+    this.inputMatrixB = null;
     this.basisVectors = null;
     this.showDeterminantArea = false;
   }

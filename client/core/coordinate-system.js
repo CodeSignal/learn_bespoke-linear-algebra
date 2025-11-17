@@ -247,7 +247,7 @@ class CoordinateSystem {
    * @param {boolean} isHovered - Whether the vector is hovered
    * @param {number} lineWidthOverride - Override line width
    */
-  drawVector(vector, styleConstants, colors, isDashed = false, opacity = 1, isHovered = false, lineWidthOverride = null) {
+  drawVector(vector, styleConstants, colors, isDashed = false, opacity = 1, isHovered = false, lineWidthOverride = null, subscript = null) {
     const start = this.mathToScreen(0, 0);
     const end = this.mathToScreen(vector.x, vector.y);
 
@@ -312,7 +312,18 @@ class CoordinateSystem {
       this.ctx.font = 'bold 16px serif';
       this.ctx.fillStyle = drawColor;
       const labelPos = this.calculateSmartLabelPosition(vector);
+
+      // Draw base label
       this.ctx.fillText(vector.label, labelPos.x, labelPos.y);
+
+      // Draw subscript if provided
+      if (subscript) {
+        // Measure base label width to position subscript
+        const baseTextMetrics = this.ctx.measureText(vector.label);
+        const subscriptFontSize = 11; // ~70% of base 16px font
+        this.ctx.font = `bold ${subscriptFontSize}px serif`;
+        this.ctx.fillText(subscript, labelPos.x + baseTextMetrics.width + 1, labelPos.y + 5);
+      }
     }
 
     this.ctx.restore();

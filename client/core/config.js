@@ -24,6 +24,7 @@
       }
     },
     matrixMode: {
+      maxMatrices: 2,
       operationGroups: {
         determinant: true
       }

@@ -8,6 +8,13 @@
   --matrix-basis-i-border-hover: rgba(239, 68, 68, 0.5);
   --matrix-basis-j-border: rgba(59, 130, 246, 0.3);
   --matrix-basis-j-border-hover: rgba(59, 130, 246, 0.5);
+  /* Matrix B colors */
+  --matrix-b-basis-i-color: #f59e0b;
+  --matrix-b-basis-j-color: #a855f7;
+  --matrix-b-basis-i-border: rgba(245, 158, 11, 0.3);
+  --matrix-b-basis-i-border-hover: rgba(245, 158, 11, 0.5);
+  --matrix-b-basis-j-border: rgba(168, 85, 247, 0.3);
+  --matrix-b-basis-j-border-hover: rgba(168, 85, 247, 0.5);
 }
 
 /* Matrix Input Section */
@@ -70,6 +77,20 @@
 
 .matrix-label .matrix-basis-vector.matrix-col-j {
   color: var(--matrix-basis-j-color);
+}
+
+.matrix-label .matrix-basis-vector.matrix-col-b.matrix-col-i {
+  color: var(--matrix-b-basis-i-color);
+}
+
+.matrix-label .matrix-basis-vector.matrix-col-b.matrix-col-j {
+  color: var(--matrix-b-basis-j-color);
+}
+
+.matrix-label sub {
+  font-size: 0.7em;
+  vertical-align: sub;
+  font-weight: var(--bespoke-font-weight-normal);
 }
 
 .matrix-grid {
@@ -146,6 +167,20 @@
   color: var(--matrix-basis-j-color);
 }
 
+.matrix-column-label.matrix-col-b.matrix-col-i {
+  color: var(--matrix-b-basis-i-color);
+}
+
+.matrix-column-label.matrix-col-b.matrix-col-j {
+  color: var(--matrix-b-basis-j-color);
+}
+
+.matrix-column-label sub {
+  font-size: 0.7em;
+  vertical-align: sub;
+  font-weight: var(--bespoke-font-weight-normal);
+}
+
 /* Matrix Column Color Coding */
 .bespoke input[type="number"].matrix-input.matrix-col-i {
   border-color: var(--matrix-basis-i-border);
@@ -171,6 +206,33 @@
 .bespoke input[type="number"].matrix-input.matrix-col-j:focus {
   border-color: var(--matrix-basis-j-color);
   outline-color: var(--matrix-basis-j-color);
+}
+
+/* Matrix B Column Color Coding */
+.bespoke input[type="number"].matrix-input.matrix-col-b.matrix-col-i {
+  border-color: var(--matrix-b-basis-i-border);
+}
+
+.bespoke input[type="number"].matrix-input.matrix-col-b.matrix-col-i:hover {
+  border-color: var(--matrix-b-basis-i-border-hover);
+}
+
+.bespoke input[type="number"].matrix-input.matrix-col-b.matrix-col-i:focus {
+  border-color: var(--matrix-b-basis-i-color);
+  outline-color: var(--matrix-b-basis-i-color);
+}
+
+.bespoke input[type="number"].matrix-input.matrix-col-b.matrix-col-j {
+  border-color: var(--matrix-b-basis-j-border);
+}
+
+.bespoke input[type="number"].matrix-input.matrix-col-b.matrix-col-j:hover {
+  border-color: var(--matrix-b-basis-j-border-hover);
+}
+
+.bespoke input[type="number"].matrix-input.matrix-col-b.matrix-col-j:focus {
+  border-color: var(--matrix-b-basis-j-color);
+  outline-color: var(--matrix-b-basis-j-color);
 }
 
 .preset-buttons {

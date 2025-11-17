@@ -191,14 +191,14 @@
                 <span class="matrix-name">A</span>
                 <span class="matrix-equals">=</span>
                 <span class="matrix-brackets">[</span>
-                <span class="matrix-basis-vector matrix-col-i">î</span>
-                <span class="matrix-basis-vector matrix-col-j">ĵ</span>
+                <span class="matrix-basis-vector matrix-col-i">î<sub>A</sub></span>
+                <span class="matrix-basis-vector matrix-col-j">ĵ<sub>A</sub></span>
                 <span class="matrix-brackets">]</span>
               </div>
               <div class="matrix-grid">
                 <div class="matrix-column-headers">
-                  <span class="matrix-column-label matrix-col-i">î</span>
-                  <span class="matrix-column-label matrix-col-j">ĵ</span>
+                  <span class="matrix-column-label matrix-col-i">î<sub>A</sub></span>
+                  <span class="matrix-column-label matrix-col-j">ĵ<sub>A</sub></span>
                 </div>
                 <div class="matrix-row">
                   <input type="number" id="m00" class="matrix-input matrix-col-i" value="1" step="0.1">
@@ -207,6 +207,30 @@
                 <div class="matrix-row">
                   <input type="number" id="m10" class="matrix-input matrix-col-i" value="0" step="0.1">
                   <input type="number" id="m11" class="matrix-input matrix-col-j" value="1" step="0.1">
+                </div>
+              </div>
+            </div>
+            <div class="matrix-display-wrapper" id="matrix-b-wrapper">
+              <div class="matrix-label">
+                <span class="matrix-name">B</span>
+                <span class="matrix-equals">=</span>
+                <span class="matrix-brackets">[</span>
+                <span class="matrix-basis-vector matrix-col-i matrix-col-b">î<sub>B</sub></span>
+                <span class="matrix-basis-vector matrix-col-j matrix-col-b">ĵ<sub>B</sub></span>
+                <span class="matrix-brackets">]</span>
+              </div>
+              <div class="matrix-grid">
+                <div class="matrix-column-headers">
+                  <span class="matrix-column-label matrix-col-i matrix-col-b">î<sub>B</sub></span>
+                  <span class="matrix-column-label matrix-col-j matrix-col-b">ĵ<sub>B</sub></span>
+                </div>
+                <div class="matrix-row">
+                  <input type="number" id="m00_b" class="matrix-input matrix-col-i matrix-col-b" value="1" step="0.1">
+                  <input type="number" id="m01_b" class="matrix-input matrix-col-j matrix-col-b" value="0" step="0.1">
+                </div>
+                <div class="matrix-row">
+                  <input type="number" id="m10_b" class="matrix-input matrix-col-i matrix-col-b" value="0" step="0.1">
+                  <input type="number" id="m11_b" class="matrix-input matrix-col-j matrix-col-b" value="1" step="0.1">
                 </div>
               </div>
             </div>
