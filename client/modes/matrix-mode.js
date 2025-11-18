@@ -24,6 +24,11 @@ class MatrixMode {
       m11_b: this.root.querySelector('#m11_b'),
       // Matrix B wrapper (for visibility control)
       matrixBWrapper: this.root.querySelector('#matrix-b-wrapper'),
+      // Vector inputs
+      vectorVx: this.root.querySelector('#vector-vx'),
+      vectorVy: this.root.querySelector('#vector-vy'),
+      // Vector wrapper (for visibility control)
+      vectorVWrapper: this.root.querySelector('#vector-v-wrapper'),
       // Buttons
       showDeterminant: this.root.querySelector('#show-determinant'),
       matrixReset: this.root.querySelector('#matrix-reset'),
@@ -48,6 +53,11 @@ class MatrixMode {
     // Matrix state
     this.inputMatrixA = Matrix.identity(2); // Matrix A
     this.inputMatrixB = Matrix.identity(2); // Matrix B
+
+    // Vector state (for includeVector mode)
+    const matrixConfig = this.appConfig.matrixMode || {};
+    const includeVector = matrixConfig.includeVector || false;
+    this.inputVector = new Vector(1, 1, '#10b981', 'v'); // Default green color for vector
 
     // Basis vectors (î and ĵ) for matrix A
     this.basisVectors = {
@@ -148,26 +158,27 @@ class MatrixMode {
 
   /**
    * Show/hide matrix B panel based on maxMatrices configuration
+   * If includeVector is true, it takes precedence over maxMatrices
    */
   applyMatrixVisibility() {
     const matrixConfig = this.appConfig.matrixMode || {};
     const maxMatrices = matrixConfig.maxMatrices || 1;
+    const includeVector = matrixConfig.includeVector || false;
 
-    if (this.elements.matrixBWrapper) {
-      if (maxMatrices >= 2) {
-        this.elements.matrixBWrapper.style.display = '';
-      } else {
+    // If includeVector is true, it takes precedence - hide matrix B and show vector
+    if (includeVector) {
+      // Hide matrix B wrapper
+      if (this.elements.matrixBWrapper) {
         this.elements.matrixBWrapper.style.display = 'none';
       }
-    }
-
-    // Hide/show matrix B option in determinant dropdown
-    if (this.elements.determinantMatrixSelect) {
-      const optionB = this.elements.determinantMatrixSelect.querySelector('option[value="B"]');
-      if (optionB) {
-        if (maxMatrices >= 2) {
-          optionB.style.display = '';
-        } else {
+      // Show vector wrapper
+      if (this.elements.vectorVWrapper) {
+        this.elements.vectorVWrapper.style.display = '';
+      }
+      // Hide matrix B option in determinant dropdown (only A available)
+      if (this.elements.determinantMatrixSelect) {
+        const optionB = this.elements.determinantMatrixSelect.querySelector('option[value="B"]');
+        if (optionB) {
           optionB.style.display = 'none';
           // If B is selected but not available, switch to A
           if (this.selectedDeterminantMatrix === 'B') {
@@ -175,6 +186,38 @@ class MatrixMode {
             this.elements.determinantMatrixSelect.value = 'A';
             if (this.showDeterminantArea) {
               this.updateDeterminantVisualization();
+            }
+          }
+        }
+      }
+    } else {
+      // Normal behavior: use maxMatrices to determine visibility
+      if (this.elements.matrixBWrapper) {
+        if (maxMatrices >= 2) {
+          this.elements.matrixBWrapper.style.display = '';
+        } else {
+          this.elements.matrixBWrapper.style.display = 'none';
+        }
+      }
+      // Hide vector wrapper
+      if (this.elements.vectorVWrapper) {
+        this.elements.vectorVWrapper.style.display = 'none';
+      }
+      // Hide/show matrix B option in determinant dropdown
+      if (this.elements.determinantMatrixSelect) {
+        const optionB = this.elements.determinantMatrixSelect.querySelector('option[value="B"]');
+        if (optionB) {
+          if (maxMatrices >= 2) {
+            optionB.style.display = '';
+          } else {
+            optionB.style.display = 'none';
+            // If B is selected but not available, switch to A
+            if (this.selectedDeterminantMatrix === 'B') {
+              this.selectedDeterminantMatrix = 'A';
+              this.elements.determinantMatrixSelect.value = 'A';
+              if (this.showDeterminantArea) {
+                this.updateDeterminantVisualization();
+              }
             }
           }
         }
@@ -274,6 +317,18 @@ class MatrixMode {
       this.elements.opMatrixMultiply.addEventListener('click', handler);
       this.eventListeners.push({ element: this.elements.opMatrixMultiply, event: 'click', handler });
     }
+
+    // Vector input handlers
+    const vectorInputHandler = () => this.handleVectorInput();
+
+    if (this.elements.vectorVx) {
+      this.elements.vectorVx.addEventListener('input', vectorInputHandler);
+      this.eventListeners.push({ element: this.elements.vectorVx, event: 'input', handler: vectorInputHandler });
+    }
+    if (this.elements.vectorVy) {
+      this.elements.vectorVy.addEventListener('input', vectorInputHandler);
+      this.eventListeners.push({ element: this.elements.vectorVy, event: 'input', handler: vectorInputHandler });
+    }
   }
 
   // ============================================================================
@@ -317,6 +372,23 @@ class MatrixMode {
 
     // Log matrix input change
     logAction(`Matrix B input changed: [${m00_b.toFixed(1)}, ${m01_b.toFixed(1)}; ${m10_b.toFixed(1)}, ${m11_b.toFixed(1)}]`);
+
+    // Update preview in real-time
+    this.updatePreview();
+    // Update button states
+    this.updateButtonStates();
+  }
+
+  handleVectorInput() {
+    // Read vector v values from DOM inputs
+    const vx = parseFloat(this.elements.vectorVx?.value) || 0;
+    const vy = parseFloat(this.elements.vectorVy?.value) || 0;
+
+    // Update input vector
+    this.inputVector = new Vector(vx, vy, '#10b981', 'v');
+
+    // Log vector input change
+    logAction(`Vector v input changed: [${vx.toFixed(1)}, ${vy.toFixed(1)}]`);
 
     // Update preview in real-time
     this.updatePreview();
@@ -399,11 +471,15 @@ class MatrixMode {
   /**
    * Handle matrix reset button click
    * Resets both matrices to identity and clears determinant visualization
+   * Also resets vector to (0, 0) if includeVector is true
    */
   handleReset() {
     if (window.StatusService) {
       window.StatusService.setLoading();
     }
+
+    const matrixConfig = this.appConfig.matrixMode || {};
+    const includeVector = matrixConfig.includeVector || false;
 
     this.inputMatrixA = Matrix.identity(2);
     this.inputMatrixB = Matrix.identity(2);
@@ -419,6 +495,13 @@ class MatrixMode {
     if (this.elements.m01_b) this.elements.m01_b.value = '0';
     if (this.elements.m10_b) this.elements.m10_b.value = '0';
     if (this.elements.m11_b) this.elements.m11_b.value = '1';
+
+    // Reset vector if includeVector is true
+    if (includeVector) {
+      this.inputVector = new Vector(1, 1, '#10b981', 'v');
+      if (this.elements.vectorVx) this.elements.vectorVx.value = '1';
+      if (this.elements.vectorVy) this.elements.vectorVy.value = '1';
+    }
 
     this.showDeterminantArea = false;
     this.selectedDeterminantMatrix = 'A';
@@ -563,9 +646,12 @@ class MatrixMode {
   updateButtonStates() {
     const matrixConfig = this.appConfig.matrixMode || {};
     const maxMatrices = matrixConfig.maxMatrices || 1;
-    const bothMatricesAvailable = maxMatrices >= 2;
+    const includeVector = matrixConfig.includeVector || false;
 
-    // Two-matrix operations require both matrices
+    // If includeVector is true, treat as if maxMatrices == 1 (only matrix A available)
+    const bothMatricesAvailable = includeVector ? false : (maxMatrices >= 2);
+
+    // Two-matrix operations require both matrices (disabled when includeVector is true)
     if (this.elements.opMatrixAdd) {
       this.elements.opMatrixAdd.disabled = !bothMatricesAvailable;
     }
@@ -573,16 +659,16 @@ class MatrixMode {
       this.elements.opMatrixMultiply.disabled = !bothMatricesAvailable;
     }
 
-    // Scalar multiplication requires at least one matrix
+    // Scalar multiplication requires at least one matrix (always enabled)
     if (this.elements.opMatrixScale) {
       this.elements.opMatrixScale.disabled = false; // Always enabled if matrices exist
     }
 
-    // Update scalar select options based on maxMatrices
+    // Update scalar select options based on effective matrix availability
     if (this.elements.matrixScalarSelect) {
       const optionB = this.elements.matrixScalarSelect.querySelector('option[value="B"]');
       if (optionB) {
-        if (maxMatrices >= 2) {
+        if (bothMatricesAvailable) {
           optionB.style.display = '';
         } else {
           optionB.style.display = 'none';
@@ -809,15 +895,19 @@ class MatrixMode {
     this.drawVector(matrixAI, false, 1, false, null, 'A');
     this.drawVector(matrixAJ, false, 1, false, null, 'A');
 
-    // Draw matrix B column vectors (î_B and ĵ_B) if maxMatrices >= 2
+    // Draw matrix B column vectors (î_B and ĵ_B) or vector v based on configuration
     const matrixConfig = this.appConfig.matrixMode || {};
     const maxMatrices = matrixConfig.maxMatrices || 1;
+    const includeVector = matrixConfig.includeVector || false;
 
     // Declare matrix B vectors outside the conditional block so they're accessible for determinant visualization
     let matrixBI = null;
     let matrixBJ = null;
 
-    if (maxMatrices >= 2) {
+    if (includeVector) {
+      // Draw input vector v when includeVector is true
+      this.drawVector(this.inputVector, false, 1, false, null, null);
+    } else if (maxMatrices >= 2) {
       // Column 1: [m00_b, m10_b] → î_B vector
       // Column 2: [m01_b, m11_b] → ĵ_B vector
       matrixBI = new Vector(
@@ -840,7 +930,7 @@ class MatrixMode {
     if (this.showDeterminantArea) {
       if (this.selectedDeterminantMatrix === 'A') {
         this.drawTransformedSquare(matrixAI, matrixAJ, this.inputMatrixA, 'A');
-      } else if (this.selectedDeterminantMatrix === 'B' && maxMatrices >= 2 && matrixBI && matrixBJ) {
+      } else if (this.selectedDeterminantMatrix === 'B' && !includeVector && maxMatrices >= 2 && matrixBI && matrixBJ) {
         this.drawTransformedSquare(matrixBI, matrixBJ, this.inputMatrixB, 'B');
       }
     }

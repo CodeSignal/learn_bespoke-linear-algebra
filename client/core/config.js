@@ -25,6 +25,7 @@
     },
     matrixMode: {
       maxMatrices: 2,
+      includeVector: false,
       operationGroups: {
         determinant: true
       }

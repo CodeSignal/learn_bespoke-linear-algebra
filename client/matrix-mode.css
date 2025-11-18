@@ -15,6 +15,13 @@
   --matrix-b-basis-i-border-hover: rgba(245, 158, 11, 0.5);
   --matrix-b-basis-j-border: rgba(168, 85, 247, 0.3);
   --matrix-b-basis-j-border-hover: rgba(168, 85, 247, 0.5);
+  /* Vector input colors */
+  --vector-x-color: #10b981;
+  --vector-y-color: #10b981;
+  --vector-x-border: rgba(16, 185, 129, 0.3);
+  --vector-x-border-hover: rgba(16, 185, 129, 0.5);
+  --vector-y-border: rgba(16, 185, 129, 0.3);
+  --vector-y-border-hover: rgba(16, 185, 129, 0.5);
 }
 
 /* Matrix Input Section */
@@ -33,6 +40,12 @@
 }
 
 .matrix-display-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.vector-input-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -233,6 +246,55 @@
 .bespoke input[type="number"].matrix-input.matrix-col-b.matrix-col-j:focus {
   border-color: var(--matrix-b-basis-j-color);
   outline-color: var(--matrix-b-basis-j-color);
+}
+
+/* Vector Input Styles */
+/* Vector inputs now use matrix-grid and matrix-row classes for alignment */
+/* Column header styling for vector - inherits base matrix-column-label styling */
+.matrix-column-label.vector-col-x {
+  color: var(--vector-x-color);
+}
+
+/* Vector input styling - extends matrix-input with vector-specific colors */
+.bespoke input[type="number"].vector-input.vector-col-x {
+  border-color: var(--vector-x-border);
+}
+
+.bespoke input[type="number"].vector-input.vector-col-x:hover {
+  border-color: var(--vector-x-border-hover);
+}
+
+.bespoke input[type="number"].vector-input.vector-col-x:focus {
+  border-color: var(--vector-x-color);
+  outline-color: var(--vector-x-color);
+}
+
+.bespoke input[type="number"].vector-input.vector-col-y {
+  border-color: var(--vector-y-border);
+}
+
+.bespoke input[type="number"].vector-input.vector-col-y:hover {
+  border-color: var(--vector-y-border-hover);
+}
+
+.bespoke input[type="number"].vector-input.vector-col-y:focus {
+  border-color: var(--vector-y-color);
+  outline-color: var(--vector-y-color);
+}
+
+/* Vector component labels in matrix-label */
+.vector-component-label {
+  font-style: italic;
+  font-weight: var(--bespoke-font-weight-bold);
+  margin: 0 0.15em;
+}
+
+.vector-component-label.vector-col-x {
+  color: var(--vector-x-color);
+}
+
+.vector-component-label.vector-col-y {
+  color: var(--vector-y-color);
 }
 
 .preset-buttons {

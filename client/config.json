@@ -15,6 +15,7 @@
   },
   "matrixMode": {
     "maxMatrices": 2,
+    "includeVector": true,
     "operationGroups": {
       "addition": true,
       "scalarMultiplication": true,

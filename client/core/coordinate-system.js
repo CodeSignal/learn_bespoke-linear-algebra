@@ -203,7 +203,7 @@ class CoordinateSystem {
    * @param {number} baseOffset - Base offset distance in pixels (default: 20)
    * @returns {{x: number, y: number}} - Screen coordinates for label position
    */
-  calculateSmartLabelPosition(vector, baseOffset = 20) {
+  computeLabelPosition(vector, baseOffset = 20) {
     const end = this.mathToScreen(vector.x, vector.y);
     const magnitude = vector.magnitude();
 
@@ -311,7 +311,7 @@ class CoordinateSystem {
     if (vector.label) {
       this.ctx.font = 'bold 16px serif';
       this.ctx.fillStyle = drawColor;
-      const labelPos = this.calculateSmartLabelPosition(vector);
+      const labelPos = this.computeLabelPosition(vector);
 
       // Draw base label
       this.ctx.fillText(vector.label, labelPos.x, labelPos.y);
