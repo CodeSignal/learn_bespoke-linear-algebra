@@ -16,6 +16,7 @@ try {
 }
 
 const PORT = process.env.PORT || 3000;
+const LOG_DIR = path.join(__dirname, 'logs');
 
 // Track connected WebSocket clients
 const wsClients = new Set();
@@ -120,7 +121,7 @@ function handlePostRequest(req, res) {
         }
 
         // Append message to log file
-        const logPath = path.join(__dirname, 'logs', 'user_actions.log');
+        const logPath = path.join(LOG_DIR, 'user_actions.log');
         const logEntry = message + '\n';
 
         fs.appendFile(logPath, logEntry, (err) => {
@@ -206,7 +207,19 @@ if (isWebSocketAvailable) {
   });
 }
 
+// Initialize logs directory at startup
+function initializeLogsDirectory() {
+  try {
+    if (!fs.existsSync(LOG_DIR)) {
+      fs.mkdirSync(LOG_DIR, { recursive: true });
+    }
+  } catch (error) {
+    console.error('Error creating logs directory:', error);
+  }
+}
+
 // Start server
+initializeLogsDirectory();
 server.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
   if (isWebSocketAvailable) {
