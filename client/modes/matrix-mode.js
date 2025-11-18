@@ -143,9 +143,23 @@ class MatrixMode {
     // Get config from appConfig
     const matrixConfig = this.appConfig.matrixMode || {};
     const operationGroups = matrixConfig.operationGroups || {};
+    const includeVector = matrixConfig.includeVector || false;
 
     const shouldShowGroup = (groupName) => {
-      // First check if the operation group is enabled in configuration
+      // First check includeVector override rules
+      if (includeVector) {
+        // Hide two-matrix operations when vector mode is active
+        if (groupName === 'addition' || groupName === 'scalarMultiplication' || groupName === 'multiplication') {
+          return false;
+        }
+      } else {
+        // Hide linear transformation when vector is not included
+        if (groupName === 'linearTransformation') {
+          return false;
+        }
+      }
+
+      // Then check if the operation group is enabled in configuration
       if (operationGroups[groupName] === false) {
         return false;
       }
