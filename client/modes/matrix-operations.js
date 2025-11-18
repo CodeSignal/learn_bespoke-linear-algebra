@@ -124,19 +124,51 @@ class MatrixOperations {
     logAction(`Linear transformation Ax: A ${matrix.toCompactString()} × v [${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}]. Result: [${resultVector.x.toFixed(2)}, ${resultVector.y.toFixed(2)}]`);
 
     // Format using FormatUtils if available
-    let formula, resultText;
+    let formula, intermediate, resultText;
     if (window.FormatUtils) {
-      const matrixHtml = window.FormatUtils.formatMatrixAsGrid(matrix, 1);
-      formula = `Ax = ${matrixHtml} × [${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}]`;
-      resultText = `= [${resultVector.x.toFixed(2)}, ${resultVector.y.toFixed(2)}]`;
+      const matrixHtml = window.FormatUtils.formatMatrixAsGrid(matrix, 0);
+      const vectorColumnHtml = window.FormatUtils.formatVectorAsColumn(vector, 0);
+
+      // Get matrix elements for formula display
+      const a = matrix.get(0, 0);
+      const b = matrix.get(0, 1);
+      const c = matrix.get(1, 0);
+      const d = matrix.get(1, 1);
+
+      // Format intermediate step as calculation formula (a·x + b·y format)
+      const intermediateHtml = window.FormatUtils.formatIntermediateFormulaAsColumn(a, b, c, d, vector.x, vector.y, 0);
+      const resultColumnHtml = window.FormatUtils.formatVectorAsColumn(resultVector, 0);
+
+      formula = `Ax = ${matrixHtml} × ${vectorColumnHtml}`;
+      intermediate = `= ${intermediateHtml}`;
+      resultText = `= ${resultColumnHtml}`;
     } else {
-      formula = `Ax = ${matrix.toCompactString()} × [${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}]`;
-      resultText = `= [${resultVector.x.toFixed(2)}, ${resultVector.y.toFixed(2)}]`;
+      // Fallback to compact string format
+      const a = matrix.get(0, 0);
+      const b = matrix.get(0, 1);
+      const c = matrix.get(1, 0);
+      const d = matrix.get(1, 1);
+      const topIntermediate = a * vector.x + b * vector.y;
+      const bottomIntermediate = c * vector.x + d * vector.y;
+
+      // Format intermediate as formula: a·x + b·y
+      const aInt = Math.round(a);
+      const bInt = Math.round(b);
+      const cInt = Math.round(c);
+      const dInt = Math.round(d);
+      const xInt = Math.round(vector.x);
+      const yInt = Math.round(vector.y);
+      const topFormula = `${aInt}·${xInt} + ${bInt}·${yInt}`;
+      const bottomFormula = `${cInt}·${xInt} + ${dInt}·${yInt}`;
+
+      formula = `Ax = ${matrix.toCompactString()} × [${xInt}, ${yInt}]`;
+      intermediate = `= [${topFormula}, ${bottomFormula}]`;
+      resultText = `= [${Math.round(resultVector.x)}, ${Math.round(resultVector.y)}]`;
     }
 
     return {
       resultVector: resultVector,
-      resultLines: [formula, resultText]
+      resultLines: [formula, intermediate, resultText]
     };
   }
 }
