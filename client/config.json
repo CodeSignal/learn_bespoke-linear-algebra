@@ -20,7 +20,8 @@
       "addition": true,
       "scalarMultiplication": true,
       "multiplication": true,
-      "determinant": true
+      "determinant": true,
+      "linearTransformation": true
     }
   }
 }

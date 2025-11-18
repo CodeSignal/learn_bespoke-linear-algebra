@@ -21,7 +21,8 @@ const MATRIX_OPERATION_GROUPS = {
   addition: 'addition',
   scalarMultiplication: 'scalarMultiplication',
   multiplication: 'multiplication',
-  determinant: 'determinant'
+  determinant: 'determinant',
+  linearTransformation: 'linearTransformation'
 };
 
 /**
