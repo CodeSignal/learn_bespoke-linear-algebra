@@ -38,6 +38,7 @@ class MatrixMode {
       opMatrixAdd: this.root.querySelector('#op-matrix-add'),
       opMatrixScale: this.root.querySelector('#op-matrix-scale'),
       opMatrixMultiply: this.root.querySelector('#op-matrix-multiply'),
+      opComputeAx: this.root.querySelector('#op-compute-ax'),
       // Scalar multiplication controls
       matrixScalarInput: this.root.querySelector('#matrix-scalar-input'),
       matrixScalarSelect: this.root.querySelector('#matrix-scalar-select')
@@ -68,6 +69,13 @@ class MatrixMode {
     // Visualization state
     this.showDeterminantArea = false;
     this.selectedDeterminantMatrix = 'A';
+
+    // Animation state
+    this.isAnimating = false;
+    this.animationFrom = null;
+    this.animationTo = null;
+    this.animationControl = null;
+    this.resultVector = null; // For transformed vector
 
     // Color cache for theme-responsive rendering
     this.colors = {};
@@ -318,6 +326,13 @@ class MatrixMode {
       this.eventListeners.push({ element: this.elements.opMatrixMultiply, event: 'click', handler });
     }
 
+    // Compute Ax button
+    if (this.elements.opComputeAx) {
+      const handler = () => this.handleComputeAx();
+      this.elements.opComputeAx.addEventListener('click', handler);
+      this.eventListeners.push({ element: this.elements.opComputeAx, event: 'click', handler });
+    }
+
     // Vector input handlers
     const vectorInputHandler = () => this.handleVectorInput();
 
@@ -350,6 +365,16 @@ class MatrixMode {
 
     // Log matrix input change
     logAction(`Matrix A input changed: [${m00.toFixed(1)}, ${m01.toFixed(1)}; ${m10.toFixed(1)}, ${m11.toFixed(1)}]`);
+
+    // Cancel any running animation
+    if (this.animationControl) {
+      this.animationControl.cancel();
+      this.animationControl = null;
+      this.isAnimating = false;
+    }
+
+    // Clear result vector when matrix A changes (since Ax will be different)
+    this.resultVector = null;
 
     // Update preview in real-time
     this.updatePreview();
@@ -389,6 +414,16 @@ class MatrixMode {
 
     // Log vector input change
     logAction(`Vector v input changed: [${vx.toFixed(1)}, ${vy.toFixed(1)}]`);
+
+    // Cancel any running animation
+    if (this.animationControl) {
+      this.animationControl.cancel();
+      this.animationControl = null;
+      this.isAnimating = false;
+    }
+
+    // Clear result vector when input vector changes (since Ax will be different)
+    this.resultVector = null;
 
     // Update preview in real-time
     this.updatePreview();
@@ -523,6 +558,9 @@ class MatrixMode {
       this.resultsPanel.clear();
     }
 
+    // Clear result vector
+    this.resultVector = null;
+
     // Log action
     logAction('Matrices reset to identity');
 
@@ -641,6 +679,83 @@ class MatrixMode {
   }
 
   /**
+   * Handle linear transformation Ax operation
+   */
+  handleComputeAx() {
+    if (window.StatusService) {
+      window.StatusService.setLoading();
+    }
+
+    const matrixConfig = this.appConfig.matrixMode || {};
+    const includeVector = matrixConfig.includeVector || false;
+
+    if (!includeVector) {
+      if (this.resultsPanel) {
+        this.displayResult('Vector v is not available. Enable includeVector in config.');
+      }
+      if (window.StatusService) {
+        window.StatusService.setReady();
+      }
+      return;
+    }
+
+    const result = this.operations.transform(this.inputMatrixA, this.inputVector);
+
+    if (result && result.resultVector) {
+      // Set label and color for result vector
+      result.resultVector.label = 'Ax';
+      result.resultVector.color = this.styleConstants.colors.result;
+
+      // Animate from input vector to transformed vector
+      this.animateToResult(result.resultVector, () => {
+        if (this.resultsPanel) {
+          this.displayResult(...result.resultLines);
+        }
+        if (window.StatusService) {
+          window.StatusService.setReady();
+        }
+      });
+    } else {
+      if (window.StatusService) {
+        window.StatusService.setReady();
+      }
+    }
+  }
+
+  // ============================================================================
+  // ANIMATION
+  // ============================================================================
+
+  /**
+   * Animate result vector from input vector to target vector
+   * @param {Vector} targetVector - Target vector to animate to
+   * @param {Function} onComplete - Callback when animation completes
+   */
+  animateToResult(targetVector, onComplete) {
+    this.isAnimating = true;
+    // Always animate from input vector to transformed vector
+    this.animationFrom = this.inputVector.clone();
+    this.animationTo = targetVector;
+
+    // Use Animator for animation loop
+    this.animationControl = Animator.animate({
+      duration: this.styleConstants.animationDuration,
+      easingFunction: Animator.easeOutCubic,
+      onFrame: (eased) => {
+        // Use Animator.lerpVector for interpolation
+        this.resultVector = Animator.lerpVector(this.animationFrom, this.animationTo, eased);
+        this.render(); // Render canvas
+      },
+      onComplete: () => {
+        this.isAnimating = false;
+        this.resultVector = this.animationTo;
+        this.render();
+        if (onComplete) onComplete();
+      }
+    });
+  }
+
+  /**
    * Update button states based on matrix availability
    */
   updateButtonStates() {
@@ -662,6 +777,11 @@ class MatrixMode {
     // Scalar multiplication requires at least one matrix (always enabled)
     if (this.elements.opMatrixScale) {
       this.elements.opMatrixScale.disabled = false; // Always enabled if matrices exist
+    }
+
+    // Compute Ax requires includeVector to be true
+    if (this.elements.opComputeAx) {
+      this.elements.opComputeAx.disabled = !includeVector;
     }
 
     // Update scalar select options based on effective matrix availability
@@ -907,6 +1027,12 @@ class MatrixMode {
     if (includeVector) {
       // Draw input vector v when includeVector is true
       this.drawVector(this.inputVector, false, 1, false, null, null);
+
+      // Draw result vector if it exists (from Ax transformation)
+      // Use dashed line to distinguish from input vector
+      if (this.resultVector) {
+        this.drawVector(this.resultVector, true, 1, false, null, null);
+      }
     } else if (maxMatrices >= 2) {
       // Column 1: [m00_b, m10_b] → î_B vector
       // Column 2: [m01_b, m11_b] → ĵ_B vector
@@ -1000,6 +1126,12 @@ class MatrixMode {
    * Clean up resources when mode is destroyed
    */
   destroy() {
+    // Cancel any running animations
+    if (this.animationControl) {
+      this.animationControl.cancel();
+      this.animationControl = null;
+    }
+
     // Remove all event listeners
     if (this.eventListeners) {
       this.eventListeners.forEach(({ element, event, handler }) => {
@@ -1021,5 +1153,6 @@ class MatrixMode {
     this.inputMatrixB = null;
     this.basisVectors = null;
     this.showDeterminantArea = false;
+    this.resultVector = null;
   }
 }

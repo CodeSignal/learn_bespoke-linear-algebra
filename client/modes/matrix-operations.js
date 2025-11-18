@@ -108,5 +108,36 @@ class MatrixOperations {
       resultLines: [formula, resultText]
     };
   }
+
+  /**
+   * Perform linear transformation Ax (matrix times vector)
+   * @param {Matrix} matrix - Transformation matrix
+   * @param {Vector} vector - Input vector
+   * @returns {Object} Operation result with result vector and formatted strings
+   */
+  transform(matrix, vector) {
+    if (!matrix || !vector) return null;
+
+    const resultVector = matrix.transform(vector);
+
+    // Log operation
+    logAction(`Linear transformation Ax: A ${matrix.toCompactString()} × v [${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}]. Result: [${resultVector.x.toFixed(2)}, ${resultVector.y.toFixed(2)}]`);
+
+    // Format using FormatUtils if available
+    let formula, resultText;
+    if (window.FormatUtils) {
+      const matrixHtml = window.FormatUtils.formatMatrixAsGrid(matrix, 1);
+      formula = `Ax = ${matrixHtml} × [${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}]`;
+      resultText = `= [${resultVector.x.toFixed(2)}, ${resultVector.y.toFixed(2)}]`;
+    } else {
+      formula = `Ax = ${matrix.toCompactString()} × [${vector.x.toFixed(1)}, ${vector.y.toFixed(1)}]`;
+      resultText = `= [${resultVector.x.toFixed(2)}, ${resultVector.y.toFixed(2)}]`;
+    }
+
+    return {
+      resultVector: resultVector,
+      resultLines: [formula, resultText]
+    };
+  }
 }
 
