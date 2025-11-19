@@ -1,0 +1,111 @@
+<!-- Help Content Template for Bespoke Applications -->
+<!--
+  This template provides a consistent structure for help content across all
+  embedded applications. Customize the content while maintaining the structure.
+-->
+
+<!-- Table of Contents Navigation -->
+<nav class="toc">
+  <strong>Contents</strong>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#controls">Controls</a></li>
+    <li><a href="#features">Key Features</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+</nav>
+
+<!-- Overview Section -->
+<section id="overview">
+  <h2>Overview</h2>
+  <p>CodeSignal Linear Algebra Playground is a visual learning tool that helps you understand matrix operations and linear transformations through hands-on experimentation. Enter 2×2 matrices and see how they transform the coordinate system, perform matrix operations like addition and multiplication, and visualize linear transformations with animated results.</p>
+</section>
+
+<!-- Controls Section -->
+<section id="controls">
+  <h2>Controls</h2>
+  <ul>
+    <li>Enter values in the matrix input fields to define your 2×2 matrices.</li>
+    <li>Use the buttons in the left sidebar to perform mathematical operations on your matrices.</li>
+    <li>Watch the animated result appear on the grid and see the mathematical formulas in the Results section.</li>
+    <li>Toggle the "Show Area" button to visualize the determinant as a parallelogram area.</li>
+  </ul>
+</section>
+
+<!-- Key Features Section -->
+<section id="features">
+  <h2>Key Features</h2>
+
+  <h3>Matrix Visualization</h3>
+  <p>Matrices are visualized as pairs of column vectors on the coordinate plane. The first column vector (î) is shown in red, and the second column vector (ĵ) is shown in blue. These vectors represent how the matrix transforms the standard basis vectors, providing an intuitive geometric understanding of linear transformations.</p>
+
+  <h3>Matrix Addition</h3>
+  <p>Add two matrices together (A + B) by adding corresponding elements. This operation combines the transformations represented by each matrix. The result shows how the combined transformation affects the coordinate system.</p>
+
+  <h3>Scalar Multiplication</h3>
+  <p>Multiply a matrix by a scalar (number) to scale all elements uniformly. This operation scales the transformation represented by the matrix. Enter any decimal value and see how it affects the matrix's column vectors and the resulting transformation.</p>
+
+  <h3>Matrix Multiplication</h3>
+  <p>Multiply two matrices together (A @ B) to compose their transformations. Matrix multiplication represents the sequential application of transformations. The result shows how applying transformation B followed by transformation A affects the coordinate system.</p>
+
+  <h3>Linear Transformation (Ax)</h3>
+  <p>Apply a matrix transformation to a vector (Ax) to see how the matrix transforms that specific vector. This operation demonstrates how matrices act as linear transformations, mapping input vectors to output vectors. The result is animated, showing the transformation from the input vector to the transformed result.</p>
+
+  <h3>Determinant Visualization</h3>
+  <p>Visualize the determinant of a matrix as the area of the parallelogram formed by its column vectors. The determinant represents how much the matrix scales area: positive values preserve orientation, negative values flip it. The visualization shows the parallelogram in color, with green indicating positive determinant and red indicating negative determinant.</p>
+
+  <h3>Column Vector Representation</h3>
+  <p>Each 2×2 matrix is represented by two column vectors on the coordinate plane. The first column [a, c] becomes vector î (red), and the second column [b, d] becomes vector ĵ (blue). This geometric representation helps you understand how matrices transform space.</p>
+
+  <h3>Real-time Calculations</h3>
+  <p>As you modify matrix values, the visualization updates in real-time, showing how the column vectors change. All operations display both the mathematical formula and the numerical result in the Results section.</p>
+
+  <h3>Animated Operations</h3>
+  <p>Linear transformations (Ax) are animated smoothly, helping you visualize how the matrix transforms vectors and understand the geometric interpretation of matrix-vector multiplication.</p>
+</section>
+
+<!-- FAQ Section -->
+<section id="faq">
+  <h2>FAQ</h2>
+
+  <details>
+    <summary>Why are matrices shown as two vectors?</summary>
+    <p>Matrices are visualized as column vectors because each column represents how the matrix transforms one of the standard basis vectors. The first column shows where î (the unit vector [1, 0]) goes, and the second column shows where ĵ (the unit vector [0, 1]) goes. This geometric representation makes it easier to understand how matrices transform the entire coordinate system.</p>
+  </details>
+
+  <details>
+    <summary>What does the determinant represent?</summary>
+    <p>The determinant of a 2×2 matrix represents the signed area of the parallelogram formed by its column vectors. A positive determinant means the transformation preserves orientation (no reflection), while a negative determinant means it flips orientation (includes a reflection). The magnitude tells you how much the transformation scales area.</p>
+  </details>
+
+  <details>
+    <summary>What is the difference between matrix addition and multiplication?</summary>
+    <p>Matrix addition (A + B) adds corresponding elements and represents combining two transformations additively. Matrix multiplication (A @ B) composes transformations, meaning you first apply B, then apply A to the result. Multiplication is not commutative: A @ B is generally different from B @ A.</p>
+  </details>
+
+  <details>
+    <summary>How does scalar multiplication affect a matrix?</summary>
+    <p>Multiplying a matrix by a scalar scales all elements by that value. Geometrically, this scales the transformation uniformly. If you multiply by 2, both column vectors double in length. If you multiply by -1, the matrix is reflected (determinant changes sign).</p>
+  </details>
+
+  <details>
+    <summary>What does it mean when the determinant is zero?</summary>
+    <p>A determinant of zero means the matrix collapses space into a lower dimension (a line or point). The column vectors are linearly dependent (one is a multiple of the other), so the transformation loses information and cannot be reversed. Such matrices are called "singular" or "non-invertible".</p>
+  </details>
+
+  <details>
+    <summary>What is a linear transformation?</summary>
+    <p>A linear transformation is a function that maps vectors to vectors while preserving vector addition and scalar multiplication. Matrices represent linear transformations: when you compute Ax, you're applying the transformation represented by matrix A to vector x. The result shows where x ends up after the transformation.</p>
+  </details>
+
+  <details>
+    <summary>What does the identity matrix do?</summary>
+    <p>The identity matrix [1, 0; 0, 1] represents the "do nothing" transformation. Its column vectors are î = [1, 0] and ĵ = [0, 1], which are the standard basis vectors. Multiplying any vector by the identity matrix leaves it unchanged, and multiplying any matrix by the identity matrix leaves it unchanged.</p>
+  </details>
+
+  <details>
+    <summary>How do I reset the matrices?</summary>
+    <p>Click the "Reset" button to reset both matrices to the identity matrix. This clears any transformations and returns you to the standard coordinate system. If a vector is enabled, it will also be reset to its default value.</p>
+  </details>
+</section>
+

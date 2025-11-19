@@ -143,6 +143,14 @@ async function build() {
       path.join(DIST_CLIENT_DIR, 'config.json'),
       fs.readFileSync(path.join(__dirname, 'client', 'config.json'), 'utf8')
     );
+    fs.writeFileSync(
+      path.join(DIST_CLIENT_DIR, 'help-content-vector.html'),
+      fs.readFileSync(path.join(__dirname, 'client', 'help-content-vector.html'), 'utf8')
+    );
+    fs.writeFileSync(
+      path.join(DIST_CLIENT_DIR, 'help-content-matrix.html'),
+      fs.readFileSync(path.join(__dirname, 'client', 'help-content-matrix.html'), 'utf8')
+    );
     console.log('✓ Static files copied');
 
     // Copy ws dependency

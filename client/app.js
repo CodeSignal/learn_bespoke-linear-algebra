@@ -59,10 +59,22 @@
 
   // Initialize both help modal and WebSocket when DOM is ready
   async function initialize() {
+    // Determine the current mode from config
+    let mode = 'vector'; // Default to vector mode
+    if (window.ConfigService) {
+      try {
+        const config = await window.ConfigService.loadConfig();
+        mode = config.mode || 'vector';
+      } catch (error) {
+        console.warn('Failed to load config for help modal, using default mode:', error);
+      }
+    }
+
     // Initialize help modal using shared service
     if (window.HelpService) {
       await window.HelpService.initializeHelpModal({
         triggerSelector: '#btn-help',
+        mode: mode,
         theme: 'auto'
       });
     }

@@ -196,4 +196,4 @@ if (document.readyState === 'loading') {
 }
 
 // Help modal is now initialized by app.js via HelpService
-// The help content comes from help-content-template.html
+// The help content comes from help-content-vector.html or help-content-matrix.html based on mode
