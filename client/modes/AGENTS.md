@@ -87,6 +87,47 @@ File: `matrix-mode.js` (uses `client/entities/matrix.js` and `client/core/vector
 - Destroy path must remove event listeners from all inputs/buttons and
   unsubscribe from `CanvasThemeService`.
 
+## Tensor Mode
+File: `tensor-mode.js` (uses `tensor-canvas-3d.js`).
+
+- Visualizes tensors of different ranks (0-3) in an interactive 3D space. The
+  constructor receives `canvas`, `appConfig`, `styleConstants`, `coordSystem`,
+  and `rootElement`.
+- State management: maintains `rank` (0-3) and `tensorData` object containing
+  `scalar`, `vector`, `matrix`, and `tensor3d` properties. Default rank is 0
+  (scalar).
+- Theme subscription: subscribes to `CanvasThemeService` via
+  `CanvasThemeService.subscribe()`, stores unsubscribe callback in
+  `this.themeUnsubscribe`. On theme change, calls `loadColors()` which propagates
+  colors to `TensorCanvas3D.setColors()` and `CoordinateSystem.updateColors()`.
+- UI bindings:
+  - Rank selector buttons (`.rank-btn[data-rank="0-3"]`) switch between tensor
+    ranks and update the input UI dynamically.
+  - Input fields are generated per rank: scalar input (rank 0), vector x/y
+    inputs (rank 1), matrix grid inputs (rank 2), tensor3d slice inputs (rank 3).
+  - `#tensor-reset` button restores default tensor values.
+  - All input changes and rank switches log via `logAction()` with descriptive
+    messages; never block UI if logging fails.
+- Rendering: delegates 3D visualization to `TensorCanvas3D` instance. Renders
+  different layouts per rank:
+  - Rank 0: single cube at origin
+  - Rank 1: two cubes horizontally (x/y components)
+  - Rank 2: 2×2 grid of cubes (matrix elements)
+  - Rank 3: 2×2×2 cube of cubes (tensor slices)
+- Input handling: `attachInputListeners()` binds handlers to dynamically
+  generated inputs. Handlers update `tensorData`, log changes, and call `render()`.
+  Input listeners are tracked in `this.eventListeners` array for cleanup.
+- 3D interaction: `TensorCanvas3D` handles mouse drag (rotation) and wheel
+  (zoom) events. Canvas interaction state is managed internally by
+  `TensorCanvas3D`.
+- Config gating: respects `enabledModes` array in `config.json`. Tensor mode
+  only appears in mode switcher if `"tensor"` is included in `enabledModes`.
+- Container location: `.mode-content[data-mode="tensor"]` in `index.html`.
+- Destroy path: removes all event listeners from `this.eventListeners` array,
+  unsubscribes from `CanvasThemeService` via stored `this.themeUnsubscribe`
+  callback, calls `tensorCanvas3D.destroy()` to clean up canvas interaction
+  listeners, clears `root.innerHTML`, and nullifies handler references.
+
 ## Extending Modes
 - Follow the existing decomposition (controller + renderer + sidebar + math) to
   keep logic testable.

@@ -11,6 +11,7 @@ An interactive educational tool for learning vector operations through visual ex
 - **Real-time Calculations**: View coordinates, magnitude, and angle for each vector
 - **Animated Operations**: Smooth transitions showing vector transformations
 - **Formula Display**: Mathematical formulas and calculations shown for each operation
+- **Tensor Visualization**: Interactive 3D visualization of tensors (scalars, vectors, matrices, 3D tensors)
 
 ### Supported Operations
 - ✅ **Vector Addition** (v₁ + v₂)
@@ -20,9 +21,19 @@ An interactive educational tool for learning vector operations through visual ex
 - ✅ **Magnitude Calculation** (||v||)
 - ✅ **Angle Measurement** (in degrees from positive x-axis)
 
+### Modes
+
+The application supports three interaction modes:
+
+1. **Vector Mode**: Draw and manipulate vectors on a 2D Cartesian plane with animated operations
+2. **Matrix Mode**: Visualize 2×2 matrix transformations and their effects on basis vectors
+3. **Tensor Mode**: Explore tensors of different ranks (0-3) in an interactive 3D space
+
+Modes can be enabled/disabled via the `enabledModes` array in `client/config.json`. The default mode is set via the `mode` property in the config file.
+
 ### User Interface
-- **Left Sidebar**: Control panel with vector information and operation buttons
-- **Main Canvas**: Full-screen 2D Cartesian plane with grid
+- **Left Sidebar**: Control panel with mode-specific information and operation buttons
+- **Main Canvas**: Full-screen coordinate plane (2D for vector/matrix modes, 3D for tensor mode)
 - **No Scrolling**: Fully responsive, single-page layout
 - **Help System**: Comprehensive help modal with instructions and FAQ
 
@@ -34,19 +45,31 @@ An interactive educational tool for learning vector operations through visual ex
    ```
    Server runs at `http://localhost:3000`
 
-2. **Create vectors**:
-   - Click and drag anywhere on the grid
-   - First vector (v₁) will be red
-   - Second vector (v₂) will be blue
+2. **Choose a mode**:
+   - Use the mode switcher buttons (if multiple modes are enabled)
+   - Default mode is set in `client/config.json` (`mode` property)
+   - Available modes: Vector, Matrix, Tensor
 
-3. **Perform operations**:
-   - Use buttons in the left sidebar
-   - Watch animated results
-   - Read formulas in the Results section
+3. **Vector Mode**:
+   - Click and drag anywhere on the grid to create vectors
+   - First vector (v₁) will be red, second vector (v₂) will be blue
+   - Use buttons in the left sidebar to perform operations
+   - Watch animated results and read formulas in the Results section
 
-4. **Clear and experiment**:
-   - Clear individual vectors or all at once
-   - Try different vector configurations
+4. **Matrix Mode**:
+   - Enter values in the 2×2 matrix input grid
+   - See how the matrix transforms basis vectors î and ĵ
+   - Toggle determinant visualization to see area scaling
+
+5. **Tensor Mode**:
+   - Select a tensor rank (0-3) using the rank buttons
+   - Rank 0: Scalar (single value)
+   - Rank 1: Vector (x, y components)
+   - Rank 2: Matrix (2×2 grid)
+   - Rank 3: 3D Tensor (2×2×2 cube)
+   - Enter values in the input fields to modify tensor components
+   - Drag to rotate the 3D visualization, scroll to zoom
+   - See detailed help in `help-content-tensor.html`
 
 ## Project Structure
 
@@ -58,8 +81,26 @@ learn-bespoke-linear-algebra/
 │   ├── linear-algebra.css            # App-specific styles
 │   ├── linear-algebra.js             # Main application logic
 │   ├── help-modal.js                 # Help modal component
-│   ├── help-content-template.html    # Help content
-│   └── app.js                        # WebSocket/status handling
+│   ├── help-content-template.html    # Help content template
+│   ├── help-content-vector.html      # Vector mode help content
+│   ├── help-content-matrix.html      # Matrix mode help content
+│   ├── help-content-tensor.html      # Tensor mode help content
+│   ├── app.js                        # WebSocket/status handling
+│   ├── config.json                   # Application configuration
+│   ├── core/                         # Shared services
+│   │   ├── config.js                 # Config service
+│   │   ├── mode-manager.js           # Mode switching
+│   │   ├── theme-service.js          # Theme management
+│   │   ├── coordinate-system.js      # Coordinate system
+│   │   └── ...                       # Other core services
+│   ├── modes/                        # Mode controllers
+│   │   ├── vector-mode.js            # Vector mode controller
+│   │   ├── matrix-mode.js            # Matrix mode controller
+│   │   ├── tensor-mode.js            # Tensor mode controller
+│   │   ├── tensor-canvas-3d.js       # 3D canvas renderer
+│   │   └── ...                       # Other mode files
+│   └── entities/                     # Data models
+│       └── matrix.js                 # Matrix class
 ├── server.js                         # Development server
 ├── package.json                      # Dependencies
 └── README.md                         # This file
@@ -124,6 +165,49 @@ Modern browsers with Canvas support:
 - Chrome/Edge (latest)
 - Firefox (latest)
 - Safari (latest)
+
+## Manual Testing Checklist
+
+Use this checklist to verify all modes work correctly after changes:
+
+### Mode Switching
+- [ ] Mode switcher buttons appear/disappear based on `enabledModes` config
+- [ ] Switching between modes updates the UI correctly
+- [ ] Each mode displays its own sidebar content
+- [ ] Canvas renders correctly for each mode
+
+### Vector Mode
+- [ ] Click and drag creates vectors on the canvas
+- [ ] Vector operations (add, subtract, scalar multiply, dot product) work
+- [ ] Animations play smoothly
+- [ ] Results panel displays calculation formulas
+- [ ] Status remains "Ready" after operations
+
+### Matrix Mode
+- [ ] Matrix input grid accepts numeric values
+- [ ] Basis vectors update when matrix changes
+- [ ] Determinant visualization toggles correctly (if enabled)
+- [ ] Reset button restores identity matrix
+- [ ] Status remains "Ready" after operations
+
+### Tensor Mode
+- [ ] Rank buttons (0-3) update UI inputs correctly
+- [ ] Rank toggle updates 3D render visualization
+- [ ] Scalar input (rank 0) updates single cube visualization
+- [ ] Vector inputs (rank 1) update two-cube visualization
+- [ ] Matrix inputs (rank 2) update 2×2 grid visualization
+- [ ] Tensor3D inputs (rank 3) update 2×2×2 cube visualization
+- [ ] Drag interaction rotates 3D view smoothly
+- [ ] Scroll/zoom interaction works correctly
+- [ ] Reset button restores default tensor values
+- [ ] Help button shows tensor help content when tensor mode is active
+- [ ] Status remains "Ready" after all interactions
+
+### Theme and Cleanup
+- [ ] Theme changes update all mode visualizations correctly
+- [ ] Switching away from a mode cleans up properly (no memory leaks)
+- [ ] Event listeners are removed when modes are destroyed
+- [ ] Canvas interaction handlers are cleaned up (especially tensor mode 3D canvas)
 
 ---
 

@@ -4,7 +4,11 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## Project Overview
 
-This is **Interactive Linear Algebra** - an educational web application for teaching vector operations through visual experimentation. Students can draw vectors on a 2D Cartesian plane and perform operations (addition, subtraction, scalar multiplication, dot products, projections) with smooth animated visualizations.
+This is **Interactive Linear Algebra** - an educational web application for teaching linear algebra concepts through visual experimentation. The application supports three interaction modes:
+
+- **Vector Mode**: Draw vectors on a 2D Cartesian plane and perform operations (addition, subtraction, scalar multiplication, dot products, projections) with smooth animated visualizations
+- **Matrix Mode**: Visualize 2×2 matrix transformations and their effects on basis vectors
+- **Tensor Mode**: Explore tensors of different ranks (0-3) in an interactive 3D space with drag-to-rotate and scroll-to-zoom controls
 
 This application also serves as a reference implementation of the **Bespoke framework** - a reusable set of generalized CSS and JavaScript components designed for building embedded educational applications.
 
@@ -38,22 +42,30 @@ No build step required - this is pure HTML/CSS/JavaScript with no frameworks or 
 
 ### Core Components
 
-1. **Vector Class** (`client/linear-algebra.js`)
+1. **Vector Class** (`client/core/vector.js`)
    - Encapsulates mathematical vector operations
    - Methods: add, subtract, scale, dot, normalize, project, reflect
 
-2. **LinearAlgebraApp Class** (`client/linear-algebra.js`)
-   - Main application controller
-   - Manages canvas rendering, user interactions, and animations
-   - Configuration-driven design via CONFIG object
+2. **Mode System** (`client/core/mode-manager.js`, `client/modes/`)
+   - Three modes: VectorMode, MatrixMode, TensorMode
+   - Each mode is a controller managing its own UI, canvas rendering, and interactions
+   - Modes subscribe to theme changes and clean up properly on destroy
+   - See `client/modes/AGENTS.md` for detailed implementation contracts
 
-3. **HelpModal** (`client/help-modal.js`)
+3. **TensorMode** (`client/modes/tensor-mode.js`, `client/modes/tensor-canvas-3d.js`)
+   - Visualizes tensors of ranks 0-3 in interactive 3D space
+   - Uses `TensorCanvas3D` for 3D rendering with mouse drag rotation and scroll zoom
+   - Supports scalar, vector, matrix, and 3D tensor inputs
+   - See `client/modes/AGENTS.md` for lifecycle and teardown requirements
+
+4. **HelpModal** (`client/help-modal.js`)
    - Reusable modal component with theme support
    - Singleton pattern with event handling
+   - Mode-specific help content loaded from `help-content-*.html` files
 
-4. **Status Management** (`client/app.js`)
-   - WebSocket client for real-time updates
+5. **Status Management** (`client/core/status.js`, `client/app.js`)
    - Standardized status messaging system
+   - WebSocket client for real-time updates (optional)
 
 ### File Loading Order
 
@@ -116,10 +128,21 @@ client/
 ├── help-modal.js            # Reusable help modal
 ├── app.js                   # WebSocket & status handling
 ├── linear-algebra.js        # Main app logic
-├── linear-algebra.css       # App-specific styles
+├── config.json              # Application configuration (modes, operations)
+├── core/                    # Shared services
+│   ├── mode-manager.js      # Mode switching system
+│   ├── theme-service.js     # Theme management
+│   ├── coordinate-system.js # Coordinate system
+│   └── ...                  # Other core services
+├── modes/                   # Mode controllers
+│   ├── vector-mode.js       # Vector mode controller
+│   ├── matrix-mode.js       # Matrix mode controller
+│   ├── tensor-mode.js       # Tensor mode controller
+│   └── tensor-canvas-3d.js  # 3D canvas renderer for tensor mode
+├── help-content-*.html      # Mode-specific help content
 └── index.html               # Main HTML structure
 
 server.js                    # Development server
-test-integration.html        # Component testing page
 AGENTS.md                    # Bespoke framework implementation guide
+client/modes/AGENTS.md       # Mode implementation contracts
 ```

@@ -10,6 +10,7 @@
   // Default configuration
   const DEFAULT_CONFIG = {
     mode: 'vector',
+    enabledModes: ['vector', 'matrix', 'tensor'],
     vectorMode: {
       maxVectors: 2,
       operationGroups: {
@@ -56,7 +57,10 @@
 
         if (!response.ok) {
           console.warn('config.json not found, using default configuration');
-          const config = { ...DEFAULT_CONFIG };
+          const config = {
+            ...DEFAULT_CONFIG,
+            enabledModes: [...DEFAULT_CONFIG.enabledModes]
+          };
           configCache = config;
 
           if (window.StatusService) {
@@ -71,6 +75,9 @@
         // Merge with defaults
         const config = {
           mode: userConfig.mode || DEFAULT_CONFIG.mode,
+          enabledModes: Array.isArray(userConfig.enabledModes) && userConfig.enabledModes.length > 0
+            ? userConfig.enabledModes
+            : DEFAULT_CONFIG.enabledModes,
           vectorMode: {
             ...DEFAULT_CONFIG.vectorMode,
             ...(userConfig.vectorMode || userConfig), // Backward compatible
@@ -99,7 +106,10 @@
         return config;
       } catch (error) {
         console.warn('Failed to load config.json, using default configuration:', error);
-        const config = { ...DEFAULT_CONFIG };
+        const config = {
+          ...DEFAULT_CONFIG,
+          enabledModes: [...DEFAULT_CONFIG.enabledModes]
+        };
         configCache = config;
 
         if (window.StatusService) {

@@ -1,0 +1,101 @@
+<!-- Help Content Template for Bespoke Applications -->
+<!--
+  This template provides a consistent structure for help content across all
+  embedded applications. Customize the content while maintaining the structure.
+-->
+
+<!-- Table of Contents Navigation -->
+<nav class="toc">
+  <strong>Contents</strong>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#controls">Controls</a></li>
+    <li><a href="#features">Key Features</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+</nav>
+
+<!-- Overview Section -->
+<section id="overview">
+  <h2>Overview</h2>
+  <p>CodeSignal Linear Algebra Playground is a visual learning tool that helps you understand tensors of different ranks through hands-on experimentation. Visualize scalars, vectors, matrices, and 3D tensors in an interactive 3D space. Select different tensor ranks, modify their values, and see how they are represented as geometric objects in three dimensions.</p>
+</section>
+
+<!-- Controls Section -->
+<section id="controls">
+  <h2>Controls</h2>
+  <ul>
+    <li>Select a tensor rank (0-3) using the rank buttons in the sidebar.</li>
+    <li>Enter values in the input fields to modify the tensor components.</li>
+    <li>Drag with your mouse to rotate the 3D visualization.</li>
+    <li>Scroll to zoom in and out of the 3D view.</li>
+    <li>Click the "Reset" button to restore default tensor values.</li>
+  </ul>
+</section>
+
+<!-- Key Features Section -->
+<section id="features">
+  <h2>Key Features</h2>
+
+  <h3>Rank-0 Tensor (Scalar)</h3>
+  <p>A rank-0 tensor is a scalar (a single number). It has magnitude but no direction. Scalars are visualized as a single cube at the origin in the 3D space. This represents the simplest form of a tensor - just a numerical value without any spatial structure.</p>
+
+  <h3>Rank-1 Tensor (Vector)</h3>
+  <p>A rank-1 tensor is a vector. It has magnitude and direction. Vectors are visualized as two cubes arranged horizontally, representing the x and y components. Each cube displays its component value, helping you understand how vectors are composed of individual components.</p>
+
+  <h3>Rank-2 Tensor (Matrix)</h3>
+  <p>A rank-2 tensor is a matrix. It represents a linear transformation. Matrices are visualized as a 2×2 grid of cubes, arranged in rows and columns. Each cube displays its matrix element value, showing how matrices organize data in two dimensions.</p>
+
+  <h3>Rank-3 Tensor (3D Tensor)</h3>
+  <p>A rank-3 tensor can be visualized as a stack of matrices (a cube of numbers). Rank-3 tensors are visualized as a 2×2×2 cube of cubes, representing three dimensions of data. The visualization shows two slices (front and back), each containing a 2×2 matrix, helping you understand how higher-rank tensors extend into multiple dimensions.</p>
+
+  <h3>Interactive 3D Visualization</h3>
+  <p>The 3D canvas provides an interactive view of tensors in three-dimensional space. You can rotate the view by dragging with your mouse and zoom in or out by scrolling. This helps you understand the spatial relationships between tensor components and how they are organized in multi-dimensional structures.</p>
+
+  <h3>Real-time Updates</h3>
+  <p>As you modify tensor values through the input fields, the 3D visualization updates in real-time. Each cube displays its current value, making it easy to see how changes to individual components affect the overall tensor structure.</p>
+
+  <h3>Tensor Rank Selection</h3>
+  <p>Switch between different tensor ranks to explore how tensors of increasing complexity are represented. Starting with a simple scalar (rank 0) and progressing to vectors (rank 1), matrices (rank 2), and 3D tensors (rank 3), you can see how each rank adds another dimension to the data structure.</p>
+</section>
+
+<!-- FAQ Section -->
+<section id="faq">
+  <h2>FAQ</h2>
+
+  <details>
+    <summary>What is a tensor?</summary>
+    <p>A tensor is a mathematical object that generalizes scalars, vectors, and matrices. The rank (or order) of a tensor indicates how many dimensions it has: rank-0 is a scalar (0 dimensions), rank-1 is a vector (1 dimension), rank-2 is a matrix (2 dimensions), and rank-3 has 3 dimensions. Tensors are fundamental in physics, engineering, and machine learning for representing multi-dimensional data.</p>
+  </details>
+
+  <details>
+    <summary>What's the difference between a scalar, vector, matrix, and 3D tensor?</summary>
+    <p>A scalar (rank-0) is a single number with no direction. A vector (rank-1) is an ordered list of numbers representing magnitude and direction. A matrix (rank-2) is a 2D array of numbers representing linear transformations. A 3D tensor (rank-3) is a 3D array of numbers, like a stack of matrices. Each rank adds another dimension to how the data is organized.</p>
+  </details>
+
+  <details>
+    <summary>How do I rotate the 3D view?</summary>
+    <p>Click and drag anywhere on the canvas to rotate the 3D visualization. The view rotates around the center of the coordinate system, allowing you to see the tensor from different angles and understand its three-dimensional structure.</p>
+  </details>
+
+  <details>
+    <summary>How do I zoom in or out?</summary>
+    <p>Use your mouse wheel or trackpad scroll gesture to zoom in and out of the 3D visualization. This helps you get a closer look at individual tensor components or see the overall structure from a distance.</p>
+  </details>
+
+  <details>
+    <summary>What do the numbers on the cubes represent?</summary>
+    <p>Each cube displays the value of a tensor component. For rank-0 (scalar), there's one cube with the scalar value. For rank-1 (vector), there are two cubes showing x and y components. For rank-2 (matrix), there are four cubes arranged in a 2×2 grid showing matrix elements. For rank-3, there are eight cubes in a 2×2×2 arrangement showing all tensor elements.</p>
+  </details>
+
+  <details>
+    <summary>Why are tensors visualized as cubes?</summary>
+    <p>Cubes provide a clear, geometric representation of tensor components in 3D space. Each cube represents one element of the tensor, and their spatial arrangement shows how the tensor is structured across its dimensions. This visualization helps you understand the multi-dimensional nature of tensors beyond simple numbers or arrays.</p>
+  </details>
+
+  <details>
+    <summary>What are the axes in the 3D view?</summary>
+    <p>The axes represent the three spatial dimensions (x, y, z) of the coordinate system. They help you orient yourself in the 3D space and understand where tensor components are positioned relative to the origin. The axes are drawn offset from the tensor cubes to avoid visual overlap.</p>
+  </details>
+</section>
+

@@ -253,6 +253,47 @@ body.bespoke {
   display: none !important;
 }
 
+/* Mode Switcher Buttons */
+.mode-switcher {
+  display: flex;
+  gap: var(--bespoke-space-xs);
+}
+
+.mode-btn {
+  padding: var(--bespoke-space-sm) var(--bespoke-space-md);
+  border: 1px solid var(--bespoke-stroke);
+  border-radius: var(--bespoke-radius-sm);
+  background: var(--bespoke-button-bg);
+  color: var(--bespoke-button-text);
+  font-size: var(--bespoke-font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mode-btn:hover:not(:disabled) {
+  background: var(--bespoke-button-hover-bg);
+  color: var(--bespoke-button-hover-text);
+}
+
+.mode-btn.active {
+  background: var(--bespoke-accent);
+  color: white;
+  border-color: var(--bespoke-accent);
+}
+
+.mode-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--bespoke-secondary-bg);
+  color: var(--bespoke-muted);
+}
+
+.mode-btn:disabled:hover {
+  background: var(--bespoke-secondary-bg);
+  color: var(--bespoke-muted);
+}
+
 /* Form Select Utility Class - Base styles for all selects */
 .bespoke .form-select,
 .bespoke .coord-select,

@@ -9,12 +9,17 @@
 
   /**
    * Load help content from template file
-   * @param {string} mode - Mode name ('vector' or 'matrix')
+   * @param {string} mode - Mode name ('vector', 'matrix', or 'tensor')
    * @returns {Promise<string>} Promise that resolves to help content HTML
    */
   async function loadHelpContent(mode = 'vector') {
     // Determine filename based on mode
-    const filename = mode === 'matrix' ? 'help-content-matrix.html' : 'help-content-vector.html';
+    let filename = 'help-content-vector.html';
+    if (mode === 'matrix') {
+      filename = 'help-content-matrix.html';
+    } else if (mode === 'tensor') {
+      filename = 'help-content-tensor.html';
+    }
 
     // Return cached promise if it exists
     if (helpContentCache[mode]) {
@@ -43,7 +48,7 @@
    * Modes can append additional content using appendHelpContent()
    * @param {Object} options - Initialization options
    * @param {string} options.triggerSelector - CSS selector for help button
-   * @param {string} [options.mode] - Mode name ('vector' or 'matrix'), defaults to 'vector'
+   * @param {string} [options.mode] - Mode name ('vector', 'matrix', or 'tensor'), defaults to 'vector'
    * @param {string} [options.additionalContent] - Additional HTML content to append
    * @param {string} [options.theme] - Theme mode ('auto', 'light', 'dark')
    * @returns {Promise<void>}
@@ -98,7 +103,7 @@
    * Append additional content to the help modal
    * Useful for mode-specific help sections
    * @param {string} content - HTML content to append
-   * @param {string} [mode] - Mode name ('vector' or 'matrix'), defaults to 'vector'
+   * @param {string} [mode] - Mode name ('vector', 'matrix', or 'tensor'), defaults to 'vector'
    * @returns {Promise<void>}
    */
   async function appendHelpContent(content, mode = 'vector') {

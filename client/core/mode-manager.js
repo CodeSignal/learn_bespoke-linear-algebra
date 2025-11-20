@@ -4,15 +4,56 @@
  * Owns shared resources (CoordinateSystem) and handles mode instantiation/teardown
  */
 
-(function() {
+(function () {
   class ModeManager {
     constructor() {
       this.vectorContent = document.querySelector('.mode-content[data-mode="vector"]');
       this.matrixContent = document.querySelector('.mode-content[data-mode="matrix"]');
+      this.tensorContent = document.querySelector('.mode-content[data-mode="tensor"]');
+      this.modeButtons = document.querySelectorAll('.mode-btn');
+      this.setupModeSwitcher();
       this.currentMode = null;
       this.currentModeInstance = null;
       this.modes = {}; // Registry of mode factories
       this.coordSystem = null; // Shared CoordinateSystem instance
+    }
+
+    setupModeSwitcher() {
+      this.modeButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const mode = e.target.dataset.mode;
+          // Prevent switching to disabled modes
+          if (e.target.disabled) {
+            return;
+          }
+          this.setMode(mode);
+        });
+      });
+    }
+
+    /**
+     * Configure mode buttons based on enabledModes array
+     * Buttons not in enabledModes will be disabled but remain visible
+     * @param {string[]} enabledModes - Array of mode names that should be enabled
+     */
+    configureModeButtons(enabledModes) {
+      if (!Array.isArray(enabledModes) || enabledModes.length === 0) {
+        console.warn('Invalid enabledModes, enabling all modes by default');
+        enabledModes = ['vector', 'matrix', 'tensor'];
+      }
+
+      this.modeButtons.forEach(btn => {
+        const mode = btn.dataset.mode;
+        if (enabledModes.includes(mode)) {
+          btn.removeAttribute('disabled');
+          btn.disabled = false;
+        } else {
+          btn.setAttribute('disabled', 'disabled');
+          btn.disabled = true;
+          // Remove active class from disabled buttons
+          btn.classList.remove('active');
+        }
+      });
     }
 
     /**
@@ -112,25 +153,33 @@
      * @param {string} modeName - Mode name ('vector' or 'matrix')
      */
     updateUIVisibility(modeName) {
-      if (modeName === 'vector') {
-        if (this.matrixContent) {
-          this.matrixContent.classList.remove('active');
-          this.matrixContent.classList.add('hidden');
+      // Update content visibility
+      const contents = {
+        vector: this.vectorContent,
+        matrix: this.matrixContent,
+        tensor: this.tensorContent
+      };
+
+      Object.entries(contents).forEach(([name, element]) => {
+        if (element) {
+          if (name === modeName) {
+            element.classList.remove('hidden');
+            element.classList.add('active');
+          } else {
+            element.classList.remove('active');
+            element.classList.add('hidden');
+          }
         }
-        if (this.vectorContent) {
-          this.vectorContent.classList.remove('hidden');
-          this.vectorContent.classList.add('active');
+      });
+
+      // Update switcher buttons
+      this.modeButtons.forEach(btn => {
+        if (btn.dataset.mode === modeName) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
         }
-      } else if (modeName === 'matrix') {
-        if (this.vectorContent) {
-          this.vectorContent.classList.remove('active');
-          this.vectorContent.classList.add('hidden');
-        }
-        if (this.matrixContent) {
-          this.matrixContent.classList.remove('hidden');
-          this.matrixContent.classList.add('active');
-        }
-      }
+      });
     }
 
     /**

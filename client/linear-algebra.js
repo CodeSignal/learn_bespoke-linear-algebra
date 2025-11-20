@@ -62,6 +62,7 @@ async function loadConfig() {
     // Return default config structure
     return {
       mode: 'vector',
+      enabledModes: ['vector', 'matrix', 'tensor'],
       vectorMode: {
         maxVectors: 2,
         operationGroups: {}
@@ -172,9 +173,33 @@ async function initializeApp() {
     return mode;
   });
 
-  // Set the active mode based on config
-  const mode = appConfig.mode || 'vector';
-  window.ModeManager.setMode(mode);
+  // Register tensor mode factory
+  window.ModeManager.registerMode('tensor', () => {
+    const canvas = document.getElementById('grid-canvas');
+    const tensorContent = document.querySelector('.mode-content[data-mode="tensor"]');
+    if (!tensorContent) {
+      console.error('Tensor mode container not found');
+      return null;
+    }
+    const coordSystem = window.ModeManager.getCoordinateSystem();
+    const mode = new TensorMode(canvas, appConfig, STYLE_CONSTANTS, coordSystem, tensorContent);
+    return mode;
+  });
+
+  // Configure mode buttons based on enabledModes
+  const enabledModes = appConfig.enabledModes || ['vector', 'matrix', 'tensor'];
+  window.ModeManager.configureModeButtons(enabledModes);
+
+  // Validate and set the active mode based on config
+  let startingMode = appConfig.mode || 'vector';
+
+  // If starting mode is not in enabledModes, fallback to first enabled mode
+  if (!enabledModes.includes(startingMode)) {
+    console.warn(`Starting mode '${startingMode}' is not enabled. Falling back to first enabled mode: '${enabledModes[0]}'`);
+    startingMode = enabledModes[0];
+  }
+
+  window.ModeManager.setMode(startingMode);
 
   // Help modal is initialized by app.js via HelpService
 }

@@ -1,5 +1,6 @@
 {
-  "mode": "matrix",
+  "mode": "tensor",
+  "enabledModes": ["vector", "matrix", "tensor"],
   "vectorMode": {
     "maxVectors": 2,
     "operationGroups": {

@@ -1,0 +1,165 @@
+/* Tensor Mode Styles */
+
+.tensor-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bespoke-space-lg);
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bespoke-space-sm);
+}
+
+.rank-selector {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--bespoke-space-sm);
+}
+
+.rank-btn {
+  padding: var(--bespoke-space-sm);
+  background: var(--bespoke-control-bg);
+  border: 1px solid var(--bespoke-control-border);
+  border-radius: var(--bespoke-radius-md);
+  cursor: pointer;
+  font-size: var(--bespoke-font-size-sm);
+  transition: all 0.2s ease;
+}
+
+.rank-btn:hover {
+  background: var(--bespoke-secondary-bg);
+}
+
+.rank-btn.active {
+  background: var(--bespoke-accent);
+  color: white;
+  border-color: var(--bespoke-accent);
+}
+
+.tensor-input-container {
+  background: var(--bespoke-secondary-bg);
+  padding: var(--bespoke-space-md);
+  border-radius: var(--bespoke-radius-md);
+  border: 1px solid var(--bespoke-stroke);
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.scalar-input-wrapper,
+.vector-input-wrapper,
+.matrix-input-wrapper,
+.tensor3d-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bespoke-space-sm);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.scalar-input-wrapper {
+  align-items: center;
+}
+
+.tensor-slices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bespoke-space-md);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.slice {
+  background: var(--bespoke-box);
+  padding: var(--bespoke-space-sm);
+  border-radius: var(--bespoke-radius-sm);
+  border: 1px solid var(--bespoke-stroke);
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.slice span {
+  display: block;
+  margin-bottom: var(--bespoke-space-xs);
+  font-size: var(--bespoke-font-size-xs);
+  color: var(--bespoke-muted);
+  font-weight: var(--bespoke-font-weight-medium);
+}
+
+/* Tensor input styles - consistent across all ranks */
+.tensor-input-container input[type="number"].matrix-input {
+  width: 55px;
+  height: 32px;
+  max-width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  font-size: var(--bespoke-font-size-base);
+  background: var(--bespoke-input-bg);
+  color: var(--bespoke-input-text);
+  border: 2px solid var(--bespoke-stroke);
+  border-radius: var(--bespoke-radius-sm);
+  padding: var(--bespoke-space-xs);
+}
+
+.tensor-input-container input[type="number"].matrix-input:hover {
+  border-color: var(--bespoke-muted);
+}
+
+.tensor-input-container input[type="number"].matrix-input:focus {
+  outline: 2px solid var(--bespoke-accent);
+  outline-offset: 1px;
+  border-color: var(--bespoke-accent);
+}
+
+/* Scalar input - centered single input */
+.scalar-input-wrapper input[type="number"].matrix-input {
+  width: 100px;
+  max-width: 100%;
+}
+
+/* Matrix grid styles for tensor mode */
+.tensor-input-container .matrix-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bespoke-space-xs);
+  margin: 0;
+  padding: var(--bespoke-space-sm);
+  background: var(--bespoke-canvas);
+  border-radius: var(--bespoke-radius-sm);
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.tensor-input-container .matrix-grid.small {
+  padding: var(--bespoke-space-xs);
+  align-items: center;
+}
+
+.tensor-input-container .matrix-row {
+  display: flex;
+  gap: var(--bespoke-space-xs);
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+  flex-wrap: nowrap;
+}
+
+/* Ensure inputs within matrix-grid don't overflow */
+.tensor-input-container .matrix-grid.small .matrix-input {
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+/* WebKit autofill override for tensor inputs */
+.tensor-input-container input[type="number"].matrix-input:-webkit-autofill,
+.tensor-input-container input[type="number"].matrix-input:-webkit-autofill:hover,
+.tensor-input-container input[type="number"].matrix-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--bespoke-input-bg) inset !important;
+  -webkit-text-fill-color: var(--bespoke-input-text) !important;
+}

@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <title>CodeSignal Linear Algebra Playground</title>
@@ -11,12 +12,19 @@
   <link rel="stylesheet" href="./layout.css" />
   <link rel="stylesheet" href="./vector-mode.css" />
   <link rel="stylesheet" href="./matrix-mode.css" />
+  <link rel="stylesheet" href="./tensor-mode.css" />
 </head>
+
 <body class="bespoke">
   <!-- Navigation Header -->
   <header class="header">
     <h1>CodeSignal Linear Algebra Playground</h1>
     <!-- APP_SPECIFIC_HEADER_CONTENT -->
+    <div class="mode-switcher">
+      <button class="mode-btn active" data-mode="vector">Vector</button>
+      <button class="mode-btn" data-mode="matrix">Matrix</button>
+      <button class="mode-btn" data-mode="tensor">Tensor</button>
+    </div>
     <div class="spacer"></div>
     <div id="status" class="status">Ready</div>
     <button id="btn-help" class="as-button ghost">Help</button>
@@ -28,151 +36,151 @@
     <aside class="sidebar">
       <!-- Vector Mode Content -->
       <div class="mode-content" data-mode="vector">
-      <div class="sidebar-section">
-        <div class="section-header">
-          <h2>Vectors</h2>
-          <select id="coord-mode" class="coord-select">
-            <option value="cartesian">Cartesian</option>
-            <option value="polar">Polar</option>
-          </select>
-          <button id="canvas-reset" class="btn-secondary btn-small">Clear </button>
-        </div>
-        <!-- Vector 1 -->
-        <div class="vector-control" id="vector1-control">
-          <h3>Vector 1 <span class="vector-label v1-color">v₁</span></h3>
-          <div class="vector-info">
-            <div class="info-row">
-              <span class="label">Coordinates:</span>
-              <span id="v1-coords" class="value">Not created</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Magnitude:</span>
-              <span id="v1-magnitude" class="value">—</span>
-            </div>
-          </div>
-          <!-- Reflection Control -->
-          <div class="reflection-control" data-operation-group="reflection">
-            <select id="reflect-type-v1" class="reflect-select">
-              <option value="x-axis">X-axis</option>
-              <option value="y-axis">Y-axis</option>
-              <option value="diagonal">Diagonal (y=x)</option>
+        <div class="sidebar-section">
+          <div class="section-header">
+            <h2>Vectors</h2>
+            <select id="coord-mode" class="coord-select">
+              <option value="cartesian">Cartesian</option>
+              <option value="polar">Polar</option>
             </select>
-            <button id="op-reflect-v1" class="btn-primary btn-reflect" disabled>Reflect</button>
+            <button id="canvas-reset" class="btn-secondary btn-small">Clear </button>
           </div>
-        </div>
-
-        <!-- Vector 2 -->
-        <div class="vector-control" id="vector2-control">
-          <h3>Vector 2 <span class="vector-label v2-color">v₂</span></h3>
-          <div class="vector-info">
-            <div class="info-row">
-              <span class="label">Coordinates:</span>
-              <span id="v2-coords" class="value">Not created</span>
+          <!-- Vector 1 -->
+          <div class="vector-control" id="vector1-control">
+            <h3>Vector 1 <span class="vector-label v1-color">v₁</span></h3>
+            <div class="vector-info">
+              <div class="info-row">
+                <span class="label">Coordinates:</span>
+                <span id="v1-coords" class="value">Not created</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Magnitude:</span>
+                <span id="v1-magnitude" class="value">—</span>
+              </div>
             </div>
-            <div class="info-row">
-              <span class="label">Magnitude:</span>
-              <span id="v2-magnitude" class="value">—</span>
+            <!-- Reflection Control -->
+            <div class="reflection-control" data-operation-group="reflection">
+              <select id="reflect-type-v1" class="reflect-select">
+                <option value="x-axis">X-axis</option>
+                <option value="y-axis">Y-axis</option>
+                <option value="diagonal">Diagonal (y=x)</option>
+              </select>
+              <button id="op-reflect-v1" class="btn-primary btn-reflect" disabled>Reflect</button>
             </div>
           </div>
-          <!-- Reflection Control -->
-          <div class="reflection-control" data-operation-group="reflection">
-            <select id="reflect-type-v2" class="reflect-select">
-              <option value="x-axis">X-axis</option>
-              <option value="y-axis">Y-axis</option>
-              <option value="diagonal">Diagonal (y=x)</option>
-            </select>
-            <button id="op-reflect-v2" class="btn-primary btn-reflect" disabled>Reflect</button>
-          </div>
-        </div>
-      </div>
 
-      <!-- Operations Section -->
-      <div class="sidebar-section">
-        <h2>Operations</h2>
-
-        <div class="operation-group" data-operation-group="addition">
-          <div class="operation-label">
-            <span>Addition & Subtraction</span>
-          </div>
-          <button id="op-add" class="btn-primary" disabled>Add v₁ + v₂</button>
-          <button id="op-subtract" class="btn-primary" disabled>Subtract v₁ - v₂</button>
-        </div>
-
-        <div class="operation-group" data-operation-group="scalarMultiplication">
-          <div class="operation-label">
-            <span>Scalar Multiplication</span>
-          </div>
-          <div class="scalar-control">
-            <input type="number" id="scalar-input" value="2" step="0.1" />
-            <span class="times-symbol">×</span>
-            <select id="scale-vector-select" class="scale-select">
-              <option value="v1">v1</option>
-              <option value="v2">v2</option>
-            </select>
-            <button id="op-scale" class="btn-primary btn-scale" disabled>Scale</button>
+          <!-- Vector 2 -->
+          <div class="vector-control" id="vector2-control">
+            <h3>Vector 2 <span class="vector-label v2-color">v₂</span></h3>
+            <div class="vector-info">
+              <div class="info-row">
+                <span class="label">Coordinates:</span>
+                <span id="v2-coords" class="value">Not created</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Magnitude:</span>
+                <span id="v2-magnitude" class="value">—</span>
+              </div>
+            </div>
+            <!-- Reflection Control -->
+            <div class="reflection-control" data-operation-group="reflection">
+              <select id="reflect-type-v2" class="reflect-select">
+                <option value="x-axis">X-axis</option>
+                <option value="y-axis">Y-axis</option>
+                <option value="diagonal">Diagonal (y=x)</option>
+              </select>
+              <button id="op-reflect-v2" class="btn-primary btn-reflect" disabled>Reflect</button>
+            </div>
           </div>
         </div>
 
-        <div class="operation-group" data-operation-group="dotProduct">
-          <div class="operation-label">
-            <span>Dot Product</span>
+        <!-- Operations Section -->
+        <div class="sidebar-section">
+          <h2>Operations</h2>
+
+          <div class="operation-group" data-operation-group="addition">
+            <div class="operation-label">
+              <span>Addition & Subtraction</span>
+            </div>
+            <button id="op-add" class="btn-primary" disabled>Add v₁ + v₂</button>
+            <button id="op-subtract" class="btn-primary" disabled>Subtract v₁ - v₂</button>
           </div>
-          <button id="op-dot" class="btn-primary" disabled>v₁ · v₂</button>
+
+          <div class="operation-group" data-operation-group="scalarMultiplication">
+            <div class="operation-label">
+              <span>Scalar Multiplication</span>
+            </div>
+            <div class="scalar-control">
+              <input type="number" id="scalar-input" value="2" step="0.1" />
+              <span class="times-symbol">×</span>
+              <select id="scale-vector-select" class="scale-select">
+                <option value="v1">v1</option>
+                <option value="v2">v2</option>
+              </select>
+              <button id="op-scale" class="btn-primary btn-scale" disabled>Scale</button>
+            </div>
+          </div>
+
+          <div class="operation-group" data-operation-group="dotProduct">
+            <div class="operation-label">
+              <span>Dot Product</span>
+            </div>
+            <button id="op-dot" class="btn-primary" disabled>v₁ · v₂</button>
+          </div>
+
+          <div class="operation-group" data-operation-group="projectionAngle">
+            <div class="operation-label">
+              <span>Projection & Angle</span>
+            </div>
+            <button id="op-project" class="btn-primary" disabled>Project v₁ onto v₂</button>
+            <button id="op-angle" class="btn-primary" disabled>Angle Between v₁ & v₂</button>
+          </div>
+
+          <div class="operation-group" data-operation-group="normalization">
+            <div class="operation-label">
+              <span>Normalization</span>
+            </div>
+            <div class="normalize-control">
+              <select id="normalize-vector-select" class="vector-select">
+                <option value="v1">v1</option>
+                <option value="v2">v2</option>
+              </select>
+              <button id="op-normalize" class="btn-primary btn-normalize" disabled>Normalize</button>
+            </div>
+          </div>
+
+          <div class="operation-group" data-operation-group="perpendicular">
+            <div class="operation-label">
+              <span>Perpendicular Vector</span>
+            </div>
+            <div class="perpendicular-control">
+              <select id="perpendicular-vector-select" class="vector-select">
+                <option value="v1">v1</option>
+                <option value="v2">v2</option>
+              </select>
+              <button id="op-perpendicular" class="btn-primary btn-perpendicular" disabled>Show Perpendicular</button>
+            </div>
+          </div>
+
+          <div class="operation-group" data-operation-group="linearCombination">
+            <div class="operation-label">
+              <span>Linear Combination</span>
+            </div>
+            <div class="linear-combo-control">
+              <input type="number" id="lc-scalar-a" placeholder="a" value="1" step="0.1" />
+              <input type="number" id="lc-scalar-b" placeholder="b" value="1" step="0.1" />
+              <button id="op-linear-combo" class="btn-primary" disabled>1v₁ + 1v₂</button>
+            </div>
+          </div>
         </div>
 
-        <div class="operation-group" data-operation-group="projectionAngle">
-          <div class="operation-label">
-            <span>Projection & Angle</span>
-          </div>
-          <button id="op-project" class="btn-primary" disabled>Project v₁ onto v₂</button>
-          <button id="op-angle" class="btn-primary" disabled>Angle Between v₁ & v₂</button>
-        </div>
-
-        <div class="operation-group" data-operation-group="normalization">
-          <div class="operation-label">
-            <span>Normalization</span>
-          </div>
-          <div class="normalize-control">
-            <select id="normalize-vector-select" class="vector-select">
-              <option value="v1">v1</option>
-              <option value="v2">v2</option>
-            </select>
-            <button id="op-normalize" class="btn-primary btn-normalize" disabled>Normalize</button>
+        <!-- Results Section -->
+        <div class="sidebar-section">
+          <h2>Results</h2>
+          <div id="vector-results" class="results-display">
+            <p class="hint">Perform an operation to see results</p>
           </div>
         </div>
-
-        <div class="operation-group" data-operation-group="perpendicular">
-          <div class="operation-label">
-            <span>Perpendicular Vector</span>
-          </div>
-          <div class="perpendicular-control">
-            <select id="perpendicular-vector-select" class="vector-select">
-              <option value="v1">v1</option>
-              <option value="v2">v2</option>
-            </select>
-            <button id="op-perpendicular" class="btn-primary btn-perpendicular" disabled>Show Perpendicular</button>
-          </div>
-        </div>
-
-        <div class="operation-group" data-operation-group="linearCombination">
-          <div class="operation-label">
-            <span>Linear Combination</span>
-          </div>
-          <div class="linear-combo-control">
-            <input type="number" id="lc-scalar-a" placeholder="a" value="1" step="0.1" />
-            <input type="number" id="lc-scalar-b" placeholder="b" value="1" step="0.1" />
-            <button id="op-linear-combo" class="btn-primary" disabled>1v₁ + 1v₂</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Results Section -->
-      <div class="sidebar-section">
-        <h2>Results</h2>
-        <div id="vector-results" class="results-display">
-          <p class="hint">Perform an operation to see results</p>
-        </div>
-      </div>
       </div>
       <!-- End Vector Mode Content -->
 
@@ -248,10 +256,12 @@
                   <span class="matrix-column-label vector-col-x">v</span>
                 </div>
                 <div class="matrix-row">
-                  <input type="number" id="vector-vx" class="vector-input matrix-input vector-col-x" value="1" step="0.1">
+                  <input type="number" id="vector-vx" class="vector-input matrix-input vector-col-x" value="1"
+                    step="0.1">
                 </div>
                 <div class="matrix-row">
-                  <input type="number" id="vector-vy" class="vector-input matrix-input vector-col-y" value="1" step="0.1">
+                  <input type="number" id="vector-vy" class="vector-input matrix-input vector-col-y" value="1"
+                    step="0.1">
                 </div>
               </div>
             </div>
@@ -321,6 +331,12 @@
         </div>
       </div>
       <!-- End Matrix Mode Content -->
+
+      <!-- Tensor Mode Content -->
+      <div class="mode-content" data-mode="tensor">
+        <!-- Content injected by TensorMode class -->
+      </div>
+      <!-- End Tensor Mode Content -->
     </aside>
 
     <!-- Canvas: Cartesian Plane -->
@@ -361,8 +377,11 @@
   <script src="./modes/vector-mode.js"></script>
   <script src="./modes/matrix-operations.js"></script>
   <script src="./modes/matrix-mode.js"></script>
+  <script src="./modes/tensor-canvas-3d.js"></script>
+  <script src="./modes/tensor-mode.js"></script>
 
   <!-- Main Application -->
   <script src="./linear-algebra.js"></script>
 </body>
+
 </html>
