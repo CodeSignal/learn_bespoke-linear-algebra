@@ -54,7 +54,6 @@
 .tensor3d-input-wrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--bespoke-space-sm);
   width: 100%;
   box-sizing: border-box;
 }
