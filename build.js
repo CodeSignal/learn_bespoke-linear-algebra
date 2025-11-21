@@ -38,6 +38,8 @@ const jsFiles = [
   'client/modes/vector-mode.js',
   'client/modes/matrix-operations.js',
   'client/modes/matrix-mode.js',
+  'client/modes/tensor-canvas-3d.js',
+  'client/modes/tensor-mode.js',
   'client/linear-algebra.js'
 ];
 
@@ -46,7 +48,8 @@ const cssFiles = [
   'client/bespoke.css',
   'client/layout.css',
   'client/vector-mode.css',
-  'client/matrix-mode.css'
+  'client/matrix-mode.css',
+  'client/tensor-mode.css'
 ];
 
 // Minify content using esbuild transform API (no temp files needed)
@@ -150,6 +153,10 @@ async function build() {
     fs.writeFileSync(
       path.join(DIST_CLIENT_DIR, 'help-content-matrix.html'),
       fs.readFileSync(path.join(__dirname, 'client', 'help-content-matrix.html'), 'utf8')
+    );
+    fs.writeFileSync(
+      path.join(DIST_CLIENT_DIR, 'help-content-tensor.html'),
+      fs.readFileSync(path.join(__dirname, 'client', 'help-content-tensor.html'), 'utf8')
     );
     console.log('✓ Static files copied');
 
