@@ -1,5 +1,5 @@
 {
-  "mode": "tensor",
+  "defaultMode": "tensor",
   "enabledModes": ["vector", "matrix", "tensor"],
   "vectorMode": {
     "maxVectors": 2,

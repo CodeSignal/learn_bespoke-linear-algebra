@@ -64,7 +64,7 @@
     if (window.ConfigService) {
       try {
         const config = await window.ConfigService.loadConfig();
-        mode = config.mode || 'vector';
+        mode = config.defaultMode || config.mode || 'vector'; // Support both new and old config format
       } catch (error) {
         console.warn('Failed to load config for help modal, using default mode:', error);
       }
@@ -77,6 +77,22 @@
         mode: mode,
         theme: 'auto'
       });
+
+      // Subscribe to mode changes to update help content
+      if (window.ModeManager && typeof window.ModeManager.onModeChange === 'function') {
+        window.ModeManager.onModeChange(async (newMode) => {
+          try {
+            if (window.HelpService && typeof window.HelpService.updateHelpContent === 'function') {
+              await window.HelpService.updateHelpContent(newMode);
+            }
+          } catch (error) {
+            console.error('Failed to update help content on mode change:', error);
+            if (window.StatusService) {
+              window.StatusService.setReady();
+            }
+          }
+        });
+      }
     }
 
     initializeWebSocket();

@@ -61,7 +61,7 @@ async function loadConfig() {
     console.warn('ConfigService not available, using default configuration');
     // Return default config structure
     return {
-      mode: 'vector',
+      defaultMode: 'vector',
       enabledModes: ['vector', 'matrix', 'tensor'],
       vectorMode: {
         maxVectors: 2,
@@ -100,7 +100,7 @@ async function loadConfig() {
     }
   }
 
-  console.log(`Configuration loaded successfully. Mode: ${validatedConfig.mode}`);
+  console.log(`Configuration loaded successfully. Default mode: ${validatedConfig.defaultMode}`);
 
   // Return immutable config (freeze to prevent mutations)
   return Object.freeze(validatedConfig);
@@ -186,12 +186,23 @@ async function initializeApp() {
     return mode;
   });
 
-  // Configure mode buttons based on enabledModes
-  const enabledModes = appConfig.enabledModes || ['vector', 'matrix', 'tensor'];
-  window.ModeManager.configureModeButtons(enabledModes);
+  // Configure mode buttons and containers based on enabledModes
+  let enabledModes = appConfig.enabledModes || ['vector', 'matrix', 'tensor'];
+  const defaultMode = appConfig.defaultMode || 'vector';
+
+  // Ensure defaultMode is always included in enabledModes
+  if (!enabledModes.includes(defaultMode)) {
+    enabledModes = [...enabledModes, defaultMode];
+  }
+
+  // Render mode buttons dynamically (only shows enabled modes)
+  window.ModeManager.renderModeButtons(enabledModes);
+
+  // Hide mode content containers for disabled modes
+  window.ModeManager.hideDisabledModeContainers(enabledModes);
 
   // Validate and set the active mode based on config
-  let startingMode = appConfig.mode || 'vector';
+  let startingMode = defaultMode;
 
   // If starting mode is not in enabledModes, fallback to first enabled mode
   if (!enabledModes.includes(startingMode)) {

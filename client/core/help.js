@@ -6,6 +6,7 @@
 (function() {
   const helpContentCache = {}; // Cache promises per mode
   let initialized = false;
+  let helpModalInstance = null; // Reference to HelpModal instance for updates
 
   /**
    * Load help content from template file
@@ -76,7 +77,7 @@
 
       // Initialize help modal
       if (typeof HelpModal !== 'undefined') {
-        HelpModal.init({
+        helpModalInstance = HelpModal.init({
           triggerSelector,
           content,
           theme
@@ -89,7 +90,7 @@
       console.error('Failed to initialize help modal:', error);
       // Fallback initialization
       if (typeof HelpModal !== 'undefined') {
-        HelpModal.init({
+        helpModalInstance = HelpModal.init({
           triggerSelector,
           content: '<p>Help content could not be loaded.</p>',
           theme
@@ -118,7 +119,7 @@
 
     // Reinitialize with updated content
     if (typeof HelpModal !== 'undefined') {
-      HelpModal.init({
+      helpModalInstance = HelpModal.init({
         triggerSelector: '#btn-help',
         content: newContent,
         theme: 'auto'
@@ -126,11 +127,45 @@
     }
   }
 
+  /**
+   * Update help content for a new mode
+   * Loads content for the specified mode and updates the existing HelpModal instance
+   * @param {string} mode - Mode name ('vector', 'matrix', or 'tensor')
+   * @returns {Promise<void>}
+   */
+  async function updateHelpContent(mode = 'vector') {
+    if (!initialized) {
+      console.warn('Help modal not initialized. Call initializeHelpModal() first.');
+      return;
+    }
+
+    if (!helpModalInstance) {
+      console.warn('HelpModal instance not available. Cannot update content.');
+      return;
+    }
+
+    try {
+      const content = await loadHelpContent(mode);
+      if (helpModalInstance && typeof helpModalInstance.updateContent === 'function') {
+        helpModalInstance.updateContent(content);
+      } else {
+        console.error('HelpModal instance does not have updateContent method');
+      }
+    } catch (error) {
+      console.error(`Failed to update help content for mode '${mode}':`, error);
+      // Fallback: try to show error message
+      if (helpModalInstance && typeof helpModalInstance.updateContent === 'function') {
+        helpModalInstance.updateContent(`<p>Help content could not be loaded for mode '${mode}'.</p>`);
+      }
+    }
+  }
+
   // Export to global scope
   window.HelpService = {
     initializeHelpModal,
     appendHelpContent,
-    loadHelpContent
+    loadHelpContent,
+    updateHelpContent
   };
 })();
 

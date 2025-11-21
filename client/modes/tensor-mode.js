@@ -133,7 +133,7 @@ class TensorMode {
         html = `
           <div class="scalar-input-wrapper">
             <label>Value</label>
-            <input type="number" id="scalar-input" class="matrix-input" value="${this.tensorData.scalar}" step="0.1">
+            <input type="number" id="tensor-scalar-input" class="matrix-input" value="${this.tensorData.scalar}" step="0.1">
           </div>
         `;
         break;
@@ -143,8 +143,8 @@ class TensorMode {
             <label>Components</label>
             <div class="matrix-grid small">
               <div class="matrix-row">
-                <input type="number" id="vector-x" class="matrix-input" value="${this.tensorData.vector.x}" step="0.1" placeholder="x">
-                <input type="number" id="vector-y" class="matrix-input" value="${this.tensorData.vector.y}" step="0.1" placeholder="y">
+                <input type="number" id="tensor-vector-x" class="matrix-input" value="${this.tensorData.vector.x}" step="0.1" placeholder="x">
+                <input type="number" id="tensor-vector-y" class="matrix-input" value="${this.tensorData.vector.y}" step="0.1" placeholder="y">
               </div>
             </div>
           </div>
@@ -156,12 +156,12 @@ class TensorMode {
             <label>2x2 Matrix</label>
             <div class="matrix-grid small">
               <div class="matrix-row">
-                <input type="number" id="m00" class="matrix-input" value="${this.tensorData.matrix[0][0]}" step="0.1">
-                <input type="number" id="m01" class="matrix-input" value="${this.tensorData.matrix[0][1]}" step="0.1">
+                <input type="number" id="tensor-m00" class="matrix-input" value="${this.tensorData.matrix[0][0]}" step="0.1">
+                <input type="number" id="tensor-m01" class="matrix-input" value="${this.tensorData.matrix[0][1]}" step="0.1">
               </div>
               <div class="matrix-row">
-                <input type="number" id="m10" class="matrix-input" value="${this.tensorData.matrix[1][0]}" step="0.1">
-                <input type="number" id="m11" class="matrix-input" value="${this.tensorData.matrix[1][1]}" step="0.1">
+                <input type="number" id="tensor-m10" class="matrix-input" value="${this.tensorData.matrix[1][0]}" step="0.1">
+                <input type="number" id="tensor-m11" class="matrix-input" value="${this.tensorData.matrix[1][1]}" step="0.1">
               </div>
             </div>
           </div>
@@ -176,12 +176,12 @@ class TensorMode {
                 <span>Slice 1 (Front, z=0)</span>
                 <div class="matrix-grid small">
                   <div class="matrix-row">
-                    <input type="number" id="t000" class="matrix-input" value="${this.tensorData.tensor3d[0][0][0]}" step="0.1">
-                    <input type="number" id="t001" class="matrix-input" value="${this.tensorData.tensor3d[0][0][1]}" step="0.1">
+                    <input type="number" id="tensor-t000" class="matrix-input" value="${this.tensorData.tensor3d[0][0][0]}" step="0.1">
+                    <input type="number" id="tensor-t001" class="matrix-input" value="${this.tensorData.tensor3d[0][0][1]}" step="0.1">
                   </div>
                   <div class="matrix-row">
-                    <input type="number" id="t010" class="matrix-input" value="${this.tensorData.tensor3d[0][1][0]}" step="0.1">
-                    <input type="number" id="t011" class="matrix-input" value="${this.tensorData.tensor3d[0][1][1]}" step="0.1">
+                    <input type="number" id="tensor-t010" class="matrix-input" value="${this.tensorData.tensor3d[0][1][0]}" step="0.1">
+                    <input type="number" id="tensor-t011" class="matrix-input" value="${this.tensorData.tensor3d[0][1][1]}" step="0.1">
                   </div>
                 </div>
               </div>
@@ -189,12 +189,12 @@ class TensorMode {
                 <span>Slice 2 (Back, z=1)</span>
                 <div class="matrix-grid small">
                   <div class="matrix-row">
-                    <input type="number" id="t100" class="matrix-input" value="${this.tensorData.tensor3d[1][0][0]}" step="0.1">
-                    <input type="number" id="t101" class="matrix-input" value="${this.tensorData.tensor3d[1][0][1]}" step="0.1">
+                    <input type="number" id="tensor-t100" class="matrix-input" value="${this.tensorData.tensor3d[1][0][0]}" step="0.1">
+                    <input type="number" id="tensor-t101" class="matrix-input" value="${this.tensorData.tensor3d[1][0][1]}" step="0.1">
                   </div>
                   <div class="matrix-row">
-                    <input type="number" id="t110" class="matrix-input" value="${this.tensorData.tensor3d[1][1][0]}" step="0.1">
-                    <input type="number" id="t111" class="matrix-input" value="${this.tensorData.tensor3d[1][1][1]}" step="0.1">
+                    <input type="number" id="tensor-t110" class="matrix-input" value="${this.tensorData.tensor3d[1][1][0]}" step="0.1">
+                    <input type="number" id="tensor-t111" class="matrix-input" value="${this.tensorData.tensor3d[1][1][1]}" step="0.1">
                   </div>
                 </div>
               </div>
@@ -290,7 +290,7 @@ class TensorMode {
     );
 
     // Scalar
-    const scalarInput = this.root.querySelector('#scalar-input');
+    const scalarInput = this.root.querySelector('#tensor-scalar-input');
     if (scalarInput) {
       this.handleScalarInput = (e) => {
         this.tensorData.scalar = parseFloat(e.target.value) || 0;
@@ -309,8 +309,8 @@ class TensorMode {
     }
 
     // Vector
-    const vx = this.root.querySelector('#vector-x');
-    const vy = this.root.querySelector('#vector-y');
+    const vx = this.root.querySelector('#tensor-vector-x');
+    const vy = this.root.querySelector('#tensor-vector-y');
     if (vx && vy) {
       this.handleVectorInput = () => {
         this.tensorData.vector.x = parseFloat(vx.value) || 0;
@@ -335,8 +335,9 @@ class TensorMode {
     if (this.rank === 2) {
       const inputs = this.root.querySelectorAll('.matrix-input-wrapper input');
       this.handleMatrixInput = (input) => {
-        const r = parseInt(input.id.charAt(1));
-        const c = parseInt(input.id.charAt(2));
+        // Parse indices from tensor-m00 format: positions 8 and 9 contain row and col
+        const r = parseInt(input.id.slice(8, 9));
+        const c = parseInt(input.id.slice(9, 10));
         this.tensorData.matrix[r][c] = parseFloat(input.value) || 0;
 
         // Log matrix input change
@@ -359,9 +360,10 @@ class TensorMode {
     if (this.rank === 3) {
       const inputs = this.root.querySelectorAll('.tensor3d-input-wrapper input');
       this.handleTensor3DInput = (input) => {
-        const s = parseInt(input.id.charAt(1));
-        const r = parseInt(input.id.charAt(2));
-        const c = parseInt(input.id.charAt(3));
+        // Parse indices from tensor-t000 format: positions 8, 9, and 10 contain slice, row, and col
+        const s = parseInt(input.id.slice(8, 9));
+        const r = parseInt(input.id.slice(9, 10));
+        const c = parseInt(input.id.slice(10, 11));
         this.tensorData.tensor3d[s][r][c] = parseFloat(input.value) || 0;
 
         // Log tensor 3D input change

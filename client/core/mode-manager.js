@@ -10,48 +10,89 @@
       this.vectorContent = document.querySelector('.mode-content[data-mode="vector"]');
       this.matrixContent = document.querySelector('.mode-content[data-mode="matrix"]');
       this.tensorContent = document.querySelector('.mode-content[data-mode="tensor"]');
-      this.modeButtons = document.querySelectorAll('.mode-btn');
-      this.setupModeSwitcher();
+      this.modeButtons = [];
       this.currentMode = null;
       this.currentModeInstance = null;
       this.modes = {}; // Registry of mode factories
       this.coordSystem = null; // Shared CoordinateSystem instance
-    }
-
-    setupModeSwitcher() {
-      this.modeButtons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const mode = e.target.dataset.mode;
-          // Prevent switching to disabled modes
-          if (e.target.disabled) {
-            return;
-          }
-          this.setMode(mode);
-        });
-      });
+      this.enabledModes = []; // Array of enabled mode names
+      this.modeSwitcher = document.querySelector('.mode-switcher');
+      this.modeChangeCallbacks = []; // Array of callbacks to notify on mode changes
     }
 
     /**
-     * Configure mode buttons based on enabledModes array
-     * Buttons not in enabledModes will be disabled but remain visible
+     * Render mode buttons dynamically based on enabledModes array
+     * Only creates buttons for modes that are enabled
      * @param {string[]} enabledModes - Array of mode names that should be enabled
      */
-    configureModeButtons(enabledModes) {
+    renderModeButtons(enabledModes) {
       if (!Array.isArray(enabledModes) || enabledModes.length === 0) {
         console.warn('Invalid enabledModes, enabling all modes by default');
         enabledModes = ['vector', 'matrix', 'tensor'];
       }
 
-      this.modeButtons.forEach(btn => {
-        const mode = btn.dataset.mode;
+      // Store enabled modes for validation
+      this.enabledModes = enabledModes;
+
+      if (!this.modeSwitcher) {
+        console.error('Mode switcher container not found');
+        return;
+      }
+
+      // Clear existing buttons
+      this.modeSwitcher.innerHTML = '';
+      this.modeButtons = [];
+
+      // Mode display names
+      const modeLabels = {
+        vector: 'Vector',
+        matrix: 'Matrix',
+        tensor: 'Tensor'
+      };
+
+      // Create buttons for each enabled mode
+      enabledModes.forEach((mode, index) => {
+        const button = document.createElement('button');
+        button.className = 'mode-btn';
+        if (enabledModes.length === 1) {
+          // Single mode: style as header-like button
+          button.classList.add('mode-btn-single');
+          button.setAttribute('title', `${modeLabels[mode]} View`);
+          button.setAttribute('aria-label', `${modeLabels[mode]} View`);
+        }
+        button.setAttribute('data-mode', mode);
+        button.textContent = modeLabels[mode] || mode;
+
+        // Attach click handler
+        button.addEventListener('click', (e) => {
+          const targetMode = e.target.dataset.mode;
+          this.setMode(targetMode);
+        });
+
+        this.modeSwitcher.appendChild(button);
+        this.modeButtons.push(button);
+      });
+    }
+
+    /**
+     * Hide mode content containers for disabled modes
+     * @param {string[]} enabledModes - Array of mode names that should be enabled
+     */
+    hideDisabledModeContainers(enabledModes) {
+      if (!Array.isArray(enabledModes) || enabledModes.length === 0) {
+        console.warn('Invalid enabledModes in hideDisabledModeContainers');
+        return;
+      }
+
+      // Get all mode content containers
+      const allContainers = document.querySelectorAll('.mode-content[data-mode]');
+
+      allContainers.forEach(container => {
+        const mode = container.getAttribute('data-mode');
         if (enabledModes.includes(mode)) {
-          btn.removeAttribute('disabled');
-          btn.disabled = false;
+          container.classList.remove('hidden');
         } else {
-          btn.setAttribute('disabled', 'disabled');
-          btn.disabled = true;
-          // Remove active class from disabled buttons
-          btn.classList.remove('active');
+          container.classList.add('hidden');
         }
       });
     }
@@ -100,11 +141,32 @@
     }
 
     /**
+     * Register a callback to be invoked when mode changes
+     * @param {Function} callback - Callback function that receives the new mode name
+     */
+    onModeChange(callback) {
+      if (typeof callback === 'function') {
+        this.modeChangeCallbacks.push(callback);
+      } else {
+        console.warn('onModeChange: callback must be a function');
+      }
+    }
+
+    /**
      * Set the active mode
      * Handles teardown of current mode and instantiation of new mode
-     * @param {string} modeName - Mode name ('vector' or 'matrix')
+     * @param {string} modeName - Mode name ('vector', 'matrix', or 'tensor')
      */
     setMode(modeName) {
+      // Validate mode is enabled
+      if (this.enabledModes.length > 0 && !this.enabledModes.includes(modeName)) {
+        console.warn(`Mode '${modeName}' is not enabled. Enabled modes: ${this.enabledModes.join(', ')}`);
+        if (window.StatusService) {
+          window.StatusService.setReady();
+        }
+        return;
+      }
+
       if (!this.modes[modeName]) {
         console.error(`Mode '${modeName}' not registered`);
         return;
@@ -140,6 +202,15 @@
         }
 
         console.log(`Mode '${modeName}' activated`);
+
+        // Notify registered callbacks of mode change
+        this.modeChangeCallbacks.forEach(callback => {
+          try {
+            callback(modeName);
+          } catch (error) {
+            console.error('Error in mode change callback:', error);
+          }
+        });
       } catch (error) {
         console.error(`Error instantiating mode '${modeName}':`, error);
         if (window.StatusService) {

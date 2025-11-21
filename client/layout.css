@@ -294,6 +294,12 @@ body.bespoke {
   color: var(--bespoke-muted);
 }
 
+.mode-btn-single {
+  font-weight: 600;
+  font-size: var(--bespoke-font-size-base);
+  padding: var(--bespoke-space-sm) var(--bespoke-space-lg);
+}
+
 /* Form Select Utility Class - Base styles for all selects */
 .bespoke .form-select,
 .bespoke .coord-select,

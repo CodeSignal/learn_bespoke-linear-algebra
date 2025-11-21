@@ -9,7 +9,7 @@
 
   // Default configuration
   const DEFAULT_CONFIG = {
-    mode: 'vector',
+    defaultMode: 'vector',
     enabledModes: ['vector', 'matrix', 'tensor'],
     vectorMode: {
       maxVectors: 2,
@@ -61,6 +61,10 @@
             ...DEFAULT_CONFIG,
             enabledModes: [...DEFAULT_CONFIG.enabledModes]
           };
+          // Ensure defaultMode is always included in enabledModes
+          if (!config.enabledModes.includes(config.defaultMode)) {
+            config.enabledModes = [...config.enabledModes, config.defaultMode];
+          }
           configCache = config;
 
           if (window.StatusService) {
@@ -73,11 +77,19 @@
         const userConfig = await response.json();
 
         // Merge with defaults
+        const defaultMode = userConfig.defaultMode || userConfig.mode || DEFAULT_CONFIG.defaultMode;
+        let enabledModes = Array.isArray(userConfig.enabledModes) && userConfig.enabledModes.length > 0
+          ? userConfig.enabledModes
+          : DEFAULT_CONFIG.enabledModes;
+
+        // Ensure defaultMode is always included in enabledModes
+        if (!enabledModes.includes(defaultMode)) {
+          enabledModes = [...enabledModes, defaultMode];
+        }
+
         const config = {
-          mode: userConfig.mode || DEFAULT_CONFIG.mode,
-          enabledModes: Array.isArray(userConfig.enabledModes) && userConfig.enabledModes.length > 0
-            ? userConfig.enabledModes
-            : DEFAULT_CONFIG.enabledModes,
+          defaultMode: defaultMode,
+          enabledModes: enabledModes,
           vectorMode: {
             ...DEFAULT_CONFIG.vectorMode,
             ...(userConfig.vectorMode || userConfig), // Backward compatible
@@ -97,7 +109,7 @@
         };
 
         configCache = config;
-        console.log(`Configuration loaded successfully. Mode: ${config.mode}`);
+        console.log(`Configuration loaded successfully. Default mode: ${config.defaultMode}`);
 
         if (window.StatusService) {
           window.StatusService.setReady();
@@ -110,6 +122,10 @@
           ...DEFAULT_CONFIG,
           enabledModes: [...DEFAULT_CONFIG.enabledModes]
         };
+        // Ensure defaultMode is always included in enabledModes
+        if (!config.enabledModes.includes(config.defaultMode)) {
+          config.enabledModes = [...config.enabledModes, config.defaultMode];
+        }
         configCache = config;
 
         if (window.StatusService) {
