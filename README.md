@@ -1,8 +1,8 @@
-# CodeSignal Linear Algebra Simulator
+# CodeSignal Linear Algebra Playground
 
 An interactive educational tool for learning vector operations through visual experimentation. Draw vectors on a 2D Cartesian plane and perform operations like addition, subtraction, scalar multiplication, and dot products with smooth animated visualizations.
 
-![CodeSignal Linear Algebra Simulator](https://img.shields.io/badge/CodeSignal-Linear%20Algebra%20Simulator-blue) ![Built with Vanilla JS](https://img.shields.io/badge/built%20with-vanilla%20js-yellow)
+![CodeSignal Linear Algebra Playground](https://img.shields.io/badge/CodeSignal-Linear%20Algebra%20Playground-blue) ![Built with Vanilla JS](https://img.shields.io/badge/built%20with-vanilla%20js-yellow)
 
 ## Features
 
