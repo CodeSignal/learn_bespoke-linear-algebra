@@ -81,10 +81,7 @@ learn-bespoke-linear-algebra/
 │   ├── linear-algebra.css            # App-specific styles
 │   ├── linear-algebra.js             # Main application logic
 │   ├── help-modal.js                 # Help modal component
-│   ├── help-content-template.html    # Help content template
-│   ├── help-content-vector.html      # Vector mode help content
-│   ├── help-content-matrix.html      # Matrix mode help content
-│   ├── help-content-tensor.html      # Tensor mode help content
+│   ├── help-content-*.html           # Mode-specific help content
 │   ├── app.js                        # WebSocket/status handling
 │   ├── config.json                   # Application configuration
 │   ├── core/                         # Shared services
