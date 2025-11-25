@@ -7,11 +7,15 @@ before editing any asset under `client/`, then consult the sub-AGENTS inside
 ## Layout + Asset Ordering
 1. `index.html` is the only HTML entry point. Keep `<body class="bespoke">`.
 2. CSS order (top→bottom) is fixed: `bespoke.css`, `layout.css`,
-   `vector-mode.css`, `matrix-mode.css`, plus any extra sheets appended after
-   the Bespoke base.
-3. Script order in `<head>`/`<body>`: `help-modal.js`, shared core services,
-   `linear-algebra.js`, then mode scripts (`client/modes/*`). New shared
-   utilities belong before `linear-algebra.js`; new modes belong after it.
+   `vector-mode.css`, `matrix-mode.css`, `tensor-mode.css`, plus any extra
+   sheets appended after the Bespoke base.
+3. Script order matches `index.html`: `help-modal.js`, `logger.js`, core block
+   (`status.js`, `config.js`, `operation-schemas.js`, `help.js`,
+   `mode-manager.js`, `color-utils.js`, `theme-service.js`, `results-panel.js`,
+   `format-utils.js`, `vector.js`, `animator.js`, `coordinate-system.js`),
+   `app.js`, entities (`entities/matrix.js`), mode scripts
+   (`client/modes/*`), then `linear-algebra.js` last. New shared utilities go
+   in the core block; new modes sit with the mode scripts.
 4. Template placeholders (`<!-- APP_TITLE -->`, etc.) in legacy templates must
    be replaced exactly once; do not reintroduce them.
 
@@ -20,19 +24,22 @@ before editing any asset under `client/`, then consult the sub-AGENTS inside
   containers. Toggle visibility exclusively through `ModeManager.updateUIVisibility`.
 - `bespoke.css` – **do not edit** (use app-specific sheets instead). Bespoke
   tokens and component rules live in `BESPOKE.md`.
-- `layout.css` / `vector-mode.css` / `matrix-mode.css` – safe locations for
-  app-level overrides. Use Bespoke spacing (`--bespoke-space-*`), radii, and
-  color tokens when possible; test both light/dark schemes after overrides.
+- `layout.css` / `vector-mode.css` / `matrix-mode.css` / `tensor-mode.css` –
+  safe locations for app-level overrides. Use Bespoke spacing
+  (`--bespoke-space-*`), radii, and color tokens when possible; test both
+  light/dark schemes after overrides.
 - `linear-algebra.js` – runtime entry point: loads config, initializes
-  `CanvasThemeService`, registers vector/matrix modes, and flips active mode via
+  `CanvasThemeService`, registers vector/matrix/tensor modes, renders mode
+  buttons based on `enabledModes`, and flips active mode via
   `ModeManager.setMode`. Treat `STYLE_CONSTANTS` as immutable design tokens.
 - `app.js` – bootstraps `HelpService.initializeHelpModal` and manages the
   resilient WebSocket client. On every connection event (open/close/error),
   fall back to `StatusService.setReady()`. New message handlers must guard JSON
-  parsing with try/catch and default to ignoring unknown payloads.
-- `help-modal.js` + `help-content-template.html` – shared help modal
-  infrastructure. Duplicate structure by cloning the template; never invent
-  ad-hoc markup.
+  parsing with try/catch and default to ignoring unknown payloads; help content
+  updates on mode change via `HelpService.updateHelpContent`.
+- `help-modal.js` + `help-content-*.html` – shared help modal infrastructure.
+  Content is loaded per mode through `HelpService`; clone the template file
+  when adding new help sections.
 - `config.json` – student-editable toggles for default mode and operation
   groups. Runtime consumers must go through `ConfigService`.
 - `logger.js` – exposes global `logAction(message)` that POSTs to `/log` and
@@ -40,6 +47,8 @@ before editing any asset under `client/`, then consult the sub-AGENTS inside
   fetches.
 - `entities/matrix.js` – immutable 2×2 matrix model used by matrix mode
   (no AGENTS required because it is <1000 LOC).
+- `modes/tensor-mode.js` + `modes/tensor-canvas-3d.js` – 3D tensor explorer
+  with drag-to-rotate and scroll-to-zoom interactions.
 
 ## Runtime Contracts
 - Call `CanvasThemeService.init(STYLE_CONSTANTS)` once (already done in
@@ -49,7 +58,8 @@ before editing any asset under `client/`, then consult the sub-AGENTS inside
 - `ModeManager.registerMode(name, factory)` defers heavy instantiation until
   the mode activates. Factories must return an object that implements
   `destroy()`; clean up DOM listeners, `requestAnimationFrame` loops, and theme
-  subscriptions there.
+  subscriptions there. Mode buttons and visible containers are driven by
+  `enabledModes` from config; disabled modes are hidden.
 - Always route status changes through `window.StatusService`. Only the verbatim
   strings listed in the root AGENTS are allowed.
 - Config data flows: `ConfigService.loadConfig()` fetches `config.json`, merges

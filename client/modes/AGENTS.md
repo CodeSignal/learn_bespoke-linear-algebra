@@ -66,24 +66,31 @@ Files: `vector-mode.js`, `vector-canvas.js`, `vector-sidebar.js`,
 ## Matrix Mode
 File: `matrix-mode.js` (uses `client/entities/matrix.js` and `client/core/vector.js`).
 
-- Maintains the current 2×2 matrix defined by the input grid (`#m00`–`#m11`),
-  plus basis vectors î and ĵ.
+- Maintains matrices A and B (when allowed by config) plus a vector slot when
+  `appConfig.matrixMode.includeVector` is true. Basis vectors î and ĵ always
+  exist for rendering and determinant shading.
 - Subscribes to `CanvasThemeService` for color updates, propagates theme colors
   into `CoordinateSystem`, and caches accent/danger hues for determinant
   shading.
+- Config-driven visibility:
+  - `maxMatrices` < 2 hides matrix B; `includeVector` hides matrix B, shows the
+    vector inputs, and strips B from the determinant dropdown.
+  - `operationGroups` governs addition, scalar multiplication, multiplication,
+    determinant, and linear transformation. In `includeVector` mode the
+    two-matrix operations hide regardless of config; when `includeVector` is
+    false, linear transformation hides unless enabled.
 - UI bindings:
-  - Input events update `this.inputMatrix`, log via `logAction`, call
-    `updatePreview()`, and rerender the transformed basis vectors.
+  - Input events update stored matrices/vector, log via `logAction`, and
+    rerender preview/determinant overlays.
   - `#show-determinant` toggles the determinant area overlay; wrap async work in
     `StatusService.setLoading()` / `setReady()`.
-  - `#matrix-reset` restores the identity matrix and clears results.
+  - `#matrix-reset` restores the identity matrix (and vector defaults) and
+    clears results.
 - Rendering responsibilities:
   - Draw transformed basis vectors, parallelogram area, and orientation cues on
     the shared canvas.
   - When determinant visualization is enabled, output explanation lines to the
     `ResultsPanel` (det value + orientation).
-- Respect operation group gating: hide determinant controls when
-  `appConfig.matrixMode.operationGroups.determinant` is false.
 - Destroy path must remove event listeners from all inputs/buttons and
   unsubscribe from `CanvasThemeService`.
 

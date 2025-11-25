@@ -26,6 +26,10 @@ across future Bespoke apps.
     flags cannot break the app.
 - `mode-manager.js` (`window.ModeManager`)\
   - Owns `.mode-content` visibility and the shared `CoordinateSystem`.
+  - `renderModeButtons(enabledModes)` + `hideDisabledModeContainers(enabledModes)`
+    drive what the user sees based on `config.json.enabledModes`.
+  - `onModeChange(callback)` notifies helpers like the HelpService when the
+    active mode flips.
   - `registerMode(name, factory)` stores factories that must return instances
     exposing `destroy()`.
   - `setMode(name)` tears down the current instance (wrapped in try/catch) and

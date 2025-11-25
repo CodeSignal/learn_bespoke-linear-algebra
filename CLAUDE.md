@@ -29,9 +29,8 @@ npm start
 node server.js
 ```
 
-Access the application at `http://localhost:3000`
-
-No build step required - this is pure HTML/CSS/JavaScript with no frameworks or build tools.
+Access the application at `http://localhost:3000`. No build step required—this
+is pure HTML/CSS/JavaScript with no frameworks or bundlers.
 
 ## Key Architecture
 
@@ -48,6 +47,8 @@ No build step required - this is pure HTML/CSS/JavaScript with no frameworks or 
 
 2. **Mode System** (`client/core/mode-manager.js`, `client/modes/`)
    - Three modes: VectorMode, MatrixMode, TensorMode
+   - Buttons and visible containers are driven by `config.json.enabledModes` and
+     `ModeManager.renderModeButtons`
    - Each mode is a controller managing its own UI, canvas rendering, and interactions
    - Modes subscribe to theme changes and clean up properly on destroy
    - See `client/modes/AGENTS.md` for detailed implementation contracts
@@ -58,22 +59,27 @@ No build step required - this is pure HTML/CSS/JavaScript with no frameworks or 
    - Supports scalar, vector, matrix, and 3D tensor inputs
    - See `client/modes/AGENTS.md` for lifecycle and teardown requirements
 
-4. **HelpModal** (`client/help-modal.js`)
-   - Reusable modal component with theme support
-   - Singleton pattern with event handling
-   - Mode-specific help content loaded from `help-content-*.html` files
+4. **Help System** (`client/help-modal.js`, `client/core/help.js`)
+   - `HelpService.initializeHelpModal` loads per-mode content (`help-content-*.html`)
+     and updates when `ModeManager` emits mode changes.
 
-5. **Status Management** (`client/core/status.js`, `client/app.js`)
+5. **Status + Logging** (`client/core/status.js`, `client/app.js`, `client/logger.js`)
    - Standardized status messaging system
    - WebSocket client for real-time updates (optional)
+   - `logAction(message)` helper posts to `/log` and must be used for user actions
 
 ### File Loading Order
 
-The HTML must load scripts in this exact order:
-1. `bespoke.css` - Core styling framework
-2. `help-modal.js` - Help system component
-3. `app.js` - WebSocket/status management
-4. `linear-algebra.js` - Main application logic
+Scripts are ordered as in `client/index.html`:
+1. CSS: `bespoke.css`, `layout.css`, `vector-mode.css`, `matrix-mode.css`, `tensor-mode.css`
+2. JS: `help-modal.js`, `logger.js`, core block (`core/status.js`, `core/config.js`,
+   `core/operation-schemas.js`, `core/help.js`, `core/mode-manager.js`,
+   `core/color-utils.js`, `core/theme-service.js`, `core/results-panel.js`,
+   `core/format-utils.js`, `core/vector.js`, `core/animator.js`,
+   `core/coordinate-system.js`), `app.js`, entities (`entities/matrix.js`),
+   mode scripts (`modes/*`), then `linear-algebra.js` entrypoint.
+Add shared utilities to the core block; add new modes alongside the existing
+mode scripts.
 
 ## Bespoke Framework Reference
 
@@ -88,9 +94,8 @@ The HTML must load scripts in this exact order:
 ## Development
 
 ### Testing
-- Main application: `http://localhost:3000`
-- Component testing: `http://localhost:3000/test-integration.html`
-- No formal test suite - manual testing via browser
+- Manual only; open `http://localhost:3000` and exercise each mode. No formal
+  test suite or integration page exists.
 
 ### WebSocket API
 The server provides a `POST /message` endpoint to send alerts to connected clients:
@@ -104,12 +109,14 @@ curl -X POST http://localhost:3000/message -H "Content-Type: application/json" -
 - All files use kebab-case: `linear-algebra.js`, `help-modal.js`, `bespoke.css`
 
 ### Status Messages
-Use standardized messages for consistency:
-- "Ready" - Application loaded successfully
-- "Loading..." - Data is being loaded
-- "Saving..." - Data is being saved
-- "Changes saved" - Save completed successfully
-- "Failed to load data" - Loading failed
+Use the exact strings handled by `StatusService`:
+- "Ready"
+- "Loading..."
+- "Saving..."
+- "Changes saved"
+- "Save failed (will retry)"
+- "Failed to load data"
+- "Auto-save initialized"
 
 ### Code Organization
 - Configuration objects at the top of files
@@ -125,24 +132,30 @@ All Bespoke styles are scoped under `.bespoke` class to prevent conflicts when e
 ```
 client/
 ├── bespoke.css              # Core CSS framework
+├── layout.css               # App layout styling
+├── vector-mode.css          # Vector visuals
+├── matrix-mode.css          # Matrix visuals
+├── tensor-mode.css          # Tensor visuals
 ├── help-modal.js            # Reusable help modal
-├── app.js                   # WebSocket & status handling
-├── linear-algebra.js        # Main app logic
-├── config.json              # Application configuration (modes, operations)
+├── logger.js                # logAction helper -> POST /log
+├── app.js                   # WebSocket & help bootstrap
+├── linear-algebra.js        # Main app logic (registers modes, applies config)
+├── config.json              # Application configuration (default mode, enabled modes, operation groups)
 ├── core/                    # Shared services
-│   ├── mode-manager.js      # Mode switching system
+│   ├── mode-manager.js      # Mode switching system + dynamic buttons
 │   ├── theme-service.js     # Theme management
 │   ├── coordinate-system.js # Coordinate system
 │   └── ...                  # Other core services
-├── modes/                   # Mode controllers
+├── modes/                   # Mode controllers/renderers
 │   ├── vector-mode.js       # Vector mode controller
-│   ├── matrix-mode.js       # Matrix mode controller
+│   ├── matrix-mode.js       # Matrix mode controller (handles A/B or vector)
 │   ├── tensor-mode.js       # Tensor mode controller
-│   └── tensor-canvas-3d.js  # 3D canvas renderer for tensor mode
+│   ├── tensor-canvas-3d.js  # 3D canvas renderer for tensor mode
+│   └── supporting files (vector-sidebar.js, vector-canvas.js, vector-operations.js, matrix-operations.js)
 ├── help-content-*.html      # Mode-specific help content
 └── index.html               # Main HTML structure
 
 server.js                    # Development server
-AGENTS.md                    # Bespoke framework implementation guide
+AGENTS.md                    # Contributor guardrails (root + nested)
 client/modes/AGENTS.md       # Mode implementation contracts
 ```

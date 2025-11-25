@@ -15,21 +15,24 @@ this file first, then the nested `AGENTS.md` files (`client/`, `client/core/`,
 ## Project Overview
 - Education-focused web app served by `server.js`; static assets live under
   `client/`. No build step.
-- Two interaction modes (vector canvas + matrix transformer) share services in
-  `client/core` and controllers in `client/modes`.
+- Three interaction modes share services in `client/core` and controllers in
+  `client/modes`: vector canvas, matrix transformer, and 3D tensor explorer.
+- Mode availability is config-driven (`config.json.enabledModes`); mode buttons
+  render dynamically via `ModeManager` and content for disabled modes is
+  hidden.
 - Status messaging, help modal, theming, coordinate system, and logging are all
   centralized services; do not reimplement per feature.
 
 ## Repository Map
 - `server.js` – static file server + `/message` WebSocket broadcast (requires
   `ws`) + `/log` endpoint that appends to `logs/user_actions.log`.
-- `client/` – HTML, CSS, runtime JS, logger, WebSocket bootstrap. See
+- `client/` – HTML, CSS, runtime JS, logger, WebSocket + help bootstrap. See
   `client/AGENTS.md`.
 - `client/core/` – shared services (ConfigService, ModeManager, CanvasTheme,
   StatusService, HelpService, CoordinateSystem, Vector class, utilities).
-- `client/modes/` – mode controllers (`VectorMode`, `MatrixMode`) plus sidebar,
-  canvas, operations modules. Destroy listeners in `destroy()`. Details in
-  `client/modes/AGENTS.md`.
+- `client/modes/` – controllers for vector/matrix/tensor modes plus sidebar,
+  canvas, operations, and 3D renderer (`tensor-canvas-3d.js`). Destroy
+  listeners in `destroy()`. Details in `client/modes/AGENTS.md`.
 - `client/entities/matrix.js` – immutable 2×2 `Matrix` model.
 - `BESPOKE.md`, `CLAUDE.md`, `README.md`, `refactoring.md` – guidance only;
   do not contradict AGENTS contracts.
@@ -71,10 +74,15 @@ this file first, then the nested `AGENTS.md` files (`client/`, `client/core/`,
   `linear-algebra.js`. Subscribe via `CanvasThemeService.subscribe` to refresh
   renderers when system theme flips; propagate colors to `CoordinateSystem` and
   per-mode canvases.
-- **HTML contract**: Keep `<body class="bespoke">`. Preserve script order:
-  `help-modal.js` → `client/core/*` utilities → `linear-algebra.js` →
-  mode scripts. Append new scripts after `help-modal.js` but before
-  `linear-algebra.js` unless they implement a mode.
+- **HTML contract**: Keep `<body class="bespoke">`. Preserve script order as
+  in `client/index.html`: `help-modal.js` → `logger.js` → core services
+  (`status.js`, `config.js`, `operation-schemas.js`, `help.js`,
+  `mode-manager.js`, `color-utils.js`, `theme-service.js`, `results-panel.js`,
+  `format-utils.js`, `vector.js`, `animator.js`, `coordinate-system.js`) →
+  `app.js` → entities (`entities/matrix.js`) → mode scripts
+  (`vector-*`, `matrix-*`, `tensor-*`) → `linear-algebra.js` entrypoint. New
+  shared utilities belong with the core block; new modes load with other mode
+  scripts.
 - **Bespoke snapshot**: Follow the Bespoke-specific rules listed in
   the user instructions and `BESPOKE.md`.
 
