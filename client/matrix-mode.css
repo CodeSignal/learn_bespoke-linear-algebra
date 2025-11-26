@@ -1,6 +1,13 @@
 /* Matrix Mode Specific Styles */
 
 /* Matrix Mode Color Variables */
+/* Intentional: Domain-specific colors for visual differentiation of matrix basis vectors
+   and vector inputs. These hardcoded colors are kept separate from design system tokens
+   to maintain clear visual distinction between:
+   - Matrix A basis vectors (i: red, j: blue)
+   - Matrix B basis vectors (i: orange, j: purple)
+   - Vector inputs (x/y: green)
+   Future enhancement: Consider mapping to design system accent colors for theme consistency. */
 .mode-content[data-mode="matrix"] {
   --matrix-basis-i-color: #ef4444;
   --matrix-basis-j-color: #3b82f6;
@@ -33,8 +40,6 @@
 }
 
 .matrix-input-section h3, .matrix-input-section h4 {
-  font-size: var(--bespoke-font-size-base);
-  font-weight: 600;
   margin: 0;
   color: var(--bespoke-fg);
 }
@@ -51,10 +56,9 @@
   align-items: center;
 }
 
+/* Intentional exception: Times New Roman for math notation (matrix labels) */
 .matrix-label {
   font-family: 'Times New Roman', serif;
-  font-size: var(--bespoke-font-size-lg);
-  font-weight: var(--bespoke-font-weight-semibold);
   color: var(--bespoke-fg);
   white-space: nowrap;
   display: flex;
@@ -65,7 +69,7 @@
 
 .matrix-label .matrix-name {
   font-style: italic;
-  font-weight: var(--bespoke-font-weight-bold);
+  font-weight: 700;
 }
 
 .matrix-label .matrix-equals {
@@ -74,13 +78,13 @@
 
 .matrix-label .matrix-brackets {
   font-size: 1.2em;
-  font-weight: var(--bespoke-font-weight-normal);
+  font-weight: 400;
   margin: 0 0.1em;
 }
 
 .matrix-label .matrix-basis-vector {
   font-style: italic;
-  font-weight: var(--bespoke-font-weight-bold);
+  font-weight: 700;
   margin: 0 0.15em;
 }
 
@@ -103,7 +107,7 @@
 .matrix-label sub {
   font-size: 0.7em;
   vertical-align: sub;
-  font-weight: var(--bespoke-font-weight-normal);
+  font-weight: 400;
 }
 
 .matrix-grid {
@@ -124,26 +128,11 @@
 
 .bespoke input[type="number"].matrix-input {
   width: 55px;
-  height: 32px;
+  height: var(--UI-Input-xs);
   text-align: center;
-  font-family: 'Courier New', monospace;
-  font-weight: 600;
-  font-size: var(--bespoke-font-size-base);
-  background: var(--bespoke-input-bg);
-  color: var(--bespoke-input-text);
+  font-family: var(--code-family);
+  font-weight: 500;
   border: 2px solid var(--bespoke-stroke);
-  border-radius: var(--bespoke-radius-sm);
-  padding: var(--bespoke-space-xs);
-}
-
-.bespoke input[type="number"].matrix-input:hover {
-  border-color: var(--bespoke-muted);
-}
-
-.bespoke input[type="number"].matrix-input:focus {
-  outline: 2px solid var(--bespoke-accent);
-  outline-offset: 1px;
-  border-color: var(--bespoke-accent);
 }
 
 /* WebKit autofill override for matrix inputs */
@@ -162,13 +151,13 @@
   margin-bottom: 0;
 }
 
+/* Intentional exception: Times New Roman for math notation (matrix column headers) */
 .matrix-column-label {
   width: 55px;
   text-align: center;
   font-family: 'Times New Roman', serif;
   font-style: italic;
-  font-weight: bold;
-  font-size: var(--bespoke-font-size-lg);
+  font-weight: 700;
   padding: var(--bespoke-space-xs) 0;
 }
 
@@ -191,7 +180,7 @@
 .matrix-column-label sub {
   font-size: 0.7em;
   vertical-align: sub;
-  font-weight: var(--bespoke-font-weight-normal);
+  font-weight: 400;
 }
 
 /* Matrix Column Color Coding */
@@ -285,7 +274,7 @@
 /* Vector component labels in matrix-label */
 .vector-component-label {
   font-style: italic;
-  font-weight: var(--bespoke-font-weight-bold);
+  font-weight: 700;
   margin: 0 0.15em;
 }
 
@@ -297,21 +286,6 @@
   color: var(--vector-y-color);
 }
 
-.preset-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: var(--bespoke-space-sm);
-}
-
-.preset-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--bespoke-space-sm);
-}
-
-.preset-grid .btn-small {
-  width: 100%;
-}
 
 .operation-buttons {
   display: flex;
@@ -338,6 +312,12 @@
   min-width: 90px;
 }
 
+/* Button class updates for design system */
+.btn-determinant.button {
+  flex-grow: 1;
+  min-width: 90px;
+}
+
 /* Responsive Design - Matrix Mode Specific */
 @media (max-width: 768px) {
   .preset-grid {
@@ -349,8 +329,5 @@
     height: 28px;
   }
 
-  .matrix-label {
-    font-size: var(--bespoke-font-size-base);
-  }
 }
 

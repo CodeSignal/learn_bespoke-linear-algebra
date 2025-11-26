@@ -17,6 +17,11 @@ after itself, respect shared services (`ModeManager`, `CanvasThemeService`,
 - Honor config gating: check `appConfig.<mode>.operationGroups` before showing
   or enabling any control groups. Use `data-operation-group` attributes that
   already exist in the DOM to hide/show sections.
+- UI components: Use Design System components (`.button`, `.input`, `.box`) from
+  `client/design-system/` for interactive elements. Layout structure uses
+  Bespoke classes (`.sidebar`, `.card`, etc.). Both systems work together;
+  Design System provides modern components while Bespoke provides layout
+  scaffolding.
 
 ## Vector Mode Stack
 Files: `vector-mode.js`, `vector-canvas.js`, `vector-sidebar.js`,

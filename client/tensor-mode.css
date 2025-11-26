@@ -18,25 +18,7 @@
   gap: var(--bespoke-space-sm);
 }
 
-.rank-btn {
-  padding: var(--bespoke-space-sm);
-  background: var(--bespoke-control-bg);
-  border: 1px solid var(--bespoke-control-border);
-  border-radius: var(--bespoke-radius-md);
-  cursor: pointer;
-  font-size: var(--bespoke-font-size-sm);
-  transition: all 0.2s ease;
-}
-
-.rank-btn:hover {
-  background: var(--bespoke-secondary-bg);
-}
-
-.rank-btn.active {
-  background: var(--bespoke-accent);
-  color: white;
-  border-color: var(--bespoke-accent);
-}
+/* Rank button styles are now handled by design system .button classes */
 
 .tensor-input-container {
   background: var(--bespoke-secondary-bg);
@@ -83,9 +65,7 @@
 .slice span {
   display: block;
   margin-bottom: var(--bespoke-space-xs);
-  font-size: var(--bespoke-font-size-xs);
   color: var(--bespoke-muted);
-  font-weight: var(--bespoke-font-weight-medium);
 }
 
 /* Tensor input styles - consistent across all ranks */
@@ -95,24 +75,8 @@
   max-width: 100%;
   box-sizing: border-box;
   text-align: center;
-  font-family: 'Courier New', monospace;
-  font-weight: 600;
-  font-size: var(--bespoke-font-size-base);
-  background: var(--bespoke-input-bg);
-  color: var(--bespoke-input-text);
+  font-family: var(--code-family);
   border: 2px solid var(--bespoke-stroke);
-  border-radius: var(--bespoke-radius-sm);
-  padding: var(--bespoke-space-xs);
-}
-
-.tensor-input-container input[type="number"].matrix-input:hover {
-  border-color: var(--bespoke-muted);
-}
-
-.tensor-input-container input[type="number"].matrix-input:focus {
-  outline: 2px solid var(--bespoke-accent);
-  outline-offset: 1px;
-  border-color: var(--bespoke-accent);
 }
 
 /* Scalar input - centered single input */

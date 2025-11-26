@@ -18,7 +18,6 @@ class VectorSidebar {
 
       // Control buttons
       canvasReset: this.root.querySelector('#canvas-reset'),
-      coordMode: this.root.querySelector('#coord-mode'),
 
       // Operation buttons
       opAdd: this.root.querySelector('#op-add'),
@@ -33,15 +32,10 @@ class VectorSidebar {
       opReflectV2: this.root.querySelector('#op-reflect-v2'),
       opLinearCombo: this.root.querySelector('#op-linear-combo'),
 
-      // Selects and inputs
-      scaleVectorSelect: this.root.querySelector('#scale-vector-select'),
-      normalizeVectorSelect: this.root.querySelector('#normalize-vector-select'),
-      perpendicularVectorSelect: this.root.querySelector('#perpendicular-vector-select'),
+      // Inputs
       scalarInput: this.root.querySelector('#scalar-input'),
       lcScalarA: this.root.querySelector('#lc-scalar-a'),
       lcScalarB: this.root.querySelector('#lc-scalar-b'),
-      reflectTypeV1: this.root.querySelector('#reflect-type-v1'),
-      reflectTypeV2: this.root.querySelector('#reflect-type-v2'),
 
       // Other elements
       vector2Control: this.root.querySelector('#vector2-control')
@@ -53,6 +47,92 @@ class VectorSidebar {
 
     // Event listener references for cleanup
     this.eventListeners = [];
+
+    // Initialize dropdowns
+    this.dropdowns = {};
+    this.initializeDropdowns();
+  }
+
+  /**
+   * Initialize all dropdown components
+   */
+  initializeDropdowns() {
+    // Coordinate mode dropdown
+    const coordModeContainer = this.root.querySelector('#coord-mode-dropdown');
+    if (coordModeContainer && window.Dropdown) {
+      this.dropdowns.coordMode = new window.Dropdown(coordModeContainer, {
+        items: [
+          { value: 'cartesian', label: 'Cartesian' },
+          { value: 'polar', label: 'Polar' }
+        ],
+        selectedValue: 'cartesian',
+        growToFit: true
+      });
+    }
+
+    // Reflection type dropdowns
+    const reflectTypeV1Container = this.root.querySelector('#reflect-type-v1-dropdown');
+    if (reflectTypeV1Container && window.Dropdown) {
+      this.dropdowns.reflectTypeV1 = new window.Dropdown(reflectTypeV1Container, {
+        items: [
+          { value: 'x-axis', label: 'X-axis' },
+          { value: 'y-axis', label: 'Y-axis' },
+          { value: 'diagonal', label: 'Diagonal (y=x)' }
+        ],
+        selectedValue: 'x-axis',
+        growToFit: true
+      });
+    }
+
+    const reflectTypeV2Container = this.root.querySelector('#reflect-type-v2-dropdown');
+    if (reflectTypeV2Container && window.Dropdown) {
+      this.dropdowns.reflectTypeV2 = new window.Dropdown(reflectTypeV2Container, {
+        items: [
+          { value: 'x-axis', label: 'X-axis' },
+          { value: 'y-axis', label: 'Y-axis' },
+          { value: 'diagonal', label: 'Diagonal (y=x)' }
+        ],
+        selectedValue: 'x-axis',
+        growToFit: true
+      });
+    }
+
+    // Vector selection dropdowns
+    const scaleVectorContainer = this.root.querySelector('#scale-vector-dropdown');
+    if (scaleVectorContainer && window.Dropdown) {
+      this.dropdowns.scaleVectorSelect = new window.Dropdown(scaleVectorContainer, {
+        items: [
+          { value: 'v1', label: 'v1' },
+          { value: 'v2', label: 'v2' }
+        ],
+        selectedValue: 'v1',
+        growToFit: true
+      });
+    }
+
+    const normalizeVectorContainer = this.root.querySelector('#normalize-vector-dropdown');
+    if (normalizeVectorContainer && window.Dropdown) {
+      this.dropdowns.normalizeVectorSelect = new window.Dropdown(normalizeVectorContainer, {
+        items: [
+          { value: 'v1', label: 'v1' },
+          { value: 'v2', label: 'v2' }
+        ],
+        selectedValue: 'v1',
+        growToFit: true
+      });
+    }
+
+    const perpendicularVectorContainer = this.root.querySelector('#perpendicular-vector-dropdown');
+    if (perpendicularVectorContainer && window.Dropdown) {
+      this.dropdowns.perpendicularVectorSelect = new window.Dropdown(perpendicularVectorContainer, {
+        items: [
+          { value: 'v1', label: 'v1' },
+          { value: 'v2', label: 'v2' }
+        ],
+        selectedValue: 'v1',
+        growToFit: true
+      });
+    }
   }
 
   /**
@@ -67,11 +147,19 @@ class VectorSidebar {
       this.eventListeners.push({ element: this.elements.canvasReset, event: 'click', handler });
     }
 
-    // Coordinate mode toggle
-    if (this.elements.coordMode && handlers.onCoordModeChange) {
-      const handler = handlers.onCoordModeChange;
-      this.elements.coordMode.addEventListener('change', handler);
-      this.eventListeners.push({ element: this.elements.coordMode, event: 'change', handler });
+    // Coordinate mode dropdown
+    if (this.dropdowns.coordMode && handlers.onCoordModeChange) {
+      // Store handler reference for later use
+      this.coordModeChangeHandler = handlers.onCoordModeChange;
+      // Update dropdown config with onSelect callback
+      if (this.dropdowns.coordMode.config) {
+        this.dropdowns.coordMode.config.onSelect = (value) => {
+          // Create a synthetic event-like object for compatibility
+          if (this.coordModeChangeHandler) {
+            this.coordModeChangeHandler({ target: { value } });
+          }
+        };
+      }
     }
 
     // Operation buttons
@@ -89,7 +177,8 @@ class VectorSidebar {
 
     if (this.elements.opScale && handlers.onScale) {
       const handler = () => {
-        const vectorNum = this.elements.scaleVectorSelect.value === 'v1' ? 1 : 2;
+        const value = this.dropdowns.scaleVectorSelect ? this.dropdowns.scaleVectorSelect.getValue() : 'v1';
+        const vectorNum = value === 'v1' ? 1 : 2;
         handlers.onScale(vectorNum);
       };
       this.elements.opScale.addEventListener('click', handler);
@@ -116,7 +205,8 @@ class VectorSidebar {
 
     if (this.elements.opNormalize && handlers.onNormalize) {
       const handler = () => {
-        const vectorNum = this.elements.normalizeVectorSelect.value === 'v1' ? 1 : 2;
+        const value = this.dropdowns.normalizeVectorSelect ? this.dropdowns.normalizeVectorSelect.getValue() : 'v1';
+        const vectorNum = value === 'v1' ? 1 : 2;
         handlers.onNormalize(vectorNum);
       };
       this.elements.opNormalize.addEventListener('click', handler);
@@ -125,7 +215,8 @@ class VectorSidebar {
 
     if (this.elements.opPerpendicular && handlers.onPerpendicular) {
       const handler = () => {
-        const vectorNum = this.elements.perpendicularVectorSelect.value === 'v1' ? 1 : 2;
+        const value = this.dropdowns.perpendicularVectorSelect ? this.dropdowns.perpendicularVectorSelect.getValue() : 'v1';
+        const vectorNum = value === 'v1' ? 1 : 2;
         handlers.onPerpendicular(vectorNum);
       };
       this.elements.opPerpendicular.addEventListener('click', handler);
@@ -223,47 +314,49 @@ class VectorSidebar {
     if (this.elements.opReflectV2) this.elements.opReflectV2.disabled = !v2Exists;
 
     // Manage dropdowns for single-vector operations
-    if (this.elements.scaleVectorSelect) {
-      const v1Option = this.elements.scaleVectorSelect.querySelector('option[value="v1"]');
-      const v2Option = this.elements.scaleVectorSelect.querySelector('option[value="v2"]');
-      if (v1Option) v1Option.disabled = !v1Exists;
-      if (v2Option) v2Option.disabled = !v2Exists;
+    // Recreate dropdowns with filtered items based on vector availability
+    this.updateVectorSelectDropdown('scaleVectorSelect', v1Exists, v2Exists);
+    this.updateVectorSelectDropdown('normalizeVectorSelect', v1Exists, v2Exists);
+    this.updateVectorSelectDropdown('perpendicularVectorSelect', v1Exists, v2Exists);
+  }
 
-      // Auto-select available vector
-      if (v1Exists && !v2Exists) {
-        this.elements.scaleVectorSelect.value = 'v1';
-      } else if (!v1Exists && v2Exists) {
-        this.elements.scaleVectorSelect.value = 'v2';
-      }
-    }
+  /**
+   * Update a vector select dropdown based on vector availability
+   * @param {string} dropdownKey - Key in this.dropdowns object
+   * @param {boolean} v1Exists - Whether vector 1 exists
+   * @param {boolean} v2Exists - Whether vector 2 exists
+   */
+  updateVectorSelectDropdown(dropdownKey, v1Exists, v2Exists) {
+    const dropdown = this.dropdowns[dropdownKey];
+    if (!dropdown) return;
 
-    if (this.elements.normalizeVectorSelect) {
-      const v1Option = this.elements.normalizeVectorSelect.querySelector('option[value="v1"]');
-      const v2Option = this.elements.normalizeVectorSelect.querySelector('option[value="v2"]');
-      if (v1Option) v1Option.disabled = !v1Exists;
-      if (v2Option) v2Option.disabled = !v2Exists;
+    // Filter items based on availability
+    const availableItems = [];
+    if (v1Exists) availableItems.push({ value: 'v1', label: 'v1' });
+    if (v2Exists) availableItems.push({ value: 'v2', label: 'v2' });
 
-      // Auto-select available vector
-      if (v1Exists && !v2Exists) {
-        this.elements.normalizeVectorSelect.value = 'v1';
-      } else if (!v1Exists && v2Exists) {
-        this.elements.normalizeVectorSelect.value = 'v2';
-      }
-    }
+    if (availableItems.length === 0) return;
 
-    if (this.elements.perpendicularVectorSelect) {
-      const v1Option = this.elements.perpendicularVectorSelect.querySelector('option[value="v1"]');
-      const v2Option = this.elements.perpendicularVectorSelect.querySelector('option[value="v2"]');
-      if (v1Option) v1Option.disabled = !v1Exists;
-      if (v2Option) v2Option.disabled = !v2Exists;
+    // Preserve current selection if still valid
+    const currentValue = dropdown.getValue();
+    const newValue = availableItems.some(item => item.value === currentValue)
+      ? currentValue
+      : availableItems[0].value;
 
-      // Auto-select available vector
-      if (v1Exists && !v2Exists) {
-        this.elements.perpendicularVectorSelect.value = 'v1';
-      } else if (!v1Exists && v2Exists) {
-        this.elements.perpendicularVectorSelect.value = 'v2';
-      }
-    }
+    // Get the container element
+    const container = dropdown.container;
+
+    // Destroy old dropdown
+    dropdown.destroy();
+
+    // Recreate with filtered items
+    const onSelectHandler = dropdown.config.onSelect;
+    this.dropdowns[dropdownKey] = new window.Dropdown(container, {
+      items: availableItems,
+      selectedValue: newValue,
+      growToFit: true,
+      onSelect: onSelectHandler
+    });
   }
 
   /**
@@ -373,8 +466,8 @@ class VectorSidebar {
    * @returns {string} Reflection type ('x-axis', 'y-axis', 'diagonal')
    */
   getReflectionType(vectorNum) {
-    const select = vectorNum === 1 ? this.elements.reflectTypeV1 : this.elements.reflectTypeV2;
-    return select ? select.value : 'x-axis';
+    const dropdown = vectorNum === 1 ? this.dropdowns.reflectTypeV1 : this.dropdowns.reflectTypeV2;
+    return dropdown ? dropdown.getValue() : 'x-axis';
   }
 
   /**
@@ -382,7 +475,7 @@ class VectorSidebar {
    * @returns {string} 'cartesian' or 'polar'
    */
   getCoordinateMode() {
-    return this.elements.coordMode ? this.elements.coordMode.value : 'cartesian';
+    return this.dropdowns.coordMode ? this.dropdowns.coordMode.getValue() : 'cartesian';
   }
 
   /**
@@ -396,6 +489,16 @@ class VectorSidebar {
         }
       });
       this.eventListeners = [];
+    }
+
+    // Destroy all dropdowns
+    if (this.dropdowns) {
+      Object.values(this.dropdowns).forEach(dropdown => {
+        if (dropdown && typeof dropdown.destroy === 'function') {
+          dropdown.destroy();
+        }
+      });
+      this.dropdowns = {};
     }
   }
 }

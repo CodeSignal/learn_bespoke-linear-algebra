@@ -45,8 +45,9 @@ across future Bespoke apps.
     listeners via `destroy()`. Subscribers must unsubscribe inside their
     `destroy()` implementation.
 - `color-utils.js` (`window.ColorUtils`)\
-  - Reads CSS custom properties under `.bespoke`. Use this to keep colors
-    responsive to theme changes instead of hard-coding hex values.
+  - Reads CSS custom properties under `.bespoke` (which are mapped from Design
+    System tokens via `bespoke.css`). Use this to keep colors responsive to
+    theme changes instead of hard-coding hex values.
 - `animator.js` (`class Animator`)\
   - Pure animation helpers (ease curves, `animate`, `lerp`, `lerpVector`).
     Returns a control object with `cancel()`. Modes must cancel outstanding

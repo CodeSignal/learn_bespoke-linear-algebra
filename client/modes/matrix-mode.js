@@ -32,16 +32,13 @@ class MatrixMode {
       // Buttons
       showDeterminant: this.root.querySelector('#show-determinant'),
       matrixReset: this.root.querySelector('#matrix-reset'),
-      // Determinant dropdown
-      determinantMatrixSelect: this.root.querySelector('#determinant-matrix-select'),
       // Operation buttons
       opMatrixAdd: this.root.querySelector('#op-matrix-add'),
       opMatrixScale: this.root.querySelector('#op-matrix-scale'),
       opMatrixMultiply: this.root.querySelector('#op-matrix-multiply'),
       opComputeAx: this.root.querySelector('#op-compute-ax'),
       // Scalar multiplication controls
-      matrixScalarInput: this.root.querySelector('#matrix-scalar-input'),
-      matrixScalarSelect: this.root.querySelector('#matrix-scalar-select')
+      matrixScalarInput: this.root.querySelector('#matrix-scalar-input')
     };
 
     // Initialize ResultsPanel for result display
@@ -50,6 +47,10 @@ class MatrixMode {
 
     // Initialize MatrixOperations
     this.operations = new MatrixOperations(appConfig, styleConstants);
+
+    // Initialize dropdowns
+    this.dropdowns = {};
+    this.initializeDropdowns();
 
     // Matrix state
     this.inputMatrixA = Matrix.identity(2); // Matrix A
@@ -101,6 +102,44 @@ class MatrixMode {
     this.applyOperationGroupVisibility();
     this.applyMatrixVisibility();
     this.updateButtonStates(); // Initialize button states
+  }
+
+  /**
+   * Initialize all dropdown components
+   */
+  initializeDropdowns() {
+    // Matrix scalar select dropdown
+    const matrixScalarContainer = this.root.querySelector('#matrix-scalar-dropdown');
+    if (matrixScalarContainer && window.Dropdown) {
+      this.dropdowns.matrixScalarSelect = new window.Dropdown(matrixScalarContainer, {
+        items: [
+          { value: 'A', label: 'A' },
+          { value: 'B', label: 'B' }
+        ],
+        selectedValue: 'A',
+        growToFit: true
+      });
+    }
+
+    // Determinant matrix select dropdown
+    const determinantMatrixContainer = this.root.querySelector('#determinant-matrix-dropdown');
+    if (determinantMatrixContainer && window.Dropdown) {
+      this.dropdowns.determinantMatrixSelect = new window.Dropdown(determinantMatrixContainer, {
+        items: [
+          { value: 'A', label: 'A' },
+          { value: 'B', label: 'B' }
+        ],
+        selectedValue: 'A',
+        growToFit: true,
+        onSelect: (value) => {
+          this.selectedDeterminantMatrix = value;
+          // If visualization is active, update it immediately
+          if (this.showDeterminantArea) {
+            this.updateDeterminantVisualization();
+          }
+        }
+      });
+    }
   }
 
   // ============================================================================
@@ -198,19 +237,18 @@ class MatrixMode {
         this.elements.vectorVWrapper.style.display = '';
       }
       // Hide matrix B option in determinant dropdown (only A available)
-      if (this.elements.determinantMatrixSelect) {
-        const optionB = this.elements.determinantMatrixSelect.querySelector('option[value="B"]');
-        if (optionB) {
-          optionB.style.display = 'none';
-          // If B is selected but not available, switch to A
-          if (this.selectedDeterminantMatrix === 'B') {
-            this.selectedDeterminantMatrix = 'A';
-            this.elements.determinantMatrixSelect.value = 'A';
-            if (this.showDeterminantArea) {
-              this.updateDeterminantVisualization();
-            }
+      if (this.dropdowns.determinantMatrixSelect) {
+        const currentValue = this.dropdowns.determinantMatrixSelect.getValue();
+        // If B is selected but not available, switch to A
+        if (currentValue === 'B') {
+          this.selectedDeterminantMatrix = 'A';
+          this.dropdowns.determinantMatrixSelect.setValue('A');
+          if (this.showDeterminantArea) {
+            this.updateDeterminantVisualization();
           }
         }
+        // Recreate dropdown with only A option
+        this.updateDeterminantDropdown(false);
       }
     } else {
       // Normal behavior: use maxMatrices to determine visibility
@@ -226,23 +264,18 @@ class MatrixMode {
         this.elements.vectorVWrapper.style.display = 'none';
       }
       // Hide/show matrix B option in determinant dropdown
-      if (this.elements.determinantMatrixSelect) {
-        const optionB = this.elements.determinantMatrixSelect.querySelector('option[value="B"]');
-        if (optionB) {
-          if (maxMatrices >= 2) {
-            optionB.style.display = '';
-          } else {
-            optionB.style.display = 'none';
-            // If B is selected but not available, switch to A
-            if (this.selectedDeterminantMatrix === 'B') {
-              this.selectedDeterminantMatrix = 'A';
-              this.elements.determinantMatrixSelect.value = 'A';
-              if (this.showDeterminantArea) {
-                this.updateDeterminantVisualization();
-              }
-            }
+      if (this.dropdowns.determinantMatrixSelect) {
+        const currentValue = this.dropdowns.determinantMatrixSelect.getValue();
+        // If B is selected but not available, switch to A
+        if (maxMatrices < 2 && currentValue === 'B') {
+          this.selectedDeterminantMatrix = 'A';
+          this.dropdowns.determinantMatrixSelect.setValue('A');
+          if (this.showDeterminantArea) {
+            this.updateDeterminantVisualization();
           }
         }
+        // Recreate dropdown with appropriate options
+        this.updateDeterminantDropdown(maxMatrices >= 2);
       }
     }
   }
@@ -292,18 +325,7 @@ class MatrixMode {
       this.eventListeners.push({ element: this.elements.m11_b, event: 'input', handler: matrixBInputHandler });
     }
 
-    // Determinant matrix dropdown
-    if (this.elements.determinantMatrixSelect) {
-      const handler = () => {
-        this.selectedDeterminantMatrix = this.elements.determinantMatrixSelect.value;
-        // If visualization is active, update it immediately
-        if (this.showDeterminantArea) {
-          this.updateDeterminantVisualization();
-        }
-      };
-      this.elements.determinantMatrixSelect.addEventListener('change', handler);
-      this.eventListeners.push({ element: this.elements.determinantMatrixSelect, event: 'change', handler });
-    }
+    // Determinant matrix dropdown is handled via onSelect callback in initializeDropdowns
 
     // Show determinant button
     if (this.elements.showDeterminant) {
@@ -561,8 +583,8 @@ class MatrixMode {
     }
 
     // Reset dropdown to A
-    if (this.elements.determinantMatrixSelect) {
-      this.elements.determinantMatrixSelect.value = 'A';
+    if (this.dropdowns.determinantMatrixSelect) {
+      this.dropdowns.determinantMatrixSelect.setValue('A');
     }
 
     this.render();
@@ -644,8 +666,8 @@ class MatrixMode {
       return;
     }
 
-    const matrixLabel = this.elements.matrixScalarSelect
-      ? this.elements.matrixScalarSelect.value
+    const matrixLabel = this.dropdowns.matrixScalarSelect
+      ? this.dropdowns.matrixScalarSelect.getValue()
       : 'A';
 
     const selectedMatrix = matrixLabel === 'A' ? this.inputMatrixA : this.inputMatrixB;
@@ -798,21 +820,91 @@ class MatrixMode {
       this.elements.opComputeAx.disabled = !includeVector;
     }
 
-    // Update scalar select options based on effective matrix availability
-    if (this.elements.matrixScalarSelect) {
-      const optionB = this.elements.matrixScalarSelect.querySelector('option[value="B"]');
-      if (optionB) {
-        if (bothMatricesAvailable) {
-          optionB.style.display = '';
-        } else {
-          optionB.style.display = 'none';
-          // If B is selected but not available, switch to A
-          if (this.elements.matrixScalarSelect.value === 'B') {
-            this.elements.matrixScalarSelect.value = 'A';
-          }
+    // Update scalar select dropdown based on effective matrix availability
+    if (this.dropdowns.matrixScalarSelect) {
+      const currentValue = this.dropdowns.matrixScalarSelect.getValue();
+      // If B is selected but not available, switch to A
+      if (!bothMatricesAvailable && currentValue === 'B') {
+        this.dropdowns.matrixScalarSelect.setValue('A');
+      }
+      // Recreate dropdown with appropriate options
+      this.updateMatrixScalarDropdown(bothMatricesAvailable);
+    }
+  }
+
+  /**
+   * Update determinant dropdown based on matrix B availability
+   * @param {boolean} includeB - Whether to include matrix B option
+   */
+  updateDeterminantDropdown(includeB) {
+    const dropdown = this.dropdowns.determinantMatrixSelect;
+    if (!dropdown) return;
+
+    // Filter items based on availability
+    const availableItems = [{ value: 'A', label: 'A' }];
+    if (includeB) {
+      availableItems.push({ value: 'B', label: 'B' });
+    }
+
+    // Preserve current selection if still valid
+    const currentValue = dropdown.getValue();
+    const newValue = availableItems.some(item => item.value === currentValue)
+      ? currentValue
+      : 'A';
+
+    // Get the container element
+    const container = dropdown.container;
+
+    // Destroy old dropdown
+    dropdown.destroy();
+
+    // Recreate with filtered items
+    this.dropdowns.determinantMatrixSelect = new window.Dropdown(container, {
+      items: availableItems,
+      selectedValue: newValue,
+      growToFit: true,
+      onSelect: (value) => {
+        this.selectedDeterminantMatrix = value;
+        // If visualization is active, update it immediately
+        if (this.showDeterminantArea) {
+          this.updateDeterminantVisualization();
         }
       }
+    });
+  }
+
+  /**
+   * Update matrix scalar dropdown based on matrix B availability
+   * @param {boolean} includeB - Whether to include matrix B option
+   */
+  updateMatrixScalarDropdown(includeB) {
+    const dropdown = this.dropdowns.matrixScalarSelect;
+    if (!dropdown) return;
+
+    // Filter items based on availability
+    const availableItems = [{ value: 'A', label: 'A' }];
+    if (includeB) {
+      availableItems.push({ value: 'B', label: 'B' });
     }
+
+    // Preserve current selection if still valid
+    const currentValue = dropdown.getValue();
+    const newValue = availableItems.some(item => item.value === currentValue)
+      ? currentValue
+      : 'A';
+
+    // Get the container element
+    const container = dropdown.container;
+
+    // Destroy old dropdown
+    dropdown.destroy();
+
+    // Recreate with filtered items
+    this.dropdowns.matrixScalarSelect = new window.Dropdown(container, {
+      items: availableItems,
+      selectedValue: newValue,
+      growToFit: true
+    });
   }
 
   // ============================================================================
@@ -1160,6 +1252,16 @@ class MatrixMode {
     if (this.themeUnsubscribe) {
       this.themeUnsubscribe();
       this.themeUnsubscribe = null;
+    }
+
+    // Destroy all dropdowns
+    if (this.dropdowns) {
+      Object.values(this.dropdowns).forEach(dropdown => {
+        if (dropdown && typeof dropdown.destroy === 'function') {
+          dropdown.destroy();
+        }
+      });
+      this.dropdowns = {};
     }
 
     // Clear state

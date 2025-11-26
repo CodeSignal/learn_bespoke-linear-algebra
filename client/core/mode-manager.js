@@ -53,7 +53,7 @@
       // Create buttons for each enabled mode
       enabledModes.forEach((mode, index) => {
         const button = document.createElement('button');
-        button.className = 'mode-btn';
+        button.className = 'button button-tertiary mode-btn';
         if (enabledModes.length === 1) {
           // Single mode: style as header-like button
           button.classList.add('mode-btn-single');
@@ -246,9 +246,11 @@
       // Update switcher buttons
       this.modeButtons.forEach(btn => {
         if (btn.dataset.mode === modeName) {
-          btn.classList.add('active');
+          btn.classList.remove('button-tertiary');
+          btn.classList.add('button-primary', 'active');
         } else {
-          btn.classList.remove('active');
+          btn.classList.remove('button-primary', 'active');
+          btn.classList.add('button-tertiary');
         }
       });
     }
