@@ -62,22 +62,13 @@ class TensorMode {
   }
 
   loadColors() {
-    if (window.CanvasThemeService) {
-      const themeColors = window.CanvasThemeService.getColors();
-      this.colors = {
-        ...themeColors,
-        cubeEdge: themeColors.accent || themeColors.axis,
-        cubeFace: themeColors.accent || themeColors.axis
-      };
-    } else {
-      this.colors = {
-        grid: this.styleConstants.colors.grid,
-        axis: this.styleConstants.colors.axis,
-        text: this.styleConstants.colors.text,
-        cubeEdge: this.styleConstants.colors.accent || this.styleConstants.colors.axis,
-        cubeFace: this.styleConstants.colors.accent || this.styleConstants.colors.axis
-      };
-    }
+    // CanvasThemeService is guaranteed to be initialized before modes
+    const themeColors = window.CanvasThemeService.getColors();
+    this.colors = {
+      ...themeColors,
+      cubeEdge: themeColors.accent || themeColors.axis,
+      cubeFace: themeColors.accent || themeColors.axis
+    };
 
     if (this.coordSystem) {
       this.coordSystem.updateColors(this.colors);

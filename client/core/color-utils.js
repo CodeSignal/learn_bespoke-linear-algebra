@@ -6,24 +6,22 @@
 (function() {
   /**
    * Get colors from CSS custom properties
-   * @param {Object} [styleConstants] - Optional style constants object with colors property for fallbacks
+   * Reads directly from design system CSS variables (no fallbacks needed since CSS loads before JS)
+   * @param {Object} [styleConstants] - Optional parameter kept for backward compatibility (unused)
    * @returns {Object} Color object with grid, axis, text, hover, hoverHighlight, accent, danger properties
    */
   function getColorsFromCSS(styleConstants = null) {
     const bespokeElement = document.querySelector('.bespoke') || document.documentElement;
     const getColor = (varName) => getComputedStyle(bespokeElement).getPropertyValue(varName).trim() || null;
 
-    // Use styleConstants.colors as fallbacks if provided
-    const fallbacks = styleConstants?.colors || {};
-
     return {
-      grid: getColor('--Colors-Stroke-Medium') || fallbacks.grid || null,
-      axis: getColor('--Colors-Stroke-Strong') || fallbacks.axis || null,
-      text: getColor('--Colors-Text-Body-Light') || fallbacks.text || null,
-      hover: getColor('--Colors-Alert-Warning-Default') || fallbacks.hover || null,
-      hoverHighlight: getColor('--Colors-Alert-Warning-Medium-Dark') || fallbacks.hoverHighlight || null,
-      accent: getColor('--Colors-Primary-Default') || fallbacks.accent || '#3b82f6',
-      danger: getColor('--Colors-Alert-Error-Default') || fallbacks.danger || '#ef4444'
+      grid: getColor('--Colors-Stroke-Stronger'),
+      axis: getColor('--Colors-Stroke-Primary-Dark'),
+      text: getColor('--Colors-Text-Body-Light'),
+      hover: getColor('--Colors-Alert-Warning-Default'),
+      hoverHighlight: getColor('--Colors-Alert-Warning-Medium-Dark'),
+      accent: getColor('--Colors-Primary-Default') || '#3b82f6',
+      danger: getColor('--Colors-Alert-Error-Default') || '#ef4444'
     };
   }
 

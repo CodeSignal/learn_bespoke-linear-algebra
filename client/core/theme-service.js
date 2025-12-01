@@ -17,7 +17,7 @@
     /**
      * Initialize the service
      * Loads initial colors and sets up theme listener
-     * @param {Object} styleConstants - Style constants object with colors property for fallbacks
+     * @param {Object} styleConstants - Style constants object (colors property contains domain-specific colors only)
      */
     init(styleConstants) {
       if (!styleConstants || !styleConstants.colors) {
@@ -41,6 +41,8 @@
 
     /**
      * Load colors from CSS using ColorUtils
+     * Generic colors (grid, axis, text, hover, etc.) come from design system CSS variables.
+     * styleConstants parameter is kept for backward compatibility but not used for generic color fallbacks.
      * @returns {Object} Color object with theme-responsive colors
      */
     loadColors() {

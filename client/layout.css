@@ -220,7 +220,7 @@ body.bespoke {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--Colors-Backgrounds-Main-Strong);
+  background: var(--Colors-Backgrounds-Main-Medium);
 }
 
 #grid-canvas {

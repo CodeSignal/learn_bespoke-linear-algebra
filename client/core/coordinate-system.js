@@ -117,7 +117,7 @@ class CoordinateSystem {
    * Draw the background grid
    */
   drawGrid() {
-    this.ctx.strokeStyle = this.colors.grid || this.styleConstants.colors.grid;
+    this.ctx.strokeStyle = this.colors.grid;
     this.ctx.lineWidth = this.styleConstants.gridLineWidth;
 
     // Vertical lines
@@ -141,9 +141,9 @@ class CoordinateSystem {
    * Draw the X and Y axes with labels
    */
   drawAxes() {
-    this.ctx.strokeStyle = this.colors.axis || this.styleConstants.colors.axis;
+    this.ctx.strokeStyle = this.colors.axis;
     this.ctx.lineWidth = this.styleConstants.axisLineWidth;
-    this.ctx.fillStyle = this.colors.text || this.styleConstants.colors.text;
+    this.ctx.fillStyle = this.colors.text;
     this.ctx.font = '12px Arial';
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';

@@ -141,16 +141,8 @@ class VectorMode {
   }
 
   loadColors() {
-    // Load theme-responsive colors from CanvasThemeService
-    const themeColors = window.CanvasThemeService
-      ? window.CanvasThemeService.getColors()
-      : {
-          grid: this.styleConstants.colors.grid,
-          axis: this.styleConstants.colors.axis,
-          text: this.styleConstants.colors.text,
-          hover: this.styleConstants.colors.hover,
-          hoverHighlight: this.styleConstants.colors.hoverHighlight
-        };
+    // Load theme-responsive colors from CanvasThemeService (guaranteed to be initialized before modes)
+    const themeColors = window.CanvasThemeService.getColors();
 
     // Store colors with vector-specific colors from styleConstants
     this.colors = {

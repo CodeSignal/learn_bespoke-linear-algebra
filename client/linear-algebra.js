@@ -17,6 +17,7 @@ const STYLE_CONSTANTS = {
   axisLineWidth: 2,
   hitRadius: 15,          // pixels for endpoint hit detection
   colors: {
+    // Domain-specific colors (intentional exceptions, not in design system)
     vector1: '#ef4444',   // red
     vector2: '#3b82f6',   // blue
     result: '#10b981',    // green
@@ -24,11 +25,7 @@ const STYLE_CONSTANTS = {
     matrixBasisJ: '#3b82f6',  // blue for ĵ_A (same as vector2)
     matrixBasisIB: '#f59e0b',  // orange for î_B
     matrixBasisJB: '#a855f7',  // purple for ĵ_B
-    grid: '#d1d5db',      // lighter gray for better contrast in both modes
-    axis: '#9ca3af',      // medium gray
-    text: '#6b7280',      // medium gray for labels
-    hover: '#fbbf24',     // amber - lighter for visibility
-    hoverHighlight: '#f59e0b',  // darker amber for hover ring
+    // Generic colors (grid, axis, text, hover, hoverHighlight) now come from design system CSS variables
   },
   animationDuration: 800, // milliseconds
   parallelogram: {
