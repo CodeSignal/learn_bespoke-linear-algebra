@@ -124,7 +124,7 @@ body.bespoke {
   position: absolute;
   width: 300px;
   max-height: 400px;
-  background: rgba(var(--bespoke-box-rgb), 0.95);
+  background: var(--bespoke-box);
   border: 1px solid var(--bespoke-stroke);
   border-radius: var(--bespoke-radius-lg);
   box-shadow: var(--bespoke-shadow-xl);
