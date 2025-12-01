@@ -6,7 +6,7 @@
 (function() {
   /**
    * Get colors from CSS custom properties
-   * Reads directly from design system CSS variables (no fallbacks needed since CSS loads before JS)
+   * Reads directly from design system CSS variables
    * @param {Object} [styleConstants] - Optional parameter kept for backward compatibility (unused)
    * @returns {Object} Color object with grid, axis, text, hover, hoverHighlight, accent, danger properties
    */
