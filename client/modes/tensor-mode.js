@@ -94,7 +94,7 @@ class TensorMode {
     this.root.innerHTML = `
       <div class="sidebar-section">
         <div class="section-header">
-          <h2 class="heading-small">Tensors (3D View)</h2>
+          <div></div>
           <button id="tensor-reset" class="button button-secondary button-small">Reset</button>
         </div>
 

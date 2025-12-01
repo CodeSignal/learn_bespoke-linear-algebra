@@ -69,9 +69,10 @@
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* Scalar Control */
+/* Scalar Control - Pattern B: Parameterized Action */
 .scalar-control {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--bespoke-space-sm);
   align-items: center;
 }
@@ -79,6 +80,7 @@
 .bespoke .scalar-control input {
   width: 70px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .times-symbol {
@@ -87,65 +89,93 @@
   flex-shrink: 0;
 }
 
-.btn-scale {
-  flex-shrink: 0;
-  min-width: 90px;
+.scalar-control > div {
+  flex: 1 1 auto;
+  min-width: 140px;
 }
 
-/* Reflection Control */
+.btn-scale {
+  flex: 1 1 100%;
+  margin-top: var(--bespoke-space-xs);
+  min-width: unset;
+}
+
+/* Reflection Control - Pattern A: Single-Item Selection + Action */
 .reflection-control {
   display: flex;
-  gap: var(--bespoke-space-sm);
-  align-items: center;
+  flex-direction: column;
+  gap: var(--bespoke-space-md);
   margin-top: var(--bespoke-space-md);
   padding-top: var(--bespoke-space-md);
   border-top: 1px solid var(--bespoke-stroke);
 }
 
-.btn-reflect {
-  flex-shrink: 0;
-  min-width: 80px;
+.reflection-control > div {
+  width: 100%;
 }
 
-/* Normalize Control */
+.btn-reflect {
+  width: 100%;
+  flex-shrink: 0;
+  min-width: unset;
+}
+
+/* Normalize Control - Pattern A: Single-Item Selection + Action */
 .normalize-control {
   display: flex;
-  gap: var(--bespoke-space-sm);
-  align-items: center;
+  flex-direction: column;
+  gap: var(--bespoke-space-md);
+}
+
+.normalize-control > div {
+  width: 100%;
 }
 
 .btn-normalize {
-  flex-grow: 1;
-  min-width: 90px;
+  width: 100%;
+  min-width: unset;
 }
 
-/* Perpendicular Control */
+/* Perpendicular Control - Pattern A: Single-Item Selection + Action */
 .perpendicular-control {
   display: flex;
-  gap: var(--bespoke-space-sm);
-  align-items: center;
+  flex-direction: column;
+  gap: var(--bespoke-space-md);
+}
+
+.perpendicular-control > div {
+  width: 100%;
 }
 
 .btn-perpendicular {
-  flex-grow: 1;
-  min-width: 90px;
+  width: 100%;
+  min-width: unset;
 }
 
-/* Linear Combination Controls */
+/* Linear Combination Controls - Pattern C: Multi-Parameter Action */
 .linear-combo-control {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--bespoke-space-sm);
   align-items: center;
 }
 
 .bespoke .linear-combo-control input[type="number"] {
-  width: 60px;
+  flex: 1 1 calc(50% - 4px);
+  min-width: 60px;
   text-align: center;
-  flex-shrink: 0;
+}
+
+/* Slider containers for linear combination scalars */
+.linear-combo-control > #lc-scalar-a,
+.linear-combo-control > #lc-scalar-b {
+  flex: 1 1 calc(50% - 4px);
+  min-width: 60px;
 }
 
 .linear-combo-control .button {
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 100%;
+  margin-top: var(--bespoke-space-xs);
+  min-width: unset;
 }
 

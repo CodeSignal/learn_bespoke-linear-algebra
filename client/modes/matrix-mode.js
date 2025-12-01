@@ -42,8 +42,13 @@ class MatrixMode {
     };
 
     // Initialize ResultsPanel for result display
-    const resultsElement = this.root.querySelector('#matrix-results');
-    this.resultsPanel = resultsElement ? new ResultsPanel(resultsElement, 'Operations results will be displayed here') : null;
+    const resultsElement = document.querySelector('#matrix-results');
+    this.resultsPanel = resultsElement ? new ResultsPanel(resultsElement, {
+      emptyMessage: 'Operations results will be displayed here',
+      canvasContainer: document.querySelector('.canvas-container'),
+      coordSystem: this.coordSystem,
+      modeInstance: this
+    }) : null;
 
     // Initialize MatrixOperations
     this.operations = new MatrixOperations(appConfig, styleConstants);
@@ -1227,6 +1232,61 @@ class MatrixMode {
   // ============================================================================
   // LIFECYCLE HOOKS
   // ============================================================================
+
+  /**
+   * Get matrix column vectors for collision detection
+   * @returns {Array<Vector>} Array of matrix column vectors
+   */
+  getMatrixVectors() {
+    const vectors = [];
+
+    // Add matrix A column vectors
+    if (this.inputMatrixA) {
+      vectors.push(new Vector(
+        this.inputMatrixA.get(0, 0),
+        this.inputMatrixA.get(1, 0),
+        this.styleConstants.colors.matrixBasisI || '#ef4444',
+        'î'
+      ));
+      vectors.push(new Vector(
+        this.inputMatrixA.get(0, 1),
+        this.inputMatrixA.get(1, 1),
+        this.styleConstants.colors.matrixBasisJ || '#3b82f6',
+        'ĵ'
+      ));
+    }
+
+    // Add matrix B column vectors if enabled
+    const matrixConfig = this.appConfig.matrixMode || {};
+    const maxMatrices = matrixConfig.maxMatrices || 1;
+    if (maxMatrices > 1 && this.inputMatrixB) {
+      vectors.push(new Vector(
+        this.inputMatrixB.get(0, 0),
+        this.inputMatrixB.get(1, 0),
+        '#10b981',
+        'î_B'
+      ));
+      vectors.push(new Vector(
+        this.inputMatrixB.get(0, 1),
+        this.inputMatrixB.get(1, 1),
+        '#8b5cf6',
+        'ĵ_B'
+      ));
+    }
+
+    // Add input vector if enabled
+    const includeVector = matrixConfig.includeVector || false;
+    if (includeVector && this.inputVector) {
+      vectors.push(this.inputVector);
+    }
+
+    // Add result vector if present
+    if (this.resultVector) {
+      vectors.push(this.resultVector);
+    }
+
+    return vectors;
+  }
 
   /**
    * Clean up resources when mode is destroyed

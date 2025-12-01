@@ -214,7 +214,7 @@
       } catch (error) {
         console.error(`Error instantiating mode '${modeName}':`, error);
         if (window.StatusService) {
-          window.StatusService.setStatus('Failed to initialize mode');
+          window.StatusService.setStatus('Error: failed to initialize mode');
         }
       }
     }
@@ -239,6 +239,22 @@
           } else {
             element.classList.remove('active');
             element.classList.add('hidden');
+          }
+        }
+      });
+
+      // Update results overlay visibility
+      const resultsOverlays = {
+        vector: document.querySelector('#vector-results'),
+        matrix: document.querySelector('#matrix-results')
+      };
+
+      Object.entries(resultsOverlays).forEach(([name, element]) => {
+        if (element) {
+          if (name === modeName) {
+            element.style.display = 'flex';
+          } else {
+            element.style.display = 'none';
           }
         }
       });

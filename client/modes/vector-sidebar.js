@@ -5,8 +5,9 @@
  */
 
 class VectorSidebar {
-  constructor(rootElement) {
+  constructor(rootElement, parentMode = null) {
     this.root = rootElement;
+    this.parentMode = parentMode;
 
     // Cache all DOM element references once
     this.elements = {
@@ -42,8 +43,19 @@ class VectorSidebar {
     };
 
     // Initialize ResultsPanel for result display
-    const resultsElement = this.root.querySelector('#vector-results');
-    this.resultsPanel = resultsElement ? new ResultsPanel(resultsElement) : null;
+    const resultsElement = document.querySelector('#vector-results');
+    if (resultsElement && this.parentMode) {
+      this.resultsPanel = new ResultsPanel(resultsElement, {
+        emptyMessage: 'Perform an operation to see results',
+        canvasContainer: document.querySelector('.canvas-container'),
+        coordSystem: this.parentMode.coordSystem,
+        modeInstance: this.parentMode
+      });
+    } else {
+      this.resultsPanel = resultsElement ? new ResultsPanel(resultsElement, {
+        emptyMessage: 'Perform an operation to see results'
+      }) : null;
+    }
 
     // Event listener references for cleanup
     this.eventListeners = [];
@@ -51,6 +63,11 @@ class VectorSidebar {
     // Initialize dropdowns
     this.dropdowns = {};
     this.initializeDropdowns();
+
+    // Initialize sliders
+    this.sliders = {};
+    this.linearComboInputChangeHandler = null; // Will be set by setupEventListeners
+    this.initializeSliders();
   }
 
   /**
@@ -131,6 +148,49 @@ class VectorSidebar {
         ],
         selectedValue: 'v1',
         growToFit: true
+      });
+    }
+  }
+
+  /**
+   * Initialize all numeric slider components
+   */
+  initializeSliders() {
+    // Slider for scalar a
+    const scalarAContainer = this.root.querySelector('#lc-scalar-a');
+    if (scalarAContainer && window.NumericSlider) {
+      this.sliders.lcScalarA = new window.NumericSlider(scalarAContainer, {
+        type: 'single',
+        min: -9,
+        max: 9,
+        step: 0.1,
+        value: 1,
+        showInputs: true,
+        onChange: () => {
+          this.updateLinearComboButton();
+          if (this.linearComboInputChangeHandler) {
+            this.linearComboInputChangeHandler();
+          }
+        }
+      });
+    }
+
+    // Slider for scalar b
+    const scalarBContainer = this.root.querySelector('#lc-scalar-b');
+    if (scalarBContainer && window.NumericSlider) {
+      this.sliders.lcScalarB = new window.NumericSlider(scalarBContainer, {
+        type: 'single',
+        min: -9,
+        max: 9,
+        step: 0.1,
+        value: 1,
+        showInputs: true,
+        onChange: () => {
+          this.updateLinearComboButton();
+          if (this.linearComboInputChangeHandler) {
+            this.linearComboInputChangeHandler();
+          }
+        }
       });
     }
   }
@@ -241,17 +301,10 @@ class VectorSidebar {
       this.eventListeners.push({ element: this.elements.opLinearCombo, event: 'click', handler });
     }
 
-    // Linear combination scalar inputs
-    if (this.elements.lcScalarA && handlers.onLinearComboInputChange) {
-      const handler = handlers.onLinearComboInputChange;
-      this.elements.lcScalarA.addEventListener('input', handler);
-      this.eventListeners.push({ element: this.elements.lcScalarA, event: 'input', handler });
-    }
-
-    if (this.elements.lcScalarB && handlers.onLinearComboInputChange) {
-      const handler = handlers.onLinearComboInputChange;
-      this.elements.lcScalarB.addEventListener('input', handler);
-      this.eventListeners.push({ element: this.elements.lcScalarB, event: 'input', handler });
+    // Store linear combination input change handler for slider callbacks
+    // (sliders are initialized in constructor and already call updateLinearComboButton)
+    if (handlers.onLinearComboInputChange) {
+      this.linearComboInputChangeHandler = handlers.onLinearComboInputChange;
     }
   }
 
@@ -408,16 +461,20 @@ class VectorSidebar {
    * Update linear combination button text
    */
   updateLinearComboButton() {
-    if (!this.elements.opLinearCombo || !this.elements.lcScalarA || !this.elements.lcScalarB) {
+    if (!this.elements.opLinearCombo) {
       return;
     }
 
-    const scalarA = parseFloat(this.elements.lcScalarA.value) || 0;
-    const scalarB = parseFloat(this.elements.lcScalarB.value) || 0;
+    const scalarA = this.sliders.lcScalarA ? this.sliders.lcScalarA.getValue() : 0;
+    const scalarB = this.sliders.lcScalarB ? this.sliders.lcScalarB.getValue() : 0;
+
+    // Round to 1 decimal place
+    const roundedA = Math.round(scalarA * 10) / 10;
+    const roundedB = Math.round(scalarB * 10) / 10;
 
     // Format the button text with proper signs
-    const aText = scalarA === 1 ? '' : scalarA === -1 ? '-' : scalarA;
-    const bText = scalarB >= 0 ? ` + ${scalarB === 1 ? '' : scalarB}` : ` - ${Math.abs(scalarB) === 1 ? '' : Math.abs(scalarB)}`;
+    const aText = roundedA === 1 ? '' : roundedA === -1 ? '-' : roundedA;
+    const bText = roundedB >= 0 ? ` + ${roundedB === 1 ? '' : roundedB}` : ` - ${Math.abs(roundedB) === 1 ? '' : Math.abs(roundedB)}`;
 
     this.elements.opLinearCombo.textContent = `${aText}v₁${bText}v₂`;
   }
@@ -455,8 +512,8 @@ class VectorSidebar {
    * @returns {Object} Object with scalarA and scalarB
    */
   getLinearComboScalars() {
-    const scalarA = this.elements.lcScalarA ? parseFloat(this.elements.lcScalarA.value) : NaN;
-    const scalarB = this.elements.lcScalarB ? parseFloat(this.elements.lcScalarB.value) : NaN;
+    const scalarA = this.sliders.lcScalarA ? this.sliders.lcScalarA.getValue() : NaN;
+    const scalarB = this.sliders.lcScalarB ? this.sliders.lcScalarB.getValue() : NaN;
     return { scalarA, scalarB };
   }
 
@@ -499,6 +556,16 @@ class VectorSidebar {
         }
       });
       this.dropdowns = {};
+    }
+
+    // Destroy all sliders
+    if (this.sliders) {
+      Object.values(this.sliders).forEach(slider => {
+        if (slider && typeof slider.destroy === 'function') {
+          slider.destroy();
+        }
+      });
+      this.sliders = {};
     }
   }
 }

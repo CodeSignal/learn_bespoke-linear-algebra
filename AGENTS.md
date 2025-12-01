@@ -51,7 +51,7 @@ this file first, then the nested `AGENTS.md` files (`client/`, `client/core/`,
 
 ## Mandatory Guardrails
 - **Status strings**: Only use `"Ready"`, `"Loading..."`, `"Saving..."`,
-  `"Changes saved"`, `"Save failed (will retry)"`, `"Failed to load data"`,
+  `"Changes saved"`, `"Save failed (will retry)"`, `"Error: failed to [OPERATION]"`,
   `"Auto-save initialized"`. Route all updates through `window.StatusService`.
 - **Async safety**: Wrap every fetch/WebSocket/localStorage call in try/catch,
   `console.error` failures, and fall back to `StatusService.setReady()` after

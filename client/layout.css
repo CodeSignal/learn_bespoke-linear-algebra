@@ -24,7 +24,7 @@ body.bespoke {
 
 /* Sidebar Styles */
 .sidebar {
-  width: 320px;
+  width: 370px;
   background: var(--bespoke-box);
   border-right: 1px solid var(--bespoke-stroke);
   overflow-y: auto;
@@ -117,6 +117,100 @@ body.bespoke {
 .results-display .result {
   color: var(--bespoke-accent);
   font-weight: 700;
+}
+
+/* Results Overlay */
+.results-overlay {
+  position: absolute;
+  width: 300px;
+  max-height: 400px;
+  background: rgba(var(--bespoke-box-rgb), 0.95);
+  border: 1px solid var(--bespoke-stroke);
+  border-radius: var(--bespoke-radius-lg);
+  box-shadow: var(--bespoke-shadow-xl);
+  backdrop-filter: blur(12px);
+  z-index: 50;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  display: none; /* Hidden by default, shown by mode-manager.js */
+  flex-direction: column;
+}
+
+/* Position Variants */
+.results-overlay.pos-top-left { top: 20px; left: 20px; }
+.results-overlay.pos-top-right { top: 20px; right: 20px; }
+.results-overlay.pos-bottom-left { bottom: 20px; left: 20px; }
+.results-overlay.pos-bottom-right { bottom: 20px; right: 20px; }
+
+/* Overlay Header */
+.results-overlay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--bespoke-space-md);
+  border-bottom: 1px solid var(--bespoke-stroke);
+  background: var(--bespoke-secondary-bg);
+}
+
+.results-title {
+  margin: 0;
+  font-weight: 600;
+  color: var(--bespoke-fg);
+}
+
+.results-controls {
+  display: flex;
+  gap: var(--bespoke-space-xs);
+}
+
+.results-collapse {
+  background: transparent;
+  border: 1px solid var(--bespoke-stroke);
+  border-radius: var(--bespoke-radius-sm);
+  color: var(--bespoke-fg);
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 16px;
+  line-height: 1;
+  transition: all 0.2s ease;
+}
+
+.results-collapse:hover {
+  background: var(--bespoke-secondary-bg);
+  border-color: var(--bespoke-fg);
+}
+
+/* Overlay Content */
+.results-content {
+  padding: var(--bespoke-space-md);
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Collapsed State (Circular Badge) */
+.results-overlay.collapsed {
+  width: 80px;
+  height: 60px;
+  border-radius: var(--bespoke-radius-lg);
+  cursor: pointer;
+  padding: 0;
+}
+
+.results-overlay.collapsed .results-overlay-header,
+.results-overlay.collapsed .results-content {
+  display: none;
+}
+
+.results-overlay.collapsed::before {
+  content: 'Results';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--bespoke-fg);
 }
 
 /* Canvas Container */

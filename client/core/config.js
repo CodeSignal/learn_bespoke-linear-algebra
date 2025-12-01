@@ -77,7 +77,7 @@
         const userConfig = await response.json();
 
         // Merge with defaults
-        const defaultMode = userConfig.defaultMode || userConfig.mode || DEFAULT_CONFIG.defaultMode;
+        const defaultMode = userConfig.defaultMode || DEFAULT_CONFIG.defaultMode;
         let enabledModes = Array.isArray(userConfig.enabledModes) && userConfig.enabledModes.length > 0
           ? userConfig.enabledModes
           : DEFAULT_CONFIG.enabledModes;

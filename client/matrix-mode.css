@@ -296,26 +296,30 @@
   flex: 1;
 }
 
-/* Determinant Control */
+/* Determinant Control - Pattern A: Single-Item Selection + Action */
 .determinant-control {
   display: flex;
-  gap: var(--bespoke-space-sm);
-  align-items: center;
+  flex-direction: column;
+  gap: var(--bespoke-space-md);
+}
+
+.determinant-control > div {
+  width: 100%;
 }
 
 .bespoke .matrix-select {
-  width: 80px;
+  width: 100%;
 }
 
 .btn-determinant {
-  flex-grow: 1;
-  min-width: 90px;
+  width: 100%;
+  min-width: unset;
 }
 
 /* Button class updates for design system */
 .btn-determinant.button {
-  flex-grow: 1;
-  min-width: 90px;
+  width: 100%;
+  min-width: unset;
 }
 
 /* Responsive Design - Matrix Mode Specific */

@@ -14,7 +14,7 @@ class VectorMode {
     this.root = rootElement; // Root element for sidebar (like MatrixMode)
 
     // Initialize modules
-    this.sidebar = new VectorSidebar(this.root);
+    this.sidebar = new VectorSidebar(this.root, this); // Pass parent mode for ResultsPanel integration
     this.canvasRenderer = new VectorCanvas(canvas, coordSystem, styleConstants, {});
     this.operations = new VectorOperations(appConfig, styleConstants);
 
@@ -682,6 +682,18 @@ class VectorMode {
    */
   init() {
     // Already initialized in constructor
+  }
+
+  /**
+   * Get all current vectors for collision detection
+   * @returns {Array<Vector>} Array of current vectors
+   */
+  getVectors() {
+    const vectors = [];
+    if (this.vector1) vectors.push(this.vector1);
+    if (this.vector2) vectors.push(this.vector2);
+    if (this.resultVector) vectors.push(this.resultVector);
+    return vectors;
   }
 
   /**
