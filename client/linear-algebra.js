@@ -215,15 +215,6 @@ async function initializeApp() {
   // Help modal is initialized by app.js via HelpService
 }
 
-function getColorsFromCSS() {
-  if (window.ColorUtils) {
-    return window.ColorUtils.getColorsFromCSS(STYLE_CONSTANTS);
-  }
-  // Fallback if ColorUtils not available - return empty object
-  // Callers should handle fallbacks using STYLE_CONSTANTS directly
-  return {};
-}
-
 // Wait for DOM to be ready, then initialize
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initializeApp);

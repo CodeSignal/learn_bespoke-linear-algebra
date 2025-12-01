@@ -1061,38 +1061,10 @@ class MatrixMode {
 
     // Update visualization
     this.updatePreview();
-
     if (window.StatusService) {
       window.StatusService.setReady();
     }
   }
-
-  /**
-   * Calculate and display eigenvectors
-   * Stub for future implementation of eigenvector calculation and visualization
-   */
-  showEigenvectors() {
-    if (window.StatusService) {
-      window.StatusService.setLoading();
-    }
-
-    // TODO: Implement eigenvector calculation
-    // For now, display a placeholder message
-    if (this.resultsPanel) {
-      this.displayResult(
-        'Eigenvectors: Not yet implemented',
-        'This feature will calculate and visualize the eigenvectors of the matrix.'
-      );
-    }
-
-    // Log operation
-    logAction('Eigenvector calculation requested (not yet implemented)');
-
-    if (window.StatusService) {
-      window.StatusService.setReady();
-    }
-  }
-
 
   // ============================================================================
   // RENDERING
