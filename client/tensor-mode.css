@@ -3,28 +3,28 @@
 .tensor-controls {
   display: flex;
   flex-direction: column;
-  gap: var(--bespoke-space-lg);
+  gap: var(--UI-Spacing-spacing-ms);
 }
 
 .control-group {
   display: flex;
   flex-direction: column;
-  gap: var(--bespoke-space-sm);
+  gap: var(--UI-Spacing-spacing-s);
 }
 
 .rank-selector {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--bespoke-space-sm);
+  gap: var(--UI-Spacing-spacing-s);
 }
 
 /* Rank button styles are now handled by design system .button classes */
 
 .tensor-input-container {
-  background: var(--bespoke-secondary-bg);
-  padding: var(--bespoke-space-md);
-  border-radius: var(--bespoke-radius-md);
-  border: 1px solid var(--bespoke-stroke);
+  background: var(--Colors-Backgrounds-Main-Medium);
+  padding: var(--UI-Spacing-spacing-mxs);
+  border-radius: var(--UI-Radius-radius-xs);
+  border: 1px solid var(--Colors-Stroke-Default);
   width: 100%;
   box-sizing: border-box;
   overflow: hidden;
@@ -47,16 +47,16 @@
 .tensor-slices {
   display: flex;
   flex-direction: column;
-  gap: var(--bespoke-space-md);
+  gap: var(--UI-Spacing-spacing-mxs);
   width: 100%;
   box-sizing: border-box;
 }
 
 .slice {
-  background: var(--bespoke-box);
-  padding: var(--bespoke-space-sm);
-  border-radius: var(--bespoke-radius-sm);
-  border: 1px solid var(--bespoke-stroke);
+  background: var(--Colors-Backgrounds-Main-Default);
+  padding: var(--UI-Spacing-spacing-s);
+  border-radius: var(--UI-Radius-radius-xxs);
+  border: 1px solid var(--Colors-Stroke-Default);
   width: 100%;
   box-sizing: border-box;
   overflow: hidden;
@@ -64,8 +64,8 @@
 
 .slice span {
   display: block;
-  margin-bottom: var(--bespoke-space-xs);
-  color: var(--bespoke-muted);
+  margin-bottom: var(--UI-Spacing-spacing-xxs);
+  color: var(--Colors-Text-Body-Light);
 }
 
 /* Tensor input styles - consistent across all ranks */
@@ -76,7 +76,7 @@
   box-sizing: border-box;
   text-align: center;
   font-family: var(--code-family);
-  border: 2px solid var(--bespoke-stroke);
+  border: 2px solid var(--Colors-Stroke-Default);
 }
 
 /* Scalar input - centered single input */
@@ -89,24 +89,24 @@
 .tensor-input-container .matrix-grid {
   display: flex;
   flex-direction: column;
-  gap: var(--bespoke-space-xs);
+  gap: var(--UI-Spacing-spacing-xxs);
   margin: 0;
-  padding: var(--bespoke-space-sm);
-  background: var(--bespoke-canvas);
-  border-radius: var(--bespoke-radius-sm);
+  padding: var(--UI-Spacing-spacing-s);
+  background: var(--Colors-Backgrounds-Main-Strong);
+  border-radius: var(--UI-Radius-radius-xxs);
   width: 100%;
   box-sizing: border-box;
   overflow: hidden;
 }
 
 .tensor-input-container .matrix-grid.small {
-  padding: var(--bespoke-space-xs);
+  padding: var(--UI-Spacing-spacing-xxs);
   align-items: center;
 }
 
 .tensor-input-container .matrix-row {
   display: flex;
-  gap: var(--bespoke-space-xs);
+  gap: var(--UI-Spacing-spacing-xxs);
   justify-content: center;
   width: 100%;
   box-sizing: border-box;
@@ -123,6 +123,6 @@
 .tensor-input-container input[type="number"].matrix-input:-webkit-autofill,
 .tensor-input-container input[type="number"].matrix-input:-webkit-autofill:hover,
 .tensor-input-container input[type="number"].matrix-input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px var(--bespoke-input-bg) inset !important;
-  -webkit-text-fill-color: var(--bespoke-input-text) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--Colors-Backgrounds-Main-Top) inset !important;
+  -webkit-text-fill-color: var(--Colors-Text-Body-Default) !important;
 }

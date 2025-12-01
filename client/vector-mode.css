@@ -19,18 +19,18 @@
 /* Vector Controls */
 .vector-control {
   /* Extend shared control-card styles */
-  background: var(--bespoke-secondary-bg);
-  border-radius: var(--bespoke-radius-md);
-  padding: var(--bespoke-space-md);
-  border: 1px solid var(--bespoke-stroke);
+  background: var(--Colors-Backgrounds-Main-Medium);
+  border-radius: var(--UI-Radius-radius-xs);
+  padding: var(--UI-Spacing-spacing-mxs);
+  border: 1px solid var(--Colors-Stroke-Default);
 }
 
 .vector-control h3 {
-  margin: 0 0 var(--bespoke-space-md) 0;
-  color: var(--bespoke-fg);
+  margin: 0 0 var(--UI-Spacing-spacing-mxs) 0;
+  color: var(--Colors-Text-Body-Default);
   display: flex;
   align-items: center;
-  gap: var(--bespoke-space-sm);
+  gap: var(--UI-Spacing-spacing-s);
 }
 
 /* Intentional exception: Times New Roman for math notation (vector labels like v₁) */
@@ -51,7 +51,7 @@
 .vector-info {
   display: flex;
   flex-direction: column;
-  gap: var(--bespoke-space-sm);
+  gap: var(--UI-Spacing-spacing-s);
 }
 
 .info-row {
@@ -60,12 +60,12 @@
 }
 
 .info-row .label {
-  color: var(--bespoke-muted);
+  color: var(--Colors-Text-Body-Light);
   font-weight: 500;
 }
 
 .info-row .value {
-  color: var(--bespoke-fg);
+  color: var(--Colors-Text-Body-Default);
   font-family: 'JetBrains Mono', monospace;
 }
 
@@ -73,7 +73,7 @@
 .scalar-control {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--bespoke-space-sm);
+  gap: var(--UI-Spacing-spacing-s);
   align-items: center;
 }
 
@@ -84,8 +84,8 @@
 }
 
 .times-symbol {
-  color: var(--bespoke-fg);
-  padding: 0 var(--bespoke-space-xs);
+  color: var(--Colors-Text-Body-Default);
+  padding: 0 var(--UI-Spacing-spacing-xxs);
   flex-shrink: 0;
 }
 
@@ -96,7 +96,7 @@
 
 .btn-scale {
   flex: 1 1 100%;
-  margin-top: var(--bespoke-space-xs);
+  margin-top: var(--UI-Spacing-spacing-xxs);
   min-width: unset;
 }
 
@@ -104,10 +104,10 @@
 .reflection-control {
   display: flex;
   flex-direction: column;
-  gap: var(--bespoke-space-md);
-  margin-top: var(--bespoke-space-md);
-  padding-top: var(--bespoke-space-md);
-  border-top: 1px solid var(--bespoke-stroke);
+  gap: var(--UI-Spacing-spacing-mxs);
+  margin-top: var(--UI-Spacing-spacing-mxs);
+  padding-top: var(--UI-Spacing-spacing-mxs);
+  border-top: 1px solid var(--Colors-Stroke-Default);
 }
 
 .reflection-control > div {
@@ -124,7 +124,7 @@
 .normalize-control {
   display: flex;
   flex-direction: column;
-  gap: var(--bespoke-space-md);
+  gap: var(--UI-Spacing-spacing-mxs);
 }
 
 .normalize-control > div {
@@ -140,7 +140,7 @@
 .perpendicular-control {
   display: flex;
   flex-direction: column;
-  gap: var(--bespoke-space-md);
+  gap: var(--UI-Spacing-spacing-mxs);
 }
 
 .perpendicular-control > div {
@@ -156,7 +156,7 @@
 .linear-combo-control {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--bespoke-space-sm);
+  gap: var(--UI-Spacing-spacing-s);
   align-items: center;
 }
 
@@ -175,7 +175,7 @@
 
 .linear-combo-control .button {
   flex: 1 1 100%;
-  margin-top: var(--bespoke-space-xs);
+  margin-top: var(--UI-Spacing-spacing-xxs);
   min-width: unset;
 }
 

@@ -1,17 +1,31 @@
-# BESPOKE GENERALIZED COMPONENTS - IMPLEMENTATION CONTEXT
+# Bespoke Simulation Template
 
-This document provides precise implementation instructions for creating embedded applications using the Bespoke generalized components. Follow these instructions exactly to ensure consistency across all applications.
+This document provides precise implementation instructions for creating
+embedded applications using the Bespoke Simulation template. Follow these
+instructions exactly to ensure consistency across all applications.
+NOTE: Never edit this `BESPOKE-TEMPLATE.md` file. Codebase changes should be reflected in the `AGENTS.md` file.
 
-## REQUIRED FILES STRUCTURE
+## Required Files Structure
 
-Every application MUST include these files in the following order:
+Every application should include these files in the following order:
 
-1. bespoke.css (core styling framework)
-2. help-modal.js (help system)
-3. app.js (application logic)
-4. server.js (server)
+1. CodeSignal Design System foundations:
+   - colors/colors.css
+   - spacing/spacing.css
+   - typography/typography.css
+   - components/button/button.css (used in header)
+2. CodeSignal Design System components (optional):
+   - components/boxes/boxes.css
+   - components/dropdown/dropdown.css
+   - components/input/input.css
+   - components/tags/tags.css
+3. bespoke-template.css (template-specific layout, utilities, temporary
+   components)
+4. help-modal.js (help system)
+5. app.js (application logic)
+6. server.js (server)
 
-## HTML TEMPLATE IMPLEMENTATION
+## HTML Template Implementation
 
 1. REPLACE the following placeholders in index.html EXACTLY as specified:
 
@@ -35,23 +49,33 @@ Every application MUST include these files in the following order:
       Add links to your application-specific JavaScript files
       Example: `<script src="./my-app-logic.js"></script>`
 
-3. DO NOT modify the core structure (header, script loading order, etc.)
+2. DO NOT modify the core structure (header, script loading order, etc.)
 
-## CSS IMPLEMENTATION
+## CSS Implementation
 
-1. ALWAYS use the `.bespoke` class on the body element
-2. USE ONLY the provided CSS custom properties for styling:
-   - Colors: `--bespoke-bg`, `--bespoke-fg`, `--bespoke-accent`, etc.
-   - Spacing: `--bespoke-space-xs` through `--bespoke-space-2xl`
-   - Typography: `--bespoke-font-size-*`, `--bespoke-font-weight-*`
-   - Borders: `--bespoke-radius-*`, `--bespoke-stroke`
-   - Shadows: `--bespoke-shadow-*`
+1. ALWAYS use the `.bespoke` class on the body element for scoping
+2. USE design system components directly with proper classes:
+   - Buttons: `button button-primary`, `button button-secondary`,
+     `button button-danger`, `button button-text`
+   - Boxes/Cards: `box card` for card containers
+   - Inputs: Add `input` class to input elements:
+     `<input type="text" class="input" />`
+3. USE design system CSS custom properties for styling:
+   - Colors: `--Colors-*` (e.g., `--Colors-Primary-Default`,
+     `--Colors-Text-Body-Default`)
+   - Spacing: `--UI-Spacing-*` (e.g., `--UI-Spacing-spacing-ml`,
+     `--UI-Spacing-spacing-xl`)
+   - Typography: `--Fonts-*` (e.g., `--Fonts-Body-Default-md`,
+     `--Fonts-Headlines-sm`)
+   - Borders: `--UI-Radius-*` (e.g., `--UI-Radius-radius-s`,
+     `--UI-Radius-radius-m`)
+   - Font families: `--body-family`, `--heading-family`
+4. FOR custom styling, create app-specific CSS files
+5. OVERRIDE design system variables in your app-specific CSS, not in
+   bespoke-template.css
+6. FOLLOW design system naming conventions for consistency
 
-3. FOR custom styling, create app-specific CSS files
-4. OVERRIDE variables in your app-specific CSS, not in bespoke.css
-5. FOLLOW the existing naming conventions for consistency
-
-## JAVASCRIPT IMPLEMENTATION
+## JavaScript Implementation
 
 1. HELP MODAL SETUP:
    a) Create help content using help-content-template.html as reference
@@ -65,7 +89,7 @@ Every application MUST include these files in the following order:
    b) Update status for: loading, saving, errors, user actions
    c) Keep status messages concise and informative
 
-## ERROR HANDLING REQUIREMENTS
+## Error Handling Requirements
 
 1. WRAP all async operations in try-catch blocks
 2. PROVIDE meaningful error messages to users
@@ -74,7 +98,7 @@ Every application MUST include these files in the following order:
 5. HANDLE localStorage quota exceeded errors
 6. VALIDATE data before saving operations
 
-## STATUS MESSAGE CONVENTIONS
+## Status Message Conventions
 
 Use these EXACT status messages for consistency:
 
@@ -86,7 +110,7 @@ Use these EXACT status messages for consistency:
 - "Failed to load data" - Data loading failed
 - "Auto-save initialized" - Auto-save system started
 
-## FILE NAMING CONVENTIONS
+## File Naming Conventions
 
 1. CSS files: kebab-case (e.g., my-app.css, task-manager.css)
 2. JavaScript files: kebab-case (e.g., my-app.js, task-manager.js)
@@ -95,21 +119,30 @@ Use these EXACT status messages for consistency:
 
 ---
 
-# BESPOKE CSS SELECTOR GUIDELINES
+# Bespoke Template Design System Guidelines
 
-This section explains how to use the Bespoke CSS framework for embedded applications.
+This section explains how to use the CodeSignal Design System with the
+Bespoke template for embedded applications.
 
-## OVERVIEW
-The Bespoke CSS framework provides a scoped, reusable set of components that can be embedded in any website without conflicts. All styles are scoped under the `.bespoke` class to prevent interference with parent site styles.
+## Overview
 
-## BASIC USAGE
+The Bespoke template uses the CodeSignal Design System for components and
+tokens, with template-specific layout and utilities. All styles are scoped
+under the `.bespoke` class to prevent interference with parent site styles.
+The template uses design system components directly where available, and
+provides temporary components (modals, form elements) that will be replaced
+when the design system adds them.
+
+## Basic Usage
 
 ### 1. Include the CSS
+
 ```html
-<link rel="stylesheet" href="./generalised/bespoke.css" />
+<link rel="stylesheet" href="./bespoke-template.css" />
 ```
 
 ### 2. Wrap Your Application
+
 ```html
 <div class="bespoke">
   <!-- Your embedded application content goes here -->
@@ -117,22 +150,24 @@ The Bespoke CSS framework provides a scoped, reusable set of components that can
 ```
 
 ### 3. Use the Component Classes
+
 ```html
 <div class="bespoke">
   <header class="header">
     <h1>My App</h1>
     <div class="status">Ready</div>
+    <button class="button button-text">Help</button>
   </header>
 
   <main class="main-layout">
     <aside class="sidebar">
-      <section class="card">
+      <section class="box card">
         <h2>Settings</h2>
         <form>
           <label>Name
-            <input type="text" placeholder="Enter name" />
+            <input type="text" class="input" placeholder="Enter name" />
           </label>
-          <button type="submit">Save</button>
+          <button type="submit" class="button button-primary">Save</button>
         </form>
       </section>
     </aside>
@@ -144,20 +179,22 @@ The Bespoke CSS framework provides a scoped, reusable set of components that can
 </div>
 ```
 
-## COMPONENT REFERENCE
+## Component Reference
 
-### LAYOUT COMPONENTS
+### Layout Components
 
 #### Header
+
 ```html
 <header class="header">
   <h1>App Title</h1>
   <div class="status">Status message</div>
-  <button class="as-button ghost">Help</button>
+  <button class="button button-text">Help</button>
 </header>
 ```
 
 #### Main Layout (Sidebar + Content)
+
 ```html
 <main class="main-layout">
   <aside class="sidebar">
@@ -170,17 +207,19 @@ The Bespoke CSS framework provides a scoped, reusable set of components that can
 ```
 
 #### Cards
+
 ```html
-<section class="card">
+<section class="box card">
   <h2>Card Title</h2>
   <h3>Subtitle</h3>
   <p>Card content goes here</p>
 </section>
 ```
 
-### FORM COMPONENTS
+### Form Components
 
 #### Labels
+
 ```html
 <!-- Vertical label -->
 <label>Field Name
@@ -195,12 +234,13 @@ The Bespoke CSS framework provides a scoped, reusable set of components that can
 ```
 
 #### Input Fields
+
 ```html
 <!-- Text input -->
-<input type="text" placeholder="Enter text" />
+<input type="text" class="input" placeholder="Enter text" />
 
 <!-- Select dropdown -->
-<select>
+<select class="input">
   <option>Option 1</option>
   <option>Option 2</option>
 </select>
@@ -246,22 +286,24 @@ The Bespoke CSS framework provides a scoped, reusable set of components that can
 ```
 
 #### Buttons
+
 ```html
-<!-- Default button -->
-<button>Click Me</button>
+<!-- Text button (default style) -->
+<button class="button button-text">Click Me</button>
 
 <!-- Button variants -->
-<button class="primary">Primary Action</button>
-<button class="danger">Delete</button>
-<button class="ghost">Secondary</button>
+<button class="button button-primary">Primary Action</button>
+<button class="button button-danger">Delete</button>
+<button class="button button-tertiary">Secondary</button>
 
 <!-- Button as link -->
-<a href="#" class="as-button">Link Button</a>
+<a href="#" class="button button-text">Link Button</a>
 ```
 
-### MODAL COMPONENTS
+### Modal Components
 
 #### Basic Modal
+
 ```html
 <div class="modal">
   <div class="modal-backdrop"></div>
@@ -277,9 +319,10 @@ The Bespoke CSS framework provides a scoped, reusable set of components that can
 </div>
 ```
 
-## CUSTOMIZATION
+## Customization
 
 ### CSS Custom Properties
+
 You can override any CSS custom property to customize the appearance:
 
 ```css
@@ -300,6 +343,7 @@ You can override any CSS custom property to customize the appearance:
 ### Available Custom Properties
 
 #### Colors
+
 - `--bespoke-bg`: Background color
 - `--bespoke-fg`: Text color
 - `--bespoke-muted`: Muted text color
@@ -312,6 +356,7 @@ You can override any CSS custom property to customize the appearance:
 - `--bespoke-control-focus`: Focus ring color
 
 #### Spacing
+
 - `--bespoke-space-xs`: 0.25rem
 - `--bespoke-space-sm`: 0.5rem
 - `--bespoke-space-md`: 0.75rem
@@ -320,43 +365,48 @@ You can override any CSS custom property to customize the appearance:
 - `--bespoke-space-2xl`: 2rem
 
 #### Border Radius
+
 - `--bespoke-radius-sm`: 4px
 - `--bespoke-radius-md`: 6px
 - `--bespoke-radius-lg`: 8px
 - `--bespoke-radius-xl`: 12px
 
 #### Shadows
+
 - `--bespoke-shadow-sm`: Small shadow
 - `--bespoke-shadow-md`: Medium shadow
 - `--bespoke-shadow-lg`: Large shadow
 - `--bespoke-shadow-xl`: Extra large shadow
 
-## THEME SUPPORT
+## Theme Support
 
 ### Automatic Dark Mode
-The framework automatically detects the user's system preference and switches between light and dark themes. No additional configuration is needed.
 
-## INTEGRATION EXAMPLES
+The framework automatically detects the user's system preference and switches
+between light and dark themes. No additional configuration is needed.
+
+## Integration Examples
 
 ### Database Designer
+
 ```html
 <div class="bespoke">
   <header class="header">
     <h1>DB Schema Designer</h1>
-    <button id="btn-save">Save</button>
+    <button id="btn-save" class="button button-primary">Save</button>
     <div class="status">Ready</div>
-    <button class="as-button ghost">Help</button>
+    <button class="button button-text">Help</button>
   </header>
 
   <main class="main-layout">
     <aside class="sidebar">
-      <section class="card">
+      <section class="box card">
         <h2>New Table</h2>
         <form>
           <label>Table name
-            <input type="text" placeholder="users" />
+            <input type="text" class="input" placeholder="users" />
           </label>
-          <button type="submit">Add Table</button>
+          <button type="submit" class="button button-primary">Add Table</button>
         </form>
       </section>
     </aside>
@@ -367,9 +417,18 @@ The framework automatically detects the user's system preference and switches be
   </main>
 </div>
 ```
-## BEST PRACTICES
 
-1. **Always wrap in `.bespoke`**: This prevents style conflicts with the parent site
-2. **Use semantic HTML**: Combine with proper HTML elements for accessibility
-3. **Customize via CSS variables**: Don't modify the core CSS file
-4. **Test in both themes**: Ensure your app works in light and dark modes
+## Best Practices
+
+1. **Always wrap in `.bespoke`**: This prevents style conflicts with the parent
+   site
+2. **Use design system components directly**: Use proper class combinations like
+   `button button-primary`
+3. **Use semantic HTML**: Combine with proper HTML elements for accessibility
+4. **Customize via design system CSS variables**: Override design system
+   variables in your app-specific CSS
+5. **Test in both themes**: Ensure your app works in light and dark modes
+6. **Note on temporary components**: Modal and form components in
+   `bespoke-template.css` are temporary and will be replaced when the design
+   system adds them
+

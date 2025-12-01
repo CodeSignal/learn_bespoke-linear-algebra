@@ -11,22 +11,19 @@
    */
   function getColorsFromCSS(styleConstants = null) {
     const bespokeElement = document.querySelector('.bespoke') || document.documentElement;
-    const getColor = (varName) => {
-      const value = getComputedStyle(bespokeElement).getPropertyValue(varName).trim();
-      return value || null;
-    };
+    const getColor = (varName) => getComputedStyle(bespokeElement).getPropertyValue(varName).trim() || null;
 
     // Use styleConstants.colors as fallbacks if provided
     const fallbacks = styleConstants?.colors || {};
 
     return {
-      grid: getColor('--bespoke-canvas-grid') || fallbacks.grid || null,
-      axis: getColor('--bespoke-canvas-axis') || fallbacks.axis || null,
-      text: getColor('--bespoke-canvas-text') || fallbacks.text || null,
-      hover: getColor('--bespoke-canvas-hover') || fallbacks.hover || null,
-      hoverHighlight: getColor('--bespoke-canvas-hover-highlight') || fallbacks.hoverHighlight || null,
-      accent: getColor('--bespoke-accent') || fallbacks.accent || '#3b82f6',
-      danger: getColor('--bespoke-danger') || fallbacks.danger || '#ef4444'
+      grid: getColor('--Colors-Stroke-Medium') || fallbacks.grid || null,
+      axis: getColor('--Colors-Stroke-Strong') || fallbacks.axis || null,
+      text: getColor('--Colors-Text-Body-Light') || fallbacks.text || null,
+      hover: getColor('--Colors-Alert-Warning-Default') || fallbacks.hover || null,
+      hoverHighlight: getColor('--Colors-Alert-Warning-Medium-Dark') || fallbacks.hoverHighlight || null,
+      accent: getColor('--Colors-Primary-Default') || fallbacks.accent || '#3b82f6',
+      danger: getColor('--Colors-Alert-Error-Default') || fallbacks.danger || '#ef4444'
     };
   }
 
@@ -35,4 +32,3 @@
     getColorsFromCSS
   };
 })();
-

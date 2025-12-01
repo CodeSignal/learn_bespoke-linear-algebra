@@ -1,85 +1,4 @@
-/* ===== COMPATIBILITY LAYER ===== */
-/* Maps old bespoke variables to design system tokens */
-.bespoke {
-  /* Color mappings */
-  --bespoke-fg: var(--Colors-Text-Body-Default);
-  --bespoke-muted: var(--Colors-Text-Body-Light);
-  --bespoke-bg: var(--Colors-Backgrounds-Main-Default);
-  --bespoke-secondary-bg: var(--Colors-Backgrounds-Main-Medium);
-  --bespoke-box: var(--Colors-Backgrounds-Main-Default);
-  --bespoke-stroke: var(--Colors-Stroke-Default);
-  --bespoke-accent: var(--Colors-Primary-Default);
-  --bespoke-danger: var(--Colors-Alert-Error-Default);
-  --bespoke-input-bg: var(--Colors-Backgrounds-Main-Top);
-  --bespoke-input-text: var(--Colors-Text-Body-Default);
-  --bespoke-canvas: var(--Colors-Backgrounds-Main-Strong);
-  --bespoke-control-bg: var(--Colors-Backgrounds-Main-Top);
-  --bespoke-control-border: var(--Colors-Stroke-Default);
-  --bespoke-control-focus: var(--Colors-Primary-Default);
-  --bespoke-toggle-bg: var(--Colors-Backgrounds-Main-Medium);
-
-  /* Button color mappings */
-  --bespoke-button-bg: var(--Colors-Backgrounds-Main-Top);
-  --bespoke-button-border: var(--Colors-Stroke-Default);
-  --bespoke-button-text: var(--Colors-Text-Body-Default);
-  --bespoke-button-hover-bg: var(--Colors-Backgrounds-Main-Medium);
-  --bespoke-button-danger-bg: var(--Colors-Alert-Error-Medium);
-  --bespoke-button-danger-border: var(--Colors-Alert-Error-Default);
-  --bespoke-button-save-bg: var(--Colors-Backgrounds-Main-Medium);
-
-  /* Input color mappings */
-  --bespoke-input-border: var(--Colors-Stroke-Default);
-  --bespoke-input-hover-border: var(--Colors-Stroke-Strong);
-
-  /* Spacing mappings */
-  --bespoke-space-xs: var(--UI-Spacing-spacing-xxs);
-  --bespoke-space-sm: var(--UI-Spacing-spacing-s);
-  --bespoke-space-md: var(--UI-Spacing-spacing-mxs);
-  --bespoke-space-lg: var(--UI-Spacing-spacing-ms);
-  --bespoke-space-xl: var(--UI-Spacing-spacing-mxl);
-  --bespoke-space-2xl: var(--UI-Spacing-spacing-xl);
-
-  /* Border radius mappings */
-  --bespoke-radius-sm: var(--UI-Radius-radius-xxs);
-  --bespoke-radius-md: var(--UI-Radius-radius-xs);
-  --bespoke-radius-lg: var(--UI-Radius-radius-s);
-  --bespoke-radius-xl: var(--UI-Radius-radius-m);
-
-  /* Z-index scale (keep as-is) */
-  --bespoke-z-dropdown: 100;
-  --bespoke-z-sticky: 200;
-  --bespoke-z-fixed: 300;
-  --bespoke-z-modal-backdrop: 400;
-  --bespoke-z-modal: 500;
-  --bespoke-z-popover: 600;
-  --bespoke-z-tooltip: 700;
-  --bespoke-z-toast: 800;
-
-  /* Modal padding scale */
-  --bespoke-modal-padding-sm: var(--bespoke-space-md);
-  --bespoke-modal-padding-md: var(--bespoke-space-lg);
-  --bespoke-modal-padding-lg: var(--bespoke-space-xl);
-
-  /* Header padding scale */
-  --bespoke-header-padding-sm: var(--bespoke-space-sm) var(--bespoke-space-md);
-  --bespoke-header-padding-md: var(--bespoke-space-sm) var(--bespoke-space-lg);
-  --bespoke-header-padding-lg: var(--bespoke-space-md) var(--bespoke-space-xl);
-
-  /* Shadow scale */
-  --bespoke-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --bespoke-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --bespoke-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --bespoke-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-
-  /* Canvas-specific colors mapped to design system semantic tokens */
-  --bespoke-canvas-grid: var(--Colors-Stroke-Medium);
-  --bespoke-canvas-axis: var(--Colors-Stroke-Strong);
-  --bespoke-canvas-text: var(--Colors-Text-Body-Light);
-  --bespoke-canvas-hover: var(--Colors-Alert-Warning-Default);
-  --bespoke-canvas-hover-highlight: var(--Colors-Alert-Warning-Medium-Dark);
-}
-
-/* ===== BASE STYLES ===== */
+/* ===== BESPOKE BASE STYLES (Design System native) ===== */
 html, body {
   margin: 0;
   padding: 0;
@@ -91,8 +10,8 @@ html, body {
 
 .bespoke {
   font-family: var(--body-family);
-  color: var(--bespoke-fg);
-  background: var(--bespoke-bg);
+  color: var(--Colors-Text-Body-Default);
+  background: var(--Colors-Backgrounds-Main-Default);
   line-height: 1.6;
   margin: 0;
   padding: 0;
@@ -102,10 +21,10 @@ html, body {
 .bespoke .header {
   display: flex;
   align-items: center;
-  gap: var(--bespoke-space-lg);
-  padding: var(--bespoke-header-padding-md);
-  border-bottom: 1px solid var(--bespoke-stroke);
-  background: var(--bespoke-box);
+  gap: var(--UI-Spacing-spacing-ms);
+  padding: var(--UI-Spacing-spacing-s) var(--UI-Spacing-spacing-ms);
+  border-bottom: 1px solid var(--Colors-Stroke-Default);
+  background: var(--Colors-Backgrounds-Main-Default);
   width: 100%;
   box-sizing: border-box;
 }
@@ -115,21 +34,21 @@ html, body {
 }
 
 .bespoke .header .status {
-  color: var(--bespoke-muted);
+  color: var(--Colors-Text-Body-Light);
 }
 
 /* ===== UTILITY COMPONENTS ===== */
 .bespoke .row {
   display: flex;
   align-items: center;
-  gap: var(--bespoke-space-sm);
+  gap: var(--UI-Spacing-spacing-s);
 }
 
 .bespoke .row-between {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--bespoke-space-lg);
+  gap: var(--UI-Spacing-spacing-ms);
 }
 
 .bespoke .spacer {
@@ -138,8 +57,8 @@ html, body {
 
 .bespoke hr {
   border: none;
-  border-top: 0.5px solid var(--bespoke-stroke);
-  margin: var(--bespoke-space-lg) 0;
+  border-top: 0.5px solid var(--Colors-Stroke-Default);
+  margin: var(--UI-Spacing-spacing-ms) 0;
 }
 
 /* ===== MODAL COMPONENTS ===== */
@@ -149,11 +68,11 @@ html, body {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: var(--bespoke-z-modal);
+  z-index: 500;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--bespoke-space-xl);
+  padding: var(--UI-Spacing-spacing-mxl);
   box-sizing: border-box;
   margin: 0;
 }
@@ -170,15 +89,15 @@ html, body {
 
 .bespoke .modal-content {
   position: relative;
-  background: var(--bespoke-box);
-  border: 1px solid var(--bespoke-stroke);
-  border-radius: var(--bespoke-radius-xl);
+  background: var(--Colors-Backgrounds-Main-Default);
+  border: 1px solid var(--Colors-Stroke-Default);
+  border-radius: var(--UI-Radius-radius-m);
   max-width: 800px;
   width: calc(100% - 40px);
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: var(--bespoke-shadow-xl);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   margin: 0;
 }
 
@@ -186,44 +105,44 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--bespoke-modal-padding-lg);
-  border-bottom: 1px solid var(--bespoke-stroke);
-  background: var(--bespoke-box);
-  border-radius: var(--bespoke-radius-xl) var(--bespoke-radius-xl) 0 0;
+  padding: var(--UI-Spacing-spacing-mxl);
+  border-bottom: 1px solid var(--Colors-Stroke-Default);
+  background: var(--Colors-Backgrounds-Main-Default);
+  border-radius: var(--UI-Radius-radius-m) var(--UI-Radius-radius-m) 0 0;
 }
 
 .bespoke .modal-header h2 {
   margin: 0;
-  color: var(--bespoke-fg);
+  color: var(--Colors-Text-Body-Default);
 }
 
 .bespoke .modal-close {
   background: none;
   border: none;
-  color: var(--bespoke-muted);
+  color: var(--Colors-Text-Body-Light);
   cursor: pointer;
-  padding: var(--bespoke-space-xs) var(--bespoke-space-sm);
-  border-radius: var(--bespoke-radius-sm);
+  padding: var(--UI-Spacing-spacing-xxs) var(--UI-Spacing-spacing-s);
+  border-radius: var(--UI-Radius-radius-xxs);
   line-height: 1;
   transition: all 0.2s ease;
 }
 
 .bespoke .modal-close:hover {
-  background: var(--bespoke-control-bg);
-  color: var(--bespoke-fg);
+  background: var(--Colors-Backgrounds-Main-Top);
+  color: var(--Colors-Text-Body-Default);
 }
 
 .bespoke .modal-body {
-  padding: var(--bespoke-modal-padding-lg);
+  padding: var(--UI-Spacing-spacing-mxl);
   overflow-y: auto;
   flex: 1;
   line-height: 1.6;
 }
 
 .bespoke .modal-body h2 {
-  margin-top: var(--bespoke-space-2xl);
-  margin-bottom: var(--bespoke-space-lg);
-  color: var(--bespoke-fg);
+  margin-top: var(--UI-Spacing-spacing-xl);
+  margin-bottom: var(--UI-Spacing-spacing-ms);
+  color: var(--Colors-Text-Body-Default);
 }
 
 .bespoke .modal-body h2:first-child {
@@ -231,46 +150,46 @@ html, body {
 }
 
 .bespoke .modal-body h3 {
-  margin-top: var(--bespoke-space-xl);
-  margin-bottom: var(--bespoke-space-sm);
-  color: var(--bespoke-fg);
+  margin-top: var(--UI-Spacing-spacing-mxl);
+  margin-bottom: var(--UI-Spacing-spacing-s);
+  color: var(--Colors-Text-Body-Default);
 }
 
 .bespoke .modal-body p,
 .bespoke .modal-body li {
-  color: var(--bespoke-fg);
-  margin-bottom: var(--bespoke-space-sm);
+  color: var(--Colors-Text-Body-Default);
+  margin-bottom: var(--UI-Spacing-spacing-s);
 }
 
 .bespoke .modal-body ul,
 .bespoke .modal-body ol {
-  margin: var(--bespoke-space-sm) 0 var(--bespoke-space-lg) 0;
-  padding-left: var(--bespoke-space-xl);
+  margin: var(--UI-Spacing-spacing-s) 0 var(--UI-Spacing-spacing-ms) 0;
+  padding-left: var(--UI-Spacing-spacing-mxl);
 }
 
 .bespoke .modal-body code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   background: rgba(148, 163, 184, 0.12);
-  border-radius: var(--bespoke-radius-sm);
+  border-radius: var(--UI-Radius-radius-xxs);
   padding: 0.15em 0.35em;
 }
 
 .bespoke .modal-body pre {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   background: rgba(148, 163, 184, 0.12);
-  border-radius: var(--bespoke-radius-md);
-  padding: var(--bespoke-space-md);
+  border-radius: var(--UI-Radius-radius-xs);
+  padding: var(--UI-Spacing-spacing-mxs);
   overflow: auto;
-  margin: var(--bespoke-space-lg) 0;
+  margin: var(--UI-Spacing-spacing-ms) 0;
 }
 
 .bespoke .modal-body img,
 .bespoke .modal-body video {
   max-width: 100%;
   height: auto;
-  border-radius: var(--bespoke-radius-md);
-  border: 1px solid var(--bespoke-stroke);
-  margin: var(--bespoke-space-lg) 0;
+  border-radius: var(--UI-Radius-radius-xs);
+  border: 1px solid var(--Colors-Stroke-Default);
+  margin: var(--UI-Spacing-spacing-ms) 0;
 }
 
 /* ===== DARK MODE ADJUSTMENTS ===== */
@@ -288,7 +207,7 @@ html, body {
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
   .bespoke .modal {
-    padding: var(--bespoke-space-sm);
+    padding: var(--UI-Spacing-spacing-s);
   }
 
   .bespoke .modal-content {
@@ -296,11 +215,11 @@ html, body {
   }
 
   .bespoke .modal-header {
-    padding: var(--bespoke-modal-padding-md);
+    padding: var(--UI-Spacing-spacing-ms);
   }
 
   .bespoke .modal-body {
-    padding: var(--bespoke-modal-padding-md);
+    padding: var(--UI-Spacing-spacing-ms);
   }
 
 }

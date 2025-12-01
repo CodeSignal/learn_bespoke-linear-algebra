@@ -9,9 +9,10 @@ before editing any asset under `client/`, then consult the sub-AGENTS inside
 2. CSS order (top→bottom) is fixed: Design System foundations
    (`design-system/colors/colors.css`, `design-system/spacing/spacing.css`,
    `design-system/typography/typography.css`), Design System components
-   (`design-system/components/*`), then `bespoke.css` (compatibility layer),
-   `layout.css`, `vector-mode.css`, `matrix-mode.css`, `tensor-mode.css`, plus
-   any extra sheets appended after the Bespoke base.
+   (`design-system/components/*`), then `bespoke.css` (Bespoke base styles
+   using Design System tokens directly), `layout.css`, `vector-mode.css`,
+   `matrix-mode.css`, `tensor-mode.css`, plus any extra sheets appended after
+   the Bespoke base.
 3. Script order matches `index.html`: `help-modal.js`, `logger.js`, core block
    (`status.js`, `config.js`, `operation-schemas.js`, `help.js`,
    `mode-manager.js`, `color-utils.js`, `theme-service.js`, `results-panel.js`,
@@ -25,13 +26,15 @@ before editing any asset under `client/`, then consult the sub-AGENTS inside
 ## Key Files
 - `index.html` – hosts sidebar + canvas layout, status area, and both `.mode-content`
   containers. Toggle visibility exclusively through `ModeManager.updateUIVisibility`.
-- `bespoke.css` - Acts as a compatibility layer mapping Design System tokens (`--Colors-*`,
-  `--UI-Spacing-*`) to `--bespoke-*` variables for backward compatibility.
-  Bespoke tokens and component rules live in `BESPOKE.md`.
+- `bespoke.css` - Base Bespoke primitives expressed directly with Design System
+  tokens (`--Colors-*`, `--UI-Spacing-*`, `--UI-Radius-*`). No legacy
+  `--bespoke-*` variables remain; extend styles by using the Design System
+  tokens instead of introducing new compatibility shims. Component semantics
+  live in `BESPOKE.md`.
 - `layout.css` / `vector-mode.css` / `matrix-mode.css` / `tensor-mode.css` –
-  safe locations for app-level overrides. Use Bespoke spacing
-  (`--bespoke-space-*`), radii, and color tokens (which map to Design System
-  tokens) when possible; test both light/dark schemes after overrides.
+  safe locations for app-level overrides. Use Design System tokens for spacing,
+  radii, and colors; avoid reintroducing bespoke-prefixed variables. Test both
+  light/dark schemes after overrides.
 - `linear-algebra.js` – runtime entry point: loads config, initializes
   `CanvasThemeService`, registers vector/matrix/tensor modes, renders mode
   buttons based on `enabledModes`, and flips active mode via
@@ -86,9 +89,9 @@ before editing any asset under `client/`, then consult the sub-AGENTS inside
   Instantiate once per sidebar, reuse for all operations.
 - Buttons and inputs use Design System components (`.button`, `.input`) from
   `client/design-system/`. Layout structure uses Bespoke classes (`.sidebar`,
-  `.card`, `.row`, `.toggle`, etc.). Follow spacing tokens (`--bespoke-space-*`
-  or Design System `--UI-Spacing-*`); no magic numbers outside
-  `linear-algebra.css` derivatives.
+  `.card`, `.row`, `.toggle`, etc.). Follow spacing tokens from the Design
+  System (`--UI-Spacing-*`); no magic numbers outside `linear-algebra.css`
+  derivatives.
 
 ## Logging + Diagnostics
 - Server logging is append-only; `logs/user_actions.log` lives outside this

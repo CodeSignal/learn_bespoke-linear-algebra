@@ -1,7 +1,6 @@
 /**
  * Canvas Theme Service
  * Centralizes color loading and theme change listening for canvas-based modes
- * Eliminates duplicate code between VectorMode and MatrixMode
  */
 
 (function() {

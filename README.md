@@ -265,23 +265,14 @@ Use the `help-content-template.html` as a starting point:
 
 ### CSS Customization
 
-The `bespoke.css` file uses CSS custom properties for easy theming:
+`bespoke.css` now consumes the CodeSignal Design System tokens directly. Use
+those tokens in your overrides instead of the legacy `--bespoke-*` variables:
 
 ```css
-.bespoke {
-  --bespoke-accent: #1062fb;        /* Primary accent color */
-  --bespoke-bg: #ffffff;            /* Background color */
-  --bespoke-fg: rgb(24, 33, 57);   /* Text color */
-  /* ... many more variables */
-}
-```
-
-You can override these variables in your app-specific CSS:
-
-```css
-.my-app {
-  --bespoke-accent: #ff6b6b;  /* Custom accent color */
-  --bespoke-bg: #f8f9fa;     /* Custom background */
+.sidebar {
+  background: var(--Colors-Backgrounds-Main-Medium);
+  padding: var(--UI-Spacing-spacing-ms);
+  border-radius: var(--UI-Radius-radius-s);
 }
 ```
 
