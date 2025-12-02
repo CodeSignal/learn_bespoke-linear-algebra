@@ -69,7 +69,6 @@
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* Scalar Control - Pattern B: Parameterized Action */
 .scalar-control {
   display: flex;
   flex-wrap: wrap;
@@ -94,13 +93,7 @@
   min-width: 140px;
 }
 
-.btn-scale {
-  flex: 1 1 100%;
-  margin-top: var(--UI-Spacing-spacing-xxs);
-  min-width: unset;
-}
 
-/* Reflection Control - Pattern A: Single-Item Selection + Action */
 .reflection-control {
   display: flex;
   flex-direction: column;
@@ -114,13 +107,6 @@
   width: 100%;
 }
 
-.btn-reflect {
-  width: 100%;
-  flex-shrink: 0;
-  min-width: unset;
-}
-
-/* Normalize Control - Pattern A: Single-Item Selection + Action */
 .normalize-control {
   display: flex;
   flex-direction: column;
@@ -131,12 +117,6 @@
   width: 100%;
 }
 
-.btn-normalize {
-  width: 100%;
-  min-width: unset;
-}
-
-/* Perpendicular Control - Pattern A: Single-Item Selection + Action */
 .perpendicular-control {
   display: flex;
   flex-direction: column;
@@ -147,12 +127,6 @@
   width: 100%;
 }
 
-.btn-perpendicular {
-  width: 100%;
-  min-width: unset;
-}
-
-/* Linear Combination Controls - Pattern C: Multi-Parameter Action */
 .linear-combo-control {
   display: flex;
   flex-wrap: wrap;
@@ -166,7 +140,6 @@
   text-align: center;
 }
 
-/* Slider containers for linear combination scalars */
 .linear-combo-control > #lc-scalar-a,
 .linear-combo-control > #lc-scalar-b {
   flex: 1 1 calc(50% - 4px);

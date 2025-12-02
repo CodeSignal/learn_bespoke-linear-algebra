@@ -292,10 +292,6 @@
   gap: var(--UI-Spacing-spacing-xxs);
 }
 
-.operation-buttons .btn-small {
-  flex: 1;
-}
-
 /* Determinant Control - Pattern A: Single-Item Selection + Action */
 .determinant-control {
   display: flex;
@@ -307,27 +303,8 @@
   width: 100%;
 }
 
-.bespoke .matrix-select {
-  width: 100%;
-}
-
-.btn-determinant {
-  width: 100%;
-  min-width: unset;
-}
-
-/* Button class updates for design system */
-.btn-determinant.button {
-  width: 100%;
-  min-width: unset;
-}
-
 /* Responsive Design - Matrix Mode Specific */
 @media (max-width: 768px) {
-  .preset-grid {
-    grid-template-columns: 1fr;
-  }
-
   .matrix-input {
     width: 50px;
     height: 28px;

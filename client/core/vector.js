@@ -5,7 +5,7 @@
 
 class Vector {
   // Static default color for result vectors
-  static defaultResultColor = getColor('--Colors-Primary-Default');
+  static defaultResultColor = '#1062FB';  // value from --Colors-Primary-Default
 
   constructor(x, y, color, label, lineWidth = null) {
     this.x = x;

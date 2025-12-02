@@ -34,8 +34,13 @@ class ResultsPanel {
     this.modeInstance = options.modeInstance || null;
 
     // State properties
-    this.isCollapsed = false;
+    this.isCollapsed = true;
     this.currentPosition = 'top-left'; // default position
+
+    // Apply collapsed class to root element for initial collapsed state
+    if (this.root) {
+      this.root.classList.add('collapsed');
+    }
 
     // Find child elements
     this.contentElement = this.root.querySelector('.results-content');
@@ -205,8 +210,8 @@ class ResultsPanel {
     if (!this.canvasContainer) return Infinity;
 
     const containerRect = this.canvasContainer.getBoundingClientRect();
-    const panelWidth = this.isCollapsed ? 60 : 300;
-    const panelHeight = this.isCollapsed ? 60 : 400;
+    const panelWidth = this.isCollapsed ? 100 : 300;
+    const panelHeight = this.isCollapsed ? 80 : 400;
     const margin = 20;
 
     // Calculate panel rectangle for this corner
