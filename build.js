@@ -85,13 +85,9 @@ async function bundleFiles(files, outputPath, loader = 'js') {
 
 // Bundle Design System JavaScript modules and expose to window
 async function bundleDesignSystemModules() {
-  // Use absolute paths for imports to avoid resolution issues in CI
-  const designSystemDir = path.join(__dirname, 'client', 'design-system');
-  const dropdownPath = path.join(designSystemDir, 'components', 'dropdown', 'dropdown.js');
-  const sliderPath = path.join(designSystemDir, 'components', 'numeric-slider', 'numeric-slider.js');
-
-  const tempEntryContent = `import Dropdown from ${JSON.stringify(dropdownPath)};
-import NumericSlider from ${JSON.stringify(sliderPath)};
+  // Use relative paths since absWorkingDir is set to client/
+  const tempEntryContent = `import Dropdown from './design-system/components/dropdown/dropdown.js';
+import NumericSlider from './design-system/components/numeric-slider/numeric-slider.js';
 window.Dropdown = Dropdown;
 window.NumericSlider = NumericSlider;
 `;
@@ -101,7 +97,7 @@ window.NumericSlider = NumericSlider;
 
   try {
     const result = await esbuild.build({
-      entryPoints: [tempEntryPath],
+      entryPoints: ['.temp-design-system-entry.js'], // Relative to absWorkingDir
       bundle: true,
       format: 'iife',
       outfile: path.join(DIST_CLIENT_DIR, 'design-system.bundle.js'),
