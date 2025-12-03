@@ -107,17 +107,8 @@ window.NumericSlider = NumericSlider;
       write: false, // Don't write, we'll handle it manually
     });
 
-    // Get the bundled code
-    let bundled = result.outputFiles[0].text;
-
-    // Ensure window exposure is present (it should be from the entry file)
-    if (!bundled.includes('window.Dropdown')) {
-      bundled += '\nwindow.Dropdown = Dropdown;';
-    }
-    if (!bundled.includes('window.NumericSlider')) {
-      bundled += '\nwindow.NumericSlider = NumericSlider;';
-    }
-
+    // Get the bundled code - esbuild handles window exposure via the entry file
+    const bundled = result.outputFiles[0].text;
     fs.writeFileSync(path.join(DIST_CLIENT_DIR, 'design-system.bundle.js'), bundled);
   } finally {
     // Clean up temp file
@@ -157,7 +148,7 @@ function createProductionHtml() {
   html = html.replace(/<script[^>]*src="[^"]+"[^>]*><\/script>\s*/g, '');
 
   // Remove all CSS link tags
-  html = html.replace(/<link rel="stylesheet" href="[^"]+\.css"[^>]*\/>\s*/g, '');
+  html = html.replace(/<link rel="stylesheet" href="[^"]+\.css"[^>]*>\s*/g, '');
 
   // Insert bundled CSS before </head>
   html = html.replace('</head>', '  <link rel="stylesheet" href="./styles.bundle.css" />\n</head>');
