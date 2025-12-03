@@ -85,11 +85,13 @@ async function bundleFiles(files, outputPath, loader = 'js') {
 
 // Bundle Design System JavaScript modules and expose to window
 async function bundleDesignSystemModules() {
-  // Create a temporary entry file in client directory for relative imports
-  const tempEntryContent = `import Dropdown from './design-system/components/dropdown/dropdown.js';
-import NumericSlider from './design-system/components/numeric-slider/numeric-slider.js';
+  // Use absolute paths for imports to avoid resolution issues in CI
+  const designSystemDir = path.join(__dirname, 'client', 'design-system');
+  const dropdownPath = path.join(designSystemDir, 'components', 'dropdown', 'dropdown.js');
+  const sliderPath = path.join(designSystemDir, 'components', 'numeric-slider', 'numeric-slider.js');
 
-// Expose to window for global access
+  const tempEntryContent = `import Dropdown from ${JSON.stringify(dropdownPath)};
+import NumericSlider from ${JSON.stringify(sliderPath)};
 window.Dropdown = Dropdown;
 window.NumericSlider = NumericSlider;
 `;
